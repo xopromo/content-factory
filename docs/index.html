@@ -559,27 +559,61 @@ function toast(msg, ms = 3000) {
   toastTimer = setTimeout(() => el.classList.remove('show'), ms);
 }
 
+/* ─── Fetch current job step name ─────────────────────────────────── */
+async function ghGetCurrentStep(runId) {
+  try {
+    const r = await fetch(`${API}/repos/${REPO}/actions/runs/${runId}/jobs`, { headers: ghHeaders() });
+    if (!r.ok) return null;
+    const d = await r.json();
+    const job = (d.jobs || [])[0];
+    if (!job) return null;
+    // find the in_progress step
+    const active = (job.steps || []).find(s => s.status === 'in_progress');
+    if (active) return active.name;
+    // fallback: last completed step
+    const done = (job.steps || []).filter(s => s.status === 'completed');
+    return done.length ? '✓ ' + done[done.length - 1].name : null;
+  } catch { return null; }
+}
+
 /* ─── Poll a workflow run until completed (max 5 min) ─────────────── */
 async function pollRun(statusId, workflow, afterIso) {
-  setStatus(statusId, 'info', '<span class="spin"></span> Ищем запущенный run…');
+  const startedAt = Date.now();
+  const elapsed   = () => {
+    const s = Math.floor((Date.now() - startedAt) / 1000);
+    return s < 60 ? `${s}с` : `${Math.floor(s/60)}м ${s%60}с`;
+  };
+
+  // ── Шаг 1: отправлен запрос, ищем run ─────────────────────────────
+  setStatus(statusId, 'info', '<span class="spin"></span> [1/4] Запрос отправлен, ждём появления run…');
   let runId = null;
   for (let i = 0; i < 15; i++) {
     await sleep(3000);
     runId = await ghFindRun(workflow, afterIso);
     if (runId) break;
+    setStatus(statusId, 'info', `<span class="spin"></span> [1/4] Ищем run… (${elapsed()})`);
   }
   if (!runId) throw new Error('Не удалось найти запущенный workflow run');
 
-  for (let i = 0; i < 60; i++) {
+  // ── Шаг 2: run найден, ждём завершения ────────────────────────────
+  setStatus(statusId, 'info', `<span class="spin"></span> [2/4] Run #${runId} запущен, выполняется…`);
+
+  for (let i = 0; i < 72; i++) {
     await sleep(5000);
     const { status, conclusion, url } = await ghRunStatus(runId);
+
     if (status === 'completed') {
       if (conclusion === 'success') return runId;
-      throw new Error(`Run завершился с ошибкой: <a href="${url}" target="_blank">${conclusion}</a>`);
+      throw new Error(`Run завершился с ошибкой: <a href="${url}" target="_blank">${conclusion} ↗</a>`);
     }
-    setStatus(statusId, 'info', `<span class="spin"></span> Run #${runId}: ${status}…`);
+
+    // Запрашиваем текущий шаг из jobs API
+    const step = await ghGetCurrentStep(runId);
+    const stepLabel = step ? `<br><span style="font-size:12px;color:var(--muted);padding-left:20px">▶ ${esc(step)}</span>` : '';
+    setStatus(statusId, 'info',
+      `<span class="spin"></span> [2/4] Run #${runId} — ${elapsed()} ${stepLabel}`);
   }
-  throw new Error('Timeout: run не завершился за 5 минут');
+  throw new Error('Timeout: run не завершился за 6 минут');
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -600,7 +634,7 @@ async function runSearch() {
   const after = new Date(Date.now() - 5000).toISOString().slice(0, 19) + 'Z';
 
   try {
-    setStatus('st-search', 'info', '<span class="spin"></span> Запускаем поиск…');
+    setStatus('st-search', 'info', '<span class="spin"></span> [1/4] Отправляем запрос в GitHub Actions…');
     await ghDispatch('search.yml', {
       query:         q,
       mode:          document.getElementById('sq-mode').value,
@@ -608,8 +642,11 @@ async function runSearch() {
       detail_top:    String(document.getElementById('sq-detail').value),
       custom_prompt: document.getElementById('sq-custom').value,
     });
+    setStatus('st-search', 'info', '<span class="spin"></span> [2/4] Запрос принят, ищем run…');
     await pollRun('st-search', 'search.yml', after);
-    resData = null; // force reload on Results tab
+    setStatus('st-search', 'info', '<span class="spin"></span> [4/4] Готово, загружаем результаты…');
+    resData = null;
+    await sleep(1500);
     setStatus('st-search', 'success',
       '✅ Поиск завершён! <a href="#" onclick="switchTab(\'results\');loadResults();return false">Посмотреть результаты →</a>');
   } catch (e) {
@@ -822,15 +859,16 @@ async function runRewrite() {
   const after = new Date(Date.now() - 5000).toISOString().slice(0, 19) + 'Z';
 
   try {
-    setStatus('st-rw', 'info', '<span class="spin"></span> Запускаем рерайт…');
+    setStatus('st-rw', 'info', '<span class="spin"></span> [1/4] Отправляем запрос в GitHub Actions…');
     await ghDispatch('rewrite.yml', {
       url:   isUrl ? url : '',
       text:  isUrl ? '' : text.slice(0, 5000),
       style,
     });
+    setStatus('st-rw', 'info', '<span class="spin"></span> [2/4] Запрос принят, ищем run…');
     await pollRun('st-rw', 'rewrite.yml', after);
 
-    setStatus('st-rw', 'info', '<span class="spin"></span> Загружаем результат…');
+    setStatus('st-rw', 'info', '<span class="spin"></span> [4/4] Загружаем результат…');
     let result = null;
     for (let i = 0; i < 6; i++) {
       await sleep(2000);
