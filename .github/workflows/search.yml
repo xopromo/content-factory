@@ -398,15 +398,15 @@ jobs:
                   return None
               prompt = PROMPTS.get(mode, PROMPTS['summarize'])
 
+              result = _try_openai_compat('Mistral', 'https://api.mistral.ai/v1/chat/completions',
+                                          'mistral-small-latest', mistral_key, text, prompt)
+              if result: return result
+
               result = _try_gemini(text, prompt)
               if result: return result
 
               result = _try_openai_compat('Cerebras', 'https://api.cerebras.ai/v1/chat/completions',
                                           'llama3.1-8b', cerebras_key, text, prompt)
-              if result: return result
-
-              result = _try_openai_compat('Mistral', 'https://api.mistral.ai/v1/chat/completions',
-                                          'mistral-small-latest', mistral_key, text, prompt)
               if result: return result
 
               result = _try_openai_compat('Groq', 'https://api.groq.com/openai/v1/chat/completions',
@@ -442,13 +442,13 @@ jobs:
                   ft = item.get('full_text', '')
                   if ft and not ft.startswith('FETCH_ERROR'):
                       print(f"  [{i+1}/{detail_top}] Deep LLM processing...")
-                      detail = _try_gemini(ft[:12000], DETAIL_PROMPT)
+                      detail = _try_openai_compat('Mistral', 'https://api.mistral.ai/v1/chat/completions',
+                                                      'mistral-small-latest', mistral_key, ft[:12000], DETAIL_PROMPT, max_tokens=3000)
+                      if not detail:
+                          detail = _try_gemini(ft[:12000], DETAIL_PROMPT)
                       if not detail:
                           detail = _try_openai_compat('Cerebras', 'https://api.cerebras.ai/v1/chat/completions',
                                                       'llama3.1-8b', cerebras_key, ft[:12000], DETAIL_PROMPT, max_tokens=3000)
-                      if not detail:
-                          detail = _try_openai_compat('Mistral', 'https://api.mistral.ai/v1/chat/completions',
-                                                      'mistral-small-latest', mistral_key, ft[:12000], DETAIL_PROMPT, max_tokens=3000)
                       if not detail:
                           detail = _try_openai_compat('Groq', 'https://api.groq.com/openai/v1/chat/completions',
                                                       'llama-3.3-70b-versatile', groq_key, ft[:12000], DETAIL_PROMPT, max_tokens=3000)

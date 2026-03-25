@@ -165,13 +165,13 @@ jobs:
                   return None
 
           print(f"\nRewriting as [{style}]...")
-          rewritten = _try_gemini(source_text, prompt)
+          rewritten = _try_compat('Mistral', 'https://api.mistral.ai/v1/chat/completions',
+                                  'mistral-small-latest', mistral_key, source_text, prompt)
+          if not rewritten:
+              rewritten = _try_gemini(source_text, prompt)
           if not rewritten:
               rewritten = _try_compat('Cerebras', 'https://api.cerebras.ai/v1/chat/completions',
                                       'llama3.1-8b', cerebras_key, source_text, prompt)
-          if not rewritten:
-              rewritten = _try_compat('Mistral', 'https://api.mistral.ai/v1/chat/completions',
-                                      'mistral-small-latest', mistral_key, source_text, prompt)
           if not rewritten:
               rewritten = _try_compat('Groq', 'https://api.groq.com/openai/v1/chat/completions',
                                       'llama-3.3-70b-versatile', groq_key, source_text, prompt)
