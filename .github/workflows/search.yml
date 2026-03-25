@@ -1,0 +1,440 @@
+name: Web Search & Research
+
+on:
+  workflow_dispatch:
+    inputs:
+      query:
+        description: 'Search query'
+        required: true
+        type: string
+      mode:
+        description: 'What to do with results'
+        required: true
+        type: choice
+        options:
+          - snippets_only   # быстро: только сниппеты из поиска (как раньше)
+          - summarize       # скачать страницы + краткое саммари через Groq
+          - analyze         # скачать + анализ применимости к USE Optimizer
+          - extract         # скачать + извлечь конкретные данные/формулы/числа
+          - full_text       # скачать + сохранить полный текст (без LLM, бесплатно)
+          - custom          # скачать + кастомный промпт
+        default: summarize
+      custom_prompt:
+        description: 'Custom prompt for Groq (only for mode=custom)'
+        required: false
+        type: string
+        default: ''
+      max_urls:
+        description: 'Max URLs to fetch & process (1-10, ignored for snippets_only)'
+        required: false
+        type: string
+        default: '5'
+      detail_top:
+        description: 'Deep-dive for top N results: full article ~500 words (0=off, 1-3)'
+        required: false
+        type: string
+        default: '0'
+
+permissions:
+  contents: write
+
+jobs:
+  search:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: pip install duckduckgo-search requests beautifulsoup4 -q 2>/dev/null
+
+      - name: Load seen URLs (dedup history)
+        run: |
+          # Загружаем seen_urls.json из ветки search-results (если есть)
+          curl -sf \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3.raw" \
+            "https://api.github.com/repos/${{ github.repository }}/contents/seen_urls.json?ref=search-results" \
+            -o seen_urls.json 2>/dev/null || true
+          # Validate JSON; reset if missing or corrupt
+          python3 -c "import json; json.load(open('seen_urls.json'))" 2>/dev/null \
+            || echo '{"urls": []}' > seen_urls.json
+          COUNT=$(python3 -c "import json; print(len(json.load(open('seen_urls.json')).get('urls', [])))" 2>/dev/null || echo 0)
+          echo "Loaded $COUNT seen URLs"
+
+      - name: Search & Fetch & Process
+        run: |
+          python3 << 'PYEOF'
+          import json, sys, os, time, requests
+          from urllib.parse import quote_plus
+
+          query        = os.environ['SEARCH_QUERY']
+          mode         = os.environ.get('MODE', 'summarize')
+          custom_prompt= os.environ.get('CUSTOM_PROMPT', '')
+          max_urls     = int(os.environ.get('MAX_URLS', '5'))
+          detail_top   = int(os.environ.get('DETAIL_TOP', '0'))
+          groq_key     = os.environ.get('GROQ_KEY', '')
+
+          UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+
+          # ── Load dedup history ─────────────────────────────────────────────
+          try:
+              with open('seen_urls.json') as f:
+                  seen_data = json.load(f)
+              seen_urls = set(seen_data.get('urls', []))
+          except Exception:
+              seen_urls = set()
+          print(f"Dedup: {len(seen_urls)} URLs in history")
+
+          # ── STEP 1: Search ─────────────────────────────────────────────────
+          all_results = []
+          errors      = []
+
+          # Method 1: duckduckgo-search package
+          try:
+              from duckduckgo_search import DDGS
+              with DDGS(headers={'User-Agent': UA}) as d:
+                  for r in d.text(query, max_results=15):
+                      all_results.append({
+                          'title':     r.get('title', ''),
+                          'url':       r.get('href', ''),
+                          'snippet':   r.get('body', ''),
+                          'full_text': None,
+                          'processed': None,
+                          'is_new':    r.get('href', '') not in seen_urls,
+                      })
+              print(f"Method 1 (DDGS): {len(all_results)} results")
+          except Exception as e:
+              errors.append(f'DDGS: {e}')
+              print(f"Method 1 failed: {e}", file=sys.stderr)
+
+          # Method 2: DDG HTML scrape
+          if not all_results:
+              try:
+                  from bs4 import BeautifulSoup
+                  from urllib.parse import parse_qs, urlparse, unquote
+                  q = quote_plus(query)
+                  r = requests.get(f'https://html.duckduckgo.com/html/?q={q}',
+                                   headers={'User-Agent': UA}, timeout=15)
+                  soup = BeautifulSoup(r.text, 'html.parser')
+                  for tag in soup.find_all('div', class_='result'):
+                      a    = tag.find('a', class_='result__a')
+                      snip = tag.find('a', class_='result__snippet')
+                      if a:
+                          raw_url = a.get('href', '')
+                          # Decode DDG redirect URL (//duckduckgo.com/l/?uddg=...)
+                          if 'duckduckgo.com/l/' in raw_url or raw_url.startswith('//duckduckgo.com'):
+                              full = raw_url if raw_url.startswith('http') else 'https:' + raw_url
+                              qs   = parse_qs(urlparse(full).query)
+                              url  = unquote(qs.get('uddg', [''])[0]) or raw_url
+                          else:
+                              url = raw_url
+                          all_results.append({
+                              'title':     a.get_text(strip=True),
+                              'url':       url,
+                              'snippet':   snip.get_text(strip=True) if snip else '',
+                              'full_text': None,
+                              'processed': None,
+                              'is_new':    url not in seen_urls,
+                          })
+                  print(f"Method 2 (DDG HTML): {len(all_results)} results")
+              except Exception as e:
+                  errors.append(f'DDG HTML: {e}')
+                  print(f"Method 2 failed: {e}", file=sys.stderr)
+
+          # Method 3: Bing
+          if not all_results:
+              try:
+                  from bs4 import BeautifulSoup
+                  q = quote_plus(query)
+                  r = requests.get(f'https://www.bing.com/search?q={q}',
+                                   headers={'User-Agent': UA}, timeout=15)
+                  soup = BeautifulSoup(r.text, 'html.parser')
+                  for li in soup.find_all('li', class_='b_algo')[:15]:
+                      h2 = li.find('h2')
+                      p  = li.find('p')
+                      if h2 and h2.find('a'):
+                          url = h2.find('a').get('href', '')
+                          all_results.append({
+                              'title':     h2.get_text(strip=True),
+                              'url':       url,
+                              'snippet':   p.get_text(strip=True) if p else '',
+                              'full_text': None,
+                              'processed': None,
+                              'is_new':    url not in seen_urls,
+                          })
+                  print(f"Method 3 (Bing): {len(all_results)} results")
+              except Exception as e:
+                  errors.append(f'Bing: {e}')
+                  print(f"Method 3 failed: {e}", file=sys.stderr)
+
+          # ── Dedup: prefer new, fall back to old if nothing new ─────────────
+          new_results = [r for r in all_results if r['is_new']]
+          old_results = [r for r in all_results if not r['is_new']]
+          # For fetch/process: use new results first, pad with old if needed
+          results_to_process = (new_results + old_results)[:max_urls]
+
+          print(f"Search done: {len(all_results)} total, {len(new_results)} new, {len(old_results)} already seen")
+
+          # ── STEP 2: Fetch full page content ────────────────────────────────
+          FALLBACK_UAS = [
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+              'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0',
+          ]
+
+          def fetch_page(url):
+              """Fetch page with retry on 403/429/5xx using different User-Agents."""
+              from bs4 import BeautifulSoup
+              last_err = None
+              for attempt, ua in enumerate([UA] + FALLBACK_UAS):
+                  try:
+                      if attempt > 0:
+                          wait = 2 ** attempt  # 2, 4, 8 sec
+                          print(f"    Retry {attempt} (UA#{attempt}) after {wait}s...")
+                          time.sleep(wait)
+                      resp = requests.get(url, headers={'User-Agent': ua}, timeout=20)
+                      if resp.status_code == 429:
+                          retry_after = int(resp.headers.get('Retry-After', 5))
+                          print(f"    429 Rate limit, waiting {retry_after}s...")
+                          time.sleep(retry_after)
+                          continue
+                      resp.raise_for_status()
+                      soup = BeautifulSoup(resp.text, 'html.parser')
+                      for tag in soup(['script', 'style', 'nav', 'footer',
+                                       'header', 'aside', 'form']):
+                          tag.decompose()
+                      text  = soup.get_text(separator='\n')
+                      lines = [l.strip() for l in text.splitlines() if l.strip()]
+                      return '\n'.join(lines)
+                  except Exception as e:
+                      last_err = e
+                      if '403' not in str(e) and '429' not in str(e) and '5' not in str(e)[:3]:
+                          break  # не ретраить если ошибка не связана с блокировкой
+              return None, last_err
+
+          if mode != 'snippets_only' and results_to_process:
+              print(f"\nFetching {len(results_to_process)} pages...")
+
+              for i, item in enumerate(results_to_process):
+                  url = item['url']
+                  print(f"  [{i+1}/{len(results_to_process)}] {url[:70]}...")
+                  result = fetch_page(url)
+                  if isinstance(result, tuple):
+                      _, err = result
+                      item['full_text'] = f"FETCH_ERROR: {err}"
+                      print(f"    ERROR (all retries failed): {err}", file=sys.stderr)
+                  else:
+                      item['full_text'] = result[:15000]
+                      print(f"    {len(result)} chars fetched")
+                  time.sleep(1)
+
+          # ── STEP 3: Process with Groq ───────────────────────────────────────
+          PROMPTS = {
+              'summarize': (
+                  'Перескажи главные идеи этого текста в 3-5 чётких пунктах на русском. '
+                  'Будь конкретен, избегай воды.'
+              ),
+              'analyze': (
+                  'Проанализируй применимость этого текста к проекту USE Optimizer '
+                  '(веб-бэктестер торговых стратегий, JS, Pine Script).\n\n'
+                  'Формат ответа:\n'
+                  'ОЦЕНКА: X/10\n'
+                  'ИДЕИ: (конкретные идеи для реализации)\n'
+                  'ФАЙЛ: (opt.js / core.js / pine_export.js / ui.js)\n'
+                  'СЛОЖНОСТЬ: низкая / средняя / высокая'
+              ),
+              'extract': (
+                  'Извлеки все конкретные данные из текста: формулы, алгоритмы, '
+                  'числовые параметры, пороговые значения, псевдокод. '
+                  'Без вступлений, только факты.'
+              ),
+              'custom': custom_prompt or 'Проанализируй этот текст.',
+          }
+
+          def groq_process(text, mode):
+              if not groq_key or mode in ('snippets_only', 'full_text'):
+                  return None
+              prompt = PROMPTS.get(mode, PROMPTS['summarize'])
+              for attempt in range(4):  # max 4 попытки
+                  try:
+                      if attempt > 0:
+                          wait = 2 ** attempt  # 2, 4, 8 sec
+                          print(f"    Groq retry {attempt} after {wait}s...")
+                          time.sleep(wait)
+                      resp = requests.post(
+                          'https://api.groq.com/openai/v1/chat/completions',
+                          headers={
+                              'Authorization': f'Bearer {groq_key}',
+                              'Content-Type':  'application/json',
+                          },
+                          json={
+                              'model': 'llama-3.3-70b-versatile',
+                              'messages': [
+                                  {
+                                      'role':    'system',
+                                      'content': (
+                                          'Ты исследователь алгоритмической торговли. '
+                                          'Отвечай кратко и по делу на русском.'
+                                      ),
+                                  },
+                                  {
+                                      'role':    'user',
+                                      'content': f'{prompt}\n\nТЕКСТ:\n{text[:8000]}',
+                                  },
+                              ],
+                              'max_tokens':  1024,
+                              'temperature': 0.3,
+                          },
+                          timeout=30,
+                      )
+                      if resp.status_code == 429:
+                          retry_after = int(resp.headers.get('Retry-After', 2 ** attempt))
+                          print(f"    Groq 429 rate limit, waiting {retry_after}s...")
+                          time.sleep(retry_after)
+                          continue
+                      data = resp.json()
+                      if 'choices' in data:
+                          usage = data.get('usage', {})
+                          print(f"    Groq tokens: {usage.get('prompt_tokens',0)} in / {usage.get('completion_tokens',0)} out")
+                          return data['choices'][0]['message']['content']
+                      err_msg = data.get('error', {})
+                      if isinstance(err_msg, dict) and err_msg.get('type') == 'tokens':
+                          print(f"    Groq token limit: {err_msg.get('message','')}")
+                          time.sleep(5)
+                          continue
+                      return f"Groq error: {err_msg}"
+                  except Exception as e:
+                      if attempt == 3:
+                          return f"Groq failed: {e}"
+                      print(f"    Groq exception: {e}, retrying...")
+              return "Groq failed: max retries exceeded"
+
+          if mode not in ('snippets_only', 'full_text') and results_to_process:
+              print(f"\nProcessing with Groq (mode={mode})...")
+              for i, item in enumerate(results_to_process):
+                  ft = item.get('full_text', '')
+                  if ft and not ft.startswith('FETCH_ERROR'):
+                      print(f"  [{i+1}/{len(results_to_process)}] Groq processing...")
+                      item['processed'] = groq_process(ft, mode)
+                      time.sleep(0.5)
+
+          # ── STEP 3b: Deep-dive for top N results ───────────────────────────
+          DETAIL_PROMPT = (
+              'Напиши полноценную новостную заметку на русском языке на основе этого текста.\n'
+              'Структура:\n'
+              '**Заголовок** (одна строка)\n\n'
+              '**Суть** (2-3 предложения — что произошло)\n\n'
+              '**Детали** (3-5 абзацев — кто, что, зачем, цифры, цитаты если есть)\n\n'
+              '**Значение** (1-2 предложения — почему это важно)\n\n'
+              'Пиши конкретно, без воды. Объём ~400-600 слов.'
+          )
+
+          if detail_top > 0 and groq_key and mode not in ('snippets_only', 'full_text'):
+              print(f"\nDeep-dive for top {detail_top} results...")
+              for i, item in enumerate(results_to_process[:detail_top]):
+                  ft = item.get('full_text', '')
+                  if ft and not ft.startswith('FETCH_ERROR'):
+                      print(f"  [{i+1}/{detail_top}] Deep Groq processing...")
+                      for attempt in range(4):
+                          try:
+                              if attempt > 0:
+                                  wait = 2 ** attempt
+                                  print(f"    Retry {attempt} after {wait}s...")
+                                  time.sleep(wait)
+                              resp = requests.post(
+                                  'https://api.groq.com/openai/v1/chat/completions',
+                                  headers={
+                                      'Authorization': f'Bearer {groq_key}',
+                                      'Content-Type':  'application/json',
+                                  },
+                                  json={
+                                      'model': 'llama-3.3-70b-versatile',
+                                      'messages': [
+                                          {'role': 'system', 'content': 'Ты журналист, специализирующийся на технологиях и ИИ. Пиши чётко и информативно на русском.'},
+                                          {'role': 'user',   'content': f'{DETAIL_PROMPT}\n\nТЕКСТ:\n{ft[:12000]}'},
+                                      ],
+                                      'max_tokens':  3000,
+                                      'temperature': 0.4,
+                                  },
+                                  timeout=60,
+                              )
+                              if resp.status_code == 429:
+                                  wait = int(resp.headers.get('Retry-After', 2 ** attempt))
+                                  print(f"    429 rate limit, waiting {wait}s...")
+                                  time.sleep(wait)
+                                  continue
+                              data = resp.json()
+                              if 'choices' in data:
+                                  usage = data.get('usage', {})
+                                  print(f"    Groq tokens: {usage.get('prompt_tokens',0)} in / {usage.get('completion_tokens',0)} out")
+                                  item['detail'] = data['choices'][0]['message']['content']
+                                  print(f"    {len(item['detail'])} chars detail generated")
+                              break
+                          except Exception as e:
+                              if attempt == 3:
+                                  item['detail'] = f"Detail failed: {e}"
+                      time.sleep(1)
+
+          # ── STEP 4: Update seen_urls ────────────────────────────────────────
+          all_new_urls = [r['url'] for r in all_results if r['url']]
+          updated_seen = list(seen_urls | set(all_new_urls))
+          # Keep last 2000 URLs to avoid unbounded growth
+          updated_seen = updated_seen[-2000:]
+          with open('seen_urls.json', 'w') as f:
+              json.dump({'urls': updated_seen, 'total': len(updated_seen)}, f, indent=2)
+
+          # ── STEP 5: Save results ────────────────────────────────────────────
+          output = {
+              'query':        query,
+              'mode':         mode,
+              'total_found':  len(all_results),
+              'new_results':  len(new_results),
+              'already_seen': len(old_results),
+              'processed':    len(results_to_process) if mode != 'snippets_only' else 0,
+              'results':      results_to_process,   # processed (new first)
+              'all_snippets': all_results,           # all found with is_new flag
+          }
+          if errors and not all_results:
+              output['errors'] = errors
+
+          with open('search_results.json', 'w', encoding='utf-8') as f:
+              json.dump(output, f, ensure_ascii=False, indent=2)
+
+          groq_count   = sum(1 for r in results_to_process if r.get('processed'))
+          detail_count = sum(1 for r in results_to_process if r.get('detail'))
+          print(f"\nDone: {len(all_results)} found ({len(new_results)} new), "
+                f"{len(results_to_process)} fetched, {groq_count} summarized, "
+                f"{detail_count} deep-dived")
+          # Token summary is visible per-call above (search for "Groq tokens:")
+          PYEOF
+        env:
+          SEARCH_QUERY:   ${{ inputs.query }}
+          MODE:           ${{ inputs.mode }}
+          CUSTOM_PROMPT:  ${{ inputs.custom_prompt }}
+          MAX_URLS:       ${{ inputs.max_urls }}
+          DETAIL_TOP:     ${{ inputs.detail_top }}
+          GROQ_KEY:       ${{ secrets.GROQ_KEY }}
+
+      - name: Push results to search-results branch
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+
+          # Save files to /tmp before switching branch
+          cp search_results.json /tmp/results.json
+          cp seen_urls.json /tmp/seen_urls.json
+
+          git fetch origin search-results 2>/dev/null && \
+              git checkout -B search-results origin/search-results || \
+              git checkout --orphan search-results
+
+          git rm -rf . --quiet 2>/dev/null || true
+
+          cp /tmp/results.json results.json
+          cp /tmp/seen_urls.json seen_urls.json
+
+          git add results.json seen_urls.json
+          git commit -m "search[${{ inputs.mode }}]: ${{ inputs.query }}" --allow-empty
+          git push -f origin search-results
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
