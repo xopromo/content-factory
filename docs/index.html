@@ -19,12 +19,15 @@
   --red:      #f85149;
   --orange:   #d29922;
   --purple:   #bc8cff;
+  --ff:       system-ui, -apple-system, sans-serif;
 }
+/* html font-size is the single source of truth — JS sets it directly */
+html { font-size: 13px; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-size: var(--fs, 13px);
-  font-family: var(--ff, system-ui, -apple-system, sans-serif);
+  font-size: 1rem;           /* always tracks html font-size */
+  font-family: var(--ff);
   font-weight: 400;
   line-height: 1.55;
   min-height: 100vh;
@@ -38,7 +41,7 @@ input, select, textarea {
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 6px;
-  padding: 7px 10px;
+  padding: .54em .77em;
   font: inherit;
   width: 100%;
   transition: border-color .15s;
@@ -54,7 +57,7 @@ select option { background: var(--surface2); }
 /* ─── Buttons ──────────────────────────────────────────────────────── */
 button {
   cursor: pointer; border: none; border-radius: 6px;
-  padding: 7px 16px; font: inherit; font-weight: 500;
+  padding: .54em 1.23em; font: inherit; font-weight: 500;
   transition: background .15s, opacity .15s;
   white-space: nowrap;
 }
@@ -64,65 +67,62 @@ button {
 .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
 .btn-secondary:hover  { background: var(--border); }
 .btn-secondary:disabled { opacity: .45; cursor: default; }
-.btn-danger    { background: transparent; color: var(--red); border: 1px solid var(--red); padding: 4px 10px; font-size: 12px; }
+.btn-danger    { background: transparent; color: var(--red); border: 1px solid var(--red); padding: .31em .77em; font-size: .92rem; }
 .btn-danger:hover   { background: var(--red); color: #fff; }
-.btn-sm { padding: 4px 10px; font-size: 12px; }
-.btn-xs { padding: 2px 8px;  font-size: 11px; }
+.btn-sm { padding: .31em .77em; font-size: .92rem; }
+.btn-xs { padding: .15em .62em; font-size: .85rem; }
 .btn-green { background: #1a4731; color: var(--green); border: 1px solid #2d6a4f; }
 .btn-green:hover { background: #2d6a4f; }
 
 /* ─── Header ───────────────────────────────────────────────────────── */
 .header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 20px; background: var(--surface);
+  padding: .77em 1.54em; background: var(--surface);
   border-bottom: 1px solid var(--border);
   position: sticky; top: 0; z-index: 200;
 }
-.header-logo { display: flex; align-items: center; gap: 8px; }
-.header-logo h1 { font-size: 15px; font-weight: 700; letter-spacing: -.3px; }
-.header-right { display: flex; align-items: center; gap: 10px; }
-.token-row { display: flex; align-items: center; gap: 6px; }
+.header-logo { display: flex; align-items: center; gap: .62em; }
+.header-logo h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -.3px; }
+.header-right { display: flex; align-items: center; gap: .77em; }
+.token-row { display: flex; align-items: center; gap: .46em; }
 .token-row input { width: 230px; }
-.token-dot { font-size: 16px; line-height: 1; }
+.token-dot { font-size: 1.23rem; line-height: 1; }
 .token-dot.ok  { color: var(--green); }
 .token-dot.bad { color: var(--red); }
 
 /* ─── Tabs ─────────────────────────────────────────────────────────── */
 .tabs {
-  display: flex; gap: 0; padding: 0 20px;
+  display: flex; gap: 0; padding: 0 1.54em;
   background: var(--surface); border-bottom: 1px solid var(--border);
   overflow-x: auto;
 }
 .tab {
-  padding: 10px 18px; cursor: pointer; border-radius: 6px 6px 0 0;
-  color: var(--muted); font-weight: 500; font-size: 13px;
+  padding: .77em 1.38em; cursor: pointer; border-radius: 6px 6px 0 0;
+  color: var(--muted); font-weight: 500; font-size: 1rem;
   border: 1px solid transparent; border-bottom: none;
   margin-bottom: -1px; white-space: nowrap;
 }
 .tab:hover { color: var(--text); }
-.tab.active {
-  color: var(--text); background: var(--bg);
-  border-color: var(--border);
-}
+.tab.active { color: var(--text); background: var(--bg); border-color: var(--border); }
 
 /* ─── Page content ─────────────────────────────────────────────────── */
-.page { padding: 20px; max-width: 860px; margin: 0 auto; }
+.page { padding: 1.54em; max-width: 860px; margin: 0 auto; }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
 /* ─── Form helpers ─────────────────────────────────────────────────── */
-.field { margin-bottom: 14px; }
-.field label { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .4px; }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.field { margin-bottom: 1.08em; }
+.field label { display: block; font-size: .92rem; color: var(--muted); font-weight: 600; margin-bottom: .31em; text-transform: uppercase; letter-spacing: .4px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: .92em; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .92em; }
 @media (max-width: 600px) { .row2, .row3 { grid-template-columns: 1fr; } }
 
 /* ─── Status banners ───────────────────────────────────────────────── */
 .status {
-  padding: 10px 14px; border-radius: 6px;
-  font-size: 13px; margin-bottom: 12px; display: none;
+  padding: .77em 1.08em; border-radius: 6px;
+  font-size: 1rem; margin-bottom: .92em; display: none;
 }
-.status.show { display: flex; align-items: center; gap: 8px; }
+.status.show { display: flex; align-items: center; gap: .62em; }
 .status.info    { background: #0c2340; border: 1px solid #1e4a7a; color: #79c0ff; }
 .status.success { background: #0a2318; border: 1px solid #1d4228; color: var(--green); }
 .status.error   { background: #2d0f0f; border: 1px solid #5a1e1e; color: var(--red); }
@@ -131,74 +131,65 @@ button {
 /* ─── Cards ────────────────────────────────────────────────────────── */
 .card {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;
+  border-radius: 8px; padding: 1.08em 1.23em; margin-bottom: .77em;
   transition: opacity .2s;
 }
 .card.faded { opacity: .4; }
-.card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
-.card-title { font-weight: 500; font-size: 13px; line-height: 1.4; }
-.card-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-.card-domain { font-size: 12px; color: var(--muted); }
-.card-snippet { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .77em; margin-bottom: .31em; }
+.card-title { font-weight: 500; font-size: 1rem; line-height: 1.4; }
+.card-meta { display: flex; align-items: center; gap: .62em; margin-bottom: .62em; flex-wrap: wrap; }
+.card-domain { font-size: .92rem; color: var(--muted); }
+.card-snippet { font-size: .92rem; color: var(--muted); margin-bottom: .62em; }
 .card-summary {
-  font-size: 13px; background: var(--surface2); border-radius: 6px;
-  padding: 10px 12px; margin-bottom: 8px; white-space: pre-wrap; line-height: 1.6;
+  font-size: .92rem; background: var(--surface2); border-radius: 6px;
+  padding: .77em .92em; margin-bottom: .62em; white-space: pre-wrap; line-height: 1.6;
 }
-.card-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.card-actions { display: flex; gap: .46em; flex-wrap: wrap; align-items: center; }
 
 /* ─── Badges ───────────────────────────────────────────────────────── */
-.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge { display: inline-block; padding: .15em .62em; border-radius: 20px; font-size: .85rem; font-weight: 600; }
 .badge-new  { background: #0f2d1a; color: var(--green); border: 1px solid #1d4228; }
 .badge-seen { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
 .badge-excl { background: #2d1515; color: var(--red); border: 1px solid #5a2a2a; }
-.badge-count { background: var(--surface2); color: var(--text); border: 1px solid var(--border); font-size: 12px; padding: 1px 8px; border-radius: 10px; }
+.badge-count { background: var(--surface2); color: var(--text); border: 1px solid var(--border); font-size: .92rem; padding: .08em .62em; border-radius: 10px; }
 
 /* ─── Stats bar ────────────────────────────────────────────────────── */
-.stats { display: flex; gap: 20px; font-size: 12px; color: var(--muted); margin-bottom: 14px; flex-wrap: wrap; }
+.stats { display: flex; gap: 1.54em; font-size: .92rem; color: var(--muted); margin-bottom: 1.08em; flex-wrap: wrap; }
 .stats span b { color: var(--text); }
 
 /* ─── Exclusions ───────────────────────────────────────────────────── */
-.excl-section { margin-bottom: 22px; }
-.excl-section-head {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 8px;
-}
-.excl-section-head h3 {
-  font-size: 12px; font-weight: 700; color: var(--muted);
-  text-transform: uppercase; letter-spacing: .5px;
-}
-.tag-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 32px; margin-bottom: 8px; }
+.excl-section { margin-bottom: 1.69em; }
+.excl-section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .62em; }
+.excl-section-head h3 { font-size: .92rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.tag-list { display: flex; flex-wrap: wrap; gap: .46em; min-height: 2em; margin-bottom: .62em; }
 .tag {
-  display: inline-flex; align-items: center; gap: 5px;
+  display: inline-flex; align-items: center; gap: .38em;
   background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 20px; padding: 3px 10px 3px 12px; font-size: 13px;
+  border-radius: 20px; padding: .23em .77em .23em .92em; font-size: 1rem;
 }
 .tag-rm {
   background: none; border: none; color: var(--muted);
-  cursor: pointer; font-size: 15px; line-height: 1; padding: 0 2px;
+  cursor: pointer; font-size: 1.15rem; line-height: 1; padding: 0 .15em;
   border-radius: 50%;
 }
 .tag-rm:hover { color: var(--red); background: rgba(248,81,73,.15); }
-.add-row { display: flex; gap: 8px; }
+.add-row { display: flex; gap: .62em; }
 .add-row input { flex: 1; }
 
 /* ─── Rewrite result ───────────────────────────────────────────────── */
-.rw-result-wrap { margin-top: 16px; }
-.rw-result-head {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 8px;
-}
-.rw-result-head b { font-size: 14px; }
+.rw-result-wrap { margin-top: 1.23em; }
+.rw-result-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .62em; }
+.rw-result-head b { font-size: 1.08rem; }
 .rw-result {
   background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 6px; padding: 14px; white-space: pre-wrap;
-  font-size: 14px; line-height: 1.7; max-height: 500px; overflow-y: auto;
+  border-radius: 6px; padding: 1.08em; white-space: pre-wrap;
+  font-size: 1rem; line-height: 1.7; max-height: 500px; overflow-y: auto;
 }
 
 /* ─── Spinner ──────────────────────────────────────────────────────── */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin {
-  display: inline-block; width: 13px; height: 13px;
+  display: inline-block; width: 1em; height: 1em;
   border: 2px solid var(--border); border-top-color: var(--blue);
   border-radius: 50%; animation: spin .7s linear infinite;
   vertical-align: middle; flex-shrink: 0;
@@ -206,27 +197,27 @@ button {
 
 /* ─── Toast ────────────────────────────────────────────────────────── */
 #toast {
-  position: fixed; bottom: 24px; right: 24px;
+  position: fixed; bottom: 1.85em; right: 1.85em;
   background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 8px; padding: 10px 16px; font-size: 13px;
+  border-radius: 8px; padding: .77em 1.23em; font-size: 1rem;
   z-index: 9999; pointer-events: none;
   opacity: 0; transform: translateY(8px); transition: .2s;
 }
 #toast.show { opacity: 1; transform: translateY(0); }
 
 /* ─── Empty state ──────────────────────────────────────────────────── */
-.empty { text-align: center; color: var(--muted); padding: 48px 20px; font-size: 14px; }
+.empty { text-align: center; color: var(--muted); padding: 3.69em 1.54em; font-size: 1.08rem; }
 
 /* ─── Divider ──────────────────────────────────────────────────────── */
-.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 1.54em 0; }
 
 /* ─── Excluded list ────────────────────────────────────────────────── */
 .excl-collapsed .excl-items { display: none; }
-.excl-toggle { cursor: pointer; color: var(--muted); font-size: 12px; }
+.excl-toggle { cursor: pointer; color: var(--muted); font-size: .92rem; }
 .excl-toggle:hover { color: var(--text); }
 
 /* ─── Date freshness ───────────────────────────────────────────────── */
-.date-chip { font-size: 11px; padding: 1px 7px; border-radius: 10px; font-weight: 500; }
+.date-chip { font-size: .85rem; padding: .08em .54em; border-radius: 10px; font-weight: 500; }
 .date-fresh  { background: #0a2318; color: var(--green);  border: 1px solid #1d4228; }
 .date-recent { background: #0c2340; color: #79c0ff;       border: 1px solid #1e4a7a; }
 .date-ok     { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
@@ -235,18 +226,21 @@ button {
 
 /* ─── Settings dropdown ────────────────────────────────────────────── */
 .settings-wrap { position: relative; }
-.settings-btn  { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 15px; cursor: pointer; color: var(--muted); }
+.settings-btn  { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: .46em .77em; font-size: 1.15rem; cursor: pointer; color: var(--muted); }
 .settings-btn:hover { color: var(--text); background: var(--border); }
 .settings-panel {
   display: none; position: absolute; right: 0; top: calc(100% + 6px);
   background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-  padding: 14px; width: 240px; z-index: 300; box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  padding: 1.08em; width: 260px; z-index: 300; box-shadow: 0 8px 24px rgba(0,0,0,.4);
 }
 .settings-panel.open { display: block; }
-.settings-panel h4 { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
-.settings-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 13px; }
+.settings-panel h4 { font-size: .85rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: .62em; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: .77em; font-size: 1rem; }
 .settings-row:last-child { margin-bottom: 0; }
-.settings-row select, .settings-row input[type=range] { width: 130px; }
+.settings-row select { width: 140px; }
+.sf-slider-wrap { display: flex; align-items: center; gap: .54em; }
+.sf-slider-wrap input[type=range] { width: 100px; }
+.sf-slider-val { font-size: .92rem; color: var(--text); min-width: 2.5em; text-align: right; }
 </style>
 </head>
 <body>
@@ -254,12 +248,12 @@ button {
 <!-- ═══════════════════════════════ HEADER ═══════════════════════════ -->
 <div class="header">
   <div class="header-logo">
-    <span style="font-size:20px">⚡</span>
+    <span style="font-size:1.54rem">⚡</span>
     <h1>Content Factory</h1>
   </div>
   <div class="header-right">
     <div class="token-row">
-      <span style="font-size:12px;color:var(--muted)">GitHub Token:</span>
+      <span style="font-size:.92rem;color:var(--muted)">GitHub Token:</span>
       <input type="password" id="tokenInput" placeholder="ghp_..." oninput="onTokenInput()" style="width:200px">
       <span class="token-dot" id="tokenDot"></span>
     </div>
@@ -270,12 +264,10 @@ button {
         <h4>Шрифт</h4>
         <div class="settings-row">
           <span>Размер</span>
-          <select id="sf-size" onchange="applyFont()">
-            <option value="12px">Мелкий (12px)</option>
-            <option value="13px" selected>Средний (13px)</option>
-            <option value="14px">Крупный (14px)</option>
-            <option value="16px">Очень крупный (16px)</option>
-          </select>
+          <div class="sf-slider-wrap">
+            <input type="range" id="sf-size" min="6" max="15" value="13" oninput="applyFont()">
+            <span class="sf-slider-val"><span id="sf-size-val">13</span>px</span>
+          </div>
         </div>
         <div class="settings-row">
           <span>Гарнитура</span>
@@ -329,10 +321,10 @@ button {
       </div>
       <div class="field">
         <label>Глубокий анализ топ‑N
-          <span title="Для первых N результатов LLM напишет полноценную статью (~400–600 слов): заголовок, суть, детали, значение. 0 = выкл. Рекомендуется 1–2 — это доп. LLM-вызов и +30–60 сек." style="cursor:help;color:var(--muted);font-size:13px;margin-left:4px;font-weight:400">ⓘ</span>
+          <span title="Для первых N результатов LLM напишет полноценную статью (~400–600 слов): заголовок, суть, детали, значение. 0 = выкл. Рекомендуется 1–2 — это доп. LLM-вызов и +30–60 сек." style="cursor:help;color:var(--muted);font-size:1rem;margin-left:4px;font-weight:400">ⓘ</span>
         </label>
         <input type="number" id="sq-detail" value="0" min="0" max="3">
-        <div style="font-size:11px;color:var(--muted);margin-top:4px">
+        <div style="font-size:.85rem;color:var(--muted);margin-top:4px">
           0 = выкл &nbsp;|&nbsp; 1–3 = написать полную статью для топ‑N результатов (+30–60 сек)
         </div>
       </div>
@@ -351,10 +343,10 @@ button {
   <div class="tab-panel" id="panel-results">
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
       <button class="btn-secondary" id="res-load-btn" onclick="loadResults()">⟳ Загрузить результаты</button>
-      <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer">
+      <label style="display:flex;align-items:center;gap:5px;font-size:1rem;cursor:pointer">
         <input type="checkbox" id="res-new-only" onchange="renderResults()"> Только новые
       </label>
-      <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer">
+      <label style="display:flex;align-items:center;gap:5px;font-size:1rem;cursor:pointer">
         <input type="checkbox" id="res-show-excl"> Показать исключённые
       </label>
     </div>
@@ -426,7 +418,7 @@ button {
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <button class="btn-primary" id="excl-save-btn" onclick="saveExclusions()">💾 Сохранить изменения</button>
       <button class="btn-secondary" onclick="loadExclusions()">↺ Сбросить</button>
-      <span id="excl-saved-at" style="font-size:12px;color:var(--muted)"></span>
+      <span id="excl-saved-at" style="font-size:.92rem;color:var(--muted)"></span>
     </div>
   </div>
 
@@ -484,10 +476,13 @@ button {
    FONT SETTINGS
 ═══════════════════════════════════════════════════════════════════ */
 function applyFont() {
-  const size   = document.getElementById('sf-size').value;
+  const size   = document.getElementById('sf-size').value;  // number px
   const family = document.getElementById('sf-family').value;
-  document.documentElement.style.setProperty('--fs', size);
+  // Set html font-size → all rem values scale automatically
+  document.documentElement.style.fontSize = size + 'px';
   document.documentElement.style.setProperty('--ff', family);
+  const lbl = document.getElementById('sf-size-val');
+  if (lbl) lbl.textContent = size;
   localStorage.setItem('cf_fs', size);
   localStorage.setItem('cf_ff', family);
 }
@@ -750,7 +745,7 @@ async function pollRun(statusId, workflow, afterIso, query = '') {
     if (runId) break;
     setStatus(statusId, 'info',
       `<span class="spin"></span> [1/4] Ждём запуска… (${elapsed()})<br>`+
-      `<span style="font-size:12px;color:var(--muted);padding-left:20px">💭 ${esc(nextPhrase(query))}</span>`);
+      `<span style="font-size:.92rem;color:var(--muted);padding-left:20px">💭 ${esc(nextPhrase(query))}</span>`);
   }
   if (!runId) throw new Error('Не удалось найти запущенный workflow run');
 
@@ -766,8 +761,8 @@ async function pollRun(statusId, workflow, afterIso, query = '') {
 
     const step   = await ghGetCurrentStep(runId);
     const phrase = nextPhrase(query);
-    const stepLine   = step   ? `<br><span style="font-size:12px;color:var(--muted);padding-left:20px">▶ ${esc(step)}</span>` : '';
-    const phraseLine = phrase ? `<br><span style="font-size:12px;color:var(--muted);padding-left:20px">💭 ${esc(phrase)}</span>` : '';
+    const stepLine   = step   ? `<br><span style="font-size:.92rem;color:var(--muted);padding-left:20px">▶ ${esc(step)}</span>` : '';
+    const phraseLine = phrase ? `<br><span style="font-size:.92rem;color:var(--muted);padding-left:20px">💭 ${esc(phrase)}</span>` : '';
     setStatus(statusId, 'info',
       `<span class="spin"></span> [2/4] Run #${runId} — ${elapsed()}${stepLine}${phraseLine}`);
   }
@@ -893,7 +888,7 @@ function cardHtml(r, proc, isExcl) {
   <div class="card-meta">
     <span class="card-domain">${esc(domain)}</span>
     ${dateChip(r)}
-    <a href="${esc(r.url)}" target="_blank" style="font-size:11px;color:var(--muted)">↗ открыть</a>
+    <a href="${esc(r.url)}" target="_blank" style="font-size:.85rem;color:var(--muted)">↗ открыть</a>
   </div>
   ${r.snippet ? `<div class="card-snippet">${esc(r.snippet.slice(0,280))}${r.snippet.length>280?'…':''}</div>` : ''}
   ${summary    ? `<div class="card-summary">${summary}</div>` : ''}
@@ -1069,9 +1064,11 @@ function copyRewrite() {
   const fs = localStorage.getItem('cf_fs');
   const ff = localStorage.getItem('cf_ff');
   if (fs) {
-    document.documentElement.style.setProperty('--fs', fs);
-    const el = document.getElementById('sf-size');
-    if (el) [...el.options].forEach(o => { o.selected = o.value === fs; });
+    document.documentElement.style.fontSize = fs + 'px';
+    const sl = document.getElementById('sf-size');
+    if (sl) sl.value = fs;
+    const lbl = document.getElementById('sf-size-val');
+    if (lbl) lbl.textContent = fs;
   }
   if (ff) {
     document.documentElement.style.setProperty('--ff', ff);
