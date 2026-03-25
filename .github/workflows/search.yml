@@ -170,13 +170,54 @@ jobs:
                   errors.append(f'Bing: {e}')
                   print(f"Method 3 failed: {e}", file=sys.stderr)
 
+          # ── Apply exclusions ────────────────────────────────────────────────
+          try:
+              with open('exclusions.json') as _ef:
+                  _excl = json.load(_ef)
+          except Exception:
+              _excl = {}
+
+          _excl_domains  = [d.lower() for d in _excl.get('domains', [])]
+          _excl_title    = [p.lower() for p in _excl.get('title_phrases', [])]
+          _excl_url_kw   = [k.lower() for k in _excl.get('url_keywords', [])]
+          _excl_snippet  = [p.lower() for p in _excl.get('snippet_phrases', [])]
+
+          from urllib.parse import urlparse as _up
+          _excl_list = []
+          _kept      = []
+          for _r in all_results:
+              _url  = (_r.get('url') or '').lower()
+              _ttl  = (_r.get('title') or '').lower()
+              _snip = (_r.get('snippet') or '').lower()
+              _dom  = _up(_url).netloc.replace('www.', '')
+              _reason = None
+              if _excl_domains and any(_d == _dom or _dom.endswith('.'+_d) for _d in _excl_domains):
+                  _reason = f'domain:{_dom}'
+              elif _excl_title and any(_p in _ttl for _p in _excl_title):
+                  _reason = 'title_phrase'
+              elif _excl_url_kw and any(_k in _url for _k in _excl_url_kw):
+                  _reason = 'url_keyword'
+              elif _excl_snippet and any(_p in _snip for _p in _excl_snippet):
+                  _reason = 'snippet_phrase'
+              if _reason:
+                  _r['excluded'] = _reason
+                  _excl_list.append(_r)
+              else:
+                  _kept.append(_r)
+          if _excl_list:
+              _types = ', '.join(sorted(set(r['excluded'].split(':')[0] for r in _excl_list)))
+              print(f"Exclusions: {len(_excl_list)} filtered out ({_types}), {len(_kept)} kept")
+          else:
+              print(f"Exclusions: none filtered (0 rules matched)")
+          all_results = _kept
+
           # ── Dedup: prefer new, fall back to old if nothing new ─────────────
           new_results = [r for r in all_results if r['is_new']]
           old_results = [r for r in all_results if not r['is_new']]
           # For fetch/process: use new results first, pad with old if needed
           results_to_process = (new_results + old_results)[:max_urls]
 
-          print(f"Search done: {len(all_results)} total, {len(new_results)} new, {len(old_results)} already seen")
+          print(f"Search done: {len(all_results)} total, {len(new_results)} new, {len(old_results)} already seen, {len(_excl_list)} excluded")
 
           # ── STEP 2: Fetch full page content ────────────────────────────────
           FALLBACK_UAS = [
@@ -390,14 +431,16 @@ jobs:
 
           # ── STEP 5: Save results ────────────────────────────────────────────
           output = {
-              'query':        query,
-              'mode':         mode,
-              'total_found':  len(all_results),
-              'new_results':  len(new_results),
-              'already_seen': len(old_results),
-              'processed':    len(results_to_process) if mode != 'snippets_only' else 0,
-              'results':      results_to_process,   # processed (new first)
-              'all_snippets': all_results,           # all found with is_new flag
+              'query':           query,
+              'mode':            mode,
+              'total_found':     len(all_results),
+              'new_results':     len(new_results),
+              'already_seen':    len(old_results),
+              'excluded_count':  len(_excl_list),
+              'processed':       len(results_to_process) if mode != 'snippets_only' else 0,
+              'results':         results_to_process,   # processed (new first)
+              'all_snippets':    all_results,           # all found with is_new flag
+              'excluded':        _excl_list,            # filtered out items
           }
           if errors and not all_results:
               output['errors'] = errors

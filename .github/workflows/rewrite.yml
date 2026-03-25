@@ -1,0 +1,219 @@
+name: Rewrite Content
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL to fetch and rewrite (leave empty if providing text)'
+        required: false
+        type: string
+        default: ''
+      text:
+        description: 'Text to rewrite directly (used if url is empty)'
+        required: false
+        type: string
+        default: ''
+      style:
+        description: 'Rewrite style'
+        required: true
+        type: choice
+        options:
+          - neutral_news
+          - engaging_post
+          - brief_summary
+          - telegram_post
+        default: neutral_news
+
+permissions:
+  contents: write
+
+jobs:
+  rewrite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 -q
+
+      - name: Fetch, Clean & Rewrite
+        run: |
+          python3 << 'PYEOF'
+          import json, sys, os, time, requests
+          from datetime import datetime, timezone
+
+          input_url    = os.environ.get('INPUT_URL', '').strip()
+          input_text   = os.environ.get('INPUT_TEXT', '').strip()
+          style        = os.environ.get('STYLE', 'neutral_news')
+          groq_key     = os.environ.get('GROQ_KEY', '')
+          cerebras_key = os.environ.get('CEREBRAS_KEY', '')
+          mistral_key  = os.environ.get('MISTRAL_KEY', '')
+          gemini_key   = os.environ.get('GEMINI_KEY', '')
+
+          UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+
+          # ── Step 1: Get source text ────────────────────────────────────────
+          source_text = input_text
+          if input_url and not source_text:
+              print(f"Fetching: {input_url}")
+              try:
+                  from bs4 import BeautifulSoup
+                  resp = requests.get(input_url, headers={'User-Agent': UA}, timeout=20)
+                  resp.raise_for_status()
+                  soup = BeautifulSoup(resp.text, 'html.parser')
+                  for tag in soup(['script', 'style', 'nav', 'footer', 'header', 'aside', 'form']):
+                      tag.decompose()
+                  lines = [l.strip() for l in soup.get_text(separator='\n').splitlines() if l.strip()]
+                  source_text = '\n'.join(lines)[:15000]
+                  print(f"Fetched {len(source_text)} chars")
+              except Exception as e:
+                  print(f"Fetch error: {e}", file=sys.stderr)
+
+          if not source_text:
+              result = {
+                  'timestamp': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                  'source_url': input_url,
+                  'style': style,
+                  'error': 'No source text available (fetch failed or empty input)',
+                  'rewritten': None,
+              }
+              with open('rewrite_result.json', 'w', encoding='utf-8') as f:
+                  json.dump(result, f, ensure_ascii=False, indent=2)
+              sys.exit(0)
+
+          # ── Step 2: Style prompts ──────────────────────────────────────────
+          PROMPTS = {
+              'neutral_news': (
+                  'Перепиши этот текст как нейтральную новостную заметку на русском языке.\n'
+                  'Структура: заголовок → лид (2-3 предложения) → основной текст (3-4 абзаца) → краткий вывод.\n'
+                  'Стиль: деловой, без рекламы, без воды, факты на первом месте.\n'
+                  'Объём: 300-500 слов. Убери все рекламные и навигационные фрагменты.'
+              ),
+              'engaging_post': (
+                  'Перепиши этот текст как вовлекающий пост для социальных сетей на русском языке.\n'
+                  'Начни с хука: интригующий вопрос или смелое утверждение.\n'
+                  'Структура: хук → главная мысль → 2-3 ключевых факта → призыв к обсуждению.\n'
+                  'Стиль: живой, личный, без официоза. Объём: 150-250 слов.'
+              ),
+              'brief_summary': (
+                  'Сделай краткую структурированную сводку этого текста на русском языке.\n'
+                  'Формат:\n'
+                  '**Суть:** (одно предложение)\n\n'
+                  '**Ключевые факты:**\n'
+                  '• (3-5 пунктов — только конкретные факты, цифры, имена)\n\n'
+                  '**Вывод:** (одно предложение)\n\n'
+                  'Без воды и вводных конструкций.'
+              ),
+              'telegram_post': (
+                  'Перепиши этот текст как пост для Telegram-канала на русском языке.\n'
+                  'Используй эмодзи для структурирования.\n'
+                  'Формат:\n'
+                  '📌 **Заголовок**\n\n'
+                  '💡 Суть в 2-3 предложениях\n\n'
+                  '🔹 Факт 1\n'
+                  '🔹 Факт 2\n'
+                  '🔹 Факт 3\n\n'
+                  '#тег1 #тег2 #тег3\n\n'
+                  'Объём: 100-200 слов. Читается легко и быстро.'
+              ),
+          }
+
+          prompt     = PROMPTS.get(style, PROMPTS['neutral_news'])
+          SYS_PROMPT = 'Ты профессиональный редактор. Пиши чисто, конкретно, по-русски.'
+
+          # ── Step 3: LLM providers ──────────────────────────────────────────
+          def _try_gemini(text, prompt):
+              if not gemini_key: return None
+              try:
+                  resp = requests.post(
+                      f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={gemini_key}',
+                      json={'contents': [{'parts': [{'text': f'{prompt}\n\nТЕКСТ:\n{text[:12000]}'}]}],
+                            'generationConfig': {'maxOutputTokens': 2048, 'temperature': 0.4}},
+                      timeout=30)
+                  if resp.status_code == 429:
+                      time.sleep(int(resp.headers.get('Retry-After', 10)))
+                      return None
+                  if resp.status_code != 200: return None
+                  data = resp.json()
+                  print(f"    [Gemini] tokens: {data.get('usageMetadata',{}).get('promptTokenCount',0)} in")
+                  return data['candidates'][0]['content']['parts'][0]['text']
+              except Exception as e:
+                  print(f'    [Gemini] {e}')
+                  return None
+
+          def _try_compat(name, url, model, key, text, prompt):
+              if not key: return None
+              try:
+                  resp = requests.post(url,
+                      headers={'Authorization': f'Bearer {key}', 'Content-Type': 'application/json'},
+                      json={'model': model,
+                            'messages': [{'role': 'system', 'content': SYS_PROMPT},
+                                         {'role': 'user',   'content': f'{prompt}\n\nТЕКСТ:\n{text[:8000]}'}],
+                            'max_tokens': 2048, 'temperature': 0.4},
+                      timeout=30)
+                  if resp.status_code == 429:
+                      time.sleep(int(resp.headers.get('Retry-After', 10)))
+                      return None
+                  if resp.status_code != 200:
+                      print(f'    [{name}] HTTP {resp.status_code}: {resp.text[:150]}')
+                      return None
+                  data = resp.json()
+                  print(f"    [{name}] tokens: {data.get('usage',{}).get('prompt_tokens',0)} in")
+                  return data['choices'][0]['message']['content']
+              except Exception as e:
+                  print(f'    [{name}] {e}')
+                  return None
+
+          print(f"\nRewriting as [{style}]...")
+          rewritten = _try_gemini(source_text, prompt)
+          if not rewritten:
+              rewritten = _try_compat('Cerebras', 'https://api.cerebras.ai/v1/chat/completions',
+                                      'llama3.1-8b', cerebras_key, source_text, prompt)
+          if not rewritten:
+              rewritten = _try_compat('Mistral', 'https://api.mistral.ai/v1/chat/completions',
+                                      'mistral-small-latest', mistral_key, source_text, prompt)
+          if not rewritten:
+              rewritten = _try_compat('Groq', 'https://api.groq.com/openai/v1/chat/completions',
+                                      'llama-3.3-70b-versatile', groq_key, source_text, prompt)
+
+          # ── Step 4: Save result ────────────────────────────────────────────
+          result = {
+              'timestamp':        datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+              'source_url':       input_url or '',
+              'style':            style,
+              'original_snippet': source_text[:600],
+              'rewritten':        rewritten or 'Ошибка: все LLM-провайдеры недоступны',
+          }
+          with open('rewrite_result.json', 'w', encoding='utf-8') as f:
+              json.dump(result, f, ensure_ascii=False, indent=2)
+          print(f"Done: {len(rewritten or '')} chars written")
+          PYEOF
+        env:
+          INPUT_URL:    ${{ inputs.url }}
+          INPUT_TEXT:   ${{ inputs.text }}
+          STYLE:        ${{ inputs.style }}
+          GROQ_KEY:     ${{ secrets.GROQ_KEY }}
+          CEREBRAS_KEY: ${{ secrets.CEREBRAS_KEY }}
+          MISTRAL_KEY:  ${{ secrets.MISTRAL_KEY }}
+          GEMINI_KEY:   ${{ secrets.GEMINI_KEY }}
+
+      - name: Push rewrite result to rewrite-results branch
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+
+          cp rewrite_result.json /tmp/rewrite_result.json
+
+          git fetch origin rewrite-results 2>/dev/null && \
+              git checkout -B rewrite-results origin/rewrite-results || \
+              git checkout --orphan rewrite-results
+
+          # Keep existing files (don't rm -rf), just update the result
+          git rm -rf . --quiet 2>/dev/null || true
+          cp /tmp/rewrite_result.json rewrite_result.json
+
+          git add rewrite_result.json
+          git commit -m "rewrite[${{ inputs.style }}]: ${{ inputs.url || 'manual text' }}" --allow-empty
+          git push -f origin rewrite-results
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
