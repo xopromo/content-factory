@@ -23,7 +23,10 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.6 system-ui, -apple-system, sans-serif;
+  font-size: var(--fs, 13px);
+  font-family: var(--ff, system-ui, -apple-system, sans-serif);
+  font-weight: 400;
+  line-height: 1.55;
   min-height: 100vh;
 }
 a { color: var(--blue); text-decoration: none; }
@@ -133,7 +136,7 @@ button {
 }
 .card.faded { opacity: .4; }
 .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
-.card-title { font-weight: 600; font-size: 14px; line-height: 1.4; }
+.card-title { font-weight: 500; font-size: 13px; line-height: 1.4; }
 .card-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
 .card-domain { font-size: 12px; color: var(--muted); }
 .card-snippet { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
@@ -221,6 +224,29 @@ button {
 .excl-collapsed .excl-items { display: none; }
 .excl-toggle { cursor: pointer; color: var(--muted); font-size: 12px; }
 .excl-toggle:hover { color: var(--text); }
+
+/* ─── Date freshness ───────────────────────────────────────────────── */
+.date-chip { font-size: 11px; padding: 1px 7px; border-radius: 10px; font-weight: 500; }
+.date-fresh  { background: #0a2318; color: var(--green);  border: 1px solid #1d4228; }
+.date-recent { background: #0c2340; color: #79c0ff;       border: 1px solid #1e4a7a; }
+.date-ok     { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+.date-old    { background: #2d2106; color: var(--orange);  border: 1px solid #5a4100; }
+.date-none   { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); opacity:.6; }
+
+/* ─── Settings dropdown ────────────────────────────────────────────── */
+.settings-wrap { position: relative; }
+.settings-btn  { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 15px; cursor: pointer; color: var(--muted); }
+.settings-btn:hover { color: var(--text); background: var(--border); }
+.settings-panel {
+  display: none; position: absolute; right: 0; top: calc(100% + 6px);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px; width: 240px; z-index: 300; box-shadow: 0 8px 24px rgba(0,0,0,.4);
+}
+.settings-panel.open { display: block; }
+.settings-panel h4 { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 13px; }
+.settings-row:last-child { margin-bottom: 0; }
+.settings-row select, .settings-row input[type=range] { width: 130px; }
 </style>
 </head>
 <body>
@@ -236,6 +262,31 @@ button {
       <span style="font-size:12px;color:var(--muted)">GitHub Token:</span>
       <input type="password" id="tokenInput" placeholder="ghp_..." oninput="onTokenInput()" style="width:200px">
       <span class="token-dot" id="tokenDot"></span>
+    </div>
+    <!-- Settings -->
+    <div class="settings-wrap" id="settingsWrap">
+      <button class="settings-btn" onclick="toggleSettings()" title="Настройки шрифта">⚙️</button>
+      <div class="settings-panel" id="settingsPanel">
+        <h4>Шрифт</h4>
+        <div class="settings-row">
+          <span>Размер</span>
+          <select id="sf-size" onchange="applyFont()">
+            <option value="12px">Мелкий (12px)</option>
+            <option value="13px" selected>Средний (13px)</option>
+            <option value="14px">Крупный (14px)</option>
+            <option value="16px">Очень крупный (16px)</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <span>Гарнитура</span>
+          <select id="sf-family" onchange="applyFont()">
+            <option value="system-ui,-apple-system,sans-serif">Системный</option>
+            <option value="'Segoe UI',Helvetica,Arial,sans-serif">Читаемый</option>
+            <option value="Georgia,'Times New Roman',serif">Газетный</option>
+            <option value="'Courier New',Courier,monospace">Моноширинный</option>
+          </select>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -429,6 +480,83 @@ button {
 
 <div id="toast"></div>
 <script>
+/* ═══════════════════════════════════════════════════════════════════
+   FONT SETTINGS
+═══════════════════════════════════════════════════════════════════ */
+function applyFont() {
+  const size   = document.getElementById('sf-size').value;
+  const family = document.getElementById('sf-family').value;
+  document.documentElement.style.setProperty('--fs', size);
+  document.documentElement.style.setProperty('--ff', family);
+  localStorage.setItem('cf_fs', size);
+  localStorage.setItem('cf_ff', family);
+}
+function toggleSettings() {
+  document.getElementById('settingsPanel').classList.toggle('open');
+}
+// Close panel on outside click
+document.addEventListener('click', e => {
+  if (!document.getElementById('settingsWrap').contains(e.target))
+    document.getElementById('settingsPanel').classList.remove('open');
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   DATE HELPERS
+═══════════════════════════════════════════════════════════════════ */
+const RU_MONTHS = {
+  'январ':1,'феврал':2,'март':3,'апрел':4,'ма':5,
+  'июн':6,'июл':7,'август':8,'сентябр':9,'октябр':10,'ноябр':11,'декабр':12
+};
+
+function extractDate(r) {
+  // 1. pub_date from workflow (YYYY-MM-DD)
+  if (r.pub_date && /^\d{4}-\d{2}-\d{2}/.test(r.pub_date)) return r.pub_date.slice(0,10);
+
+  const snip = (r.snippet || '') + ' ' + (r.title || '');
+
+  // 2. DD.MM.YYYY
+  const m1 = snip.match(/\b(\d{1,2})\.(\d{1,2})\.(\d{4})\b/);
+  if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
+
+  // 3. "15 декабря 2025"
+  const m2 = snip.match(/(\d{1,2})\s+([а-яё]+)\s+(20\d{2})/i);
+  if (m2) {
+    const mn = m2[2].toLowerCase();
+    const mo = Object.entries(RU_MONTHS).find(([k]) => mn.startsWith(k));
+    if (mo) return `${m2[3]}-${String(mo[1]).padStart(2,'0')}-${m2[1].padStart(2,'0')}`;
+  }
+
+  // 4. Опубликовано: 15.12.2025
+  const m3 = snip.match(/опубликовано[:\s]+(\d{1,2})\.(\d{1,2})\.(20\d{2})/i);
+  if (m3) return `${m3[3]}-${m3[2].padStart(2,'0')}-${m3[1].padStart(2,'0')}`;
+
+  return null;
+}
+
+function formatDate(iso) {
+  if (!iso) return null;
+  const d    = new Date(iso);
+  if (isNaN(d)) return null;
+  const days = Math.floor((Date.now() - d) / 86400000);
+  if (days <  0) return { label: 'будущее?',       cls: 'date-none' };
+  if (days === 0) return { label: 'сегодня',        cls: 'date-fresh' };
+  if (days === 1) return { label: 'вчера',          cls: 'date-fresh' };
+  if (days <   7) return { label: `${days}д назад`, cls: 'date-fresh' };
+  if (days <  30) return { label: `${days}д назад`, cls: 'date-recent' };
+  if (days <  90) return {
+    label: d.toLocaleDateString('ru',{day:'numeric',month:'short'}), cls:'date-ok'};
+  if (days < 365) return {
+    label: d.toLocaleDateString('ru',{month:'long',year:'numeric'}), cls:'date-old'};
+  return { label: String(d.getFullYear()), cls: 'date-old' };
+}
+
+function dateChip(r) {
+  const iso = extractDate(r);
+  const fmt = iso ? formatDate(iso) : null;
+  if (!fmt) return `<span class="date-chip date-none">дата неизвестна</span>`;
+  return `<span class="date-chip ${fmt.cls}" title="${iso}">${fmt.label}</span>`;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    CONFIG
 ═══════════════════════════════════════════════════════════════════ */
@@ -764,6 +892,7 @@ function cardHtml(r, proc, isExcl) {
   </div>
   <div class="card-meta">
     <span class="card-domain">${esc(domain)}</span>
+    ${dateChip(r)}
     <a href="${esc(r.url)}" target="_blank" style="font-size:11px;color:var(--muted)">↗ открыть</a>
   </div>
   ${r.snippet ? `<div class="card-snippet">${esc(r.snippet.slice(0,280))}${r.snippet.length>280?'…':''}</div>` : ''}
@@ -936,6 +1065,20 @@ function copyRewrite() {
    INIT
 ═══════════════════════════════════════════════════════════════════ */
 (function init() {
+  // Restore font settings
+  const fs = localStorage.getItem('cf_fs');
+  const ff = localStorage.getItem('cf_ff');
+  if (fs) {
+    document.documentElement.style.setProperty('--fs', fs);
+    const el = document.getElementById('sf-size');
+    if (el) [...el.options].forEach(o => { o.selected = o.value === fs; });
+  }
+  if (ff) {
+    document.documentElement.style.setProperty('--ff', ff);
+    const el = document.getElementById('sf-family');
+    if (el) [...el.options].forEach(o => { o.selected = o.value === ff; });
+  }
+
   const t = getToken();
   if (t) {
     document.getElementById('tokenInput').value = t;

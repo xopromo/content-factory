@@ -226,6 +226,38 @@ jobs:
               'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0',
           ]
 
+          def _extract_pub_date(soup):
+              """Extract publication date from HTML meta tags / time elements."""
+              import re as _re
+              # Open Graph / article meta
+              for prop in ['article:published_time', 'og:article:published_time',
+                           'article:modified_time', 'datePublished']:
+                  tag = soup.find('meta', property=prop)
+                  if tag and tag.get('content'):
+                      return tag['content'][:10]
+              # <meta name="..."> variants
+              for name in ['pubdate', 'date', 'publish-date', 'published',
+                           'DC.date', 'article.published']:
+                  tag = soup.find('meta', attrs={'name': lambda v: v and v.lower() == name})
+                  if tag and tag.get('content'):
+                      return tag['content'][:10]
+              # JSON-LD datePublished
+              for script in soup.find_all('script', type='application/ld+json'):
+                  try:
+                      import json as _j
+                      d = _j.loads(script.string or '')
+                      dp = d.get('datePublished') or d.get('dateModified', '')
+                      if dp: return dp[:10]
+                  except Exception:
+                      pass
+              # <time datetime="...">
+              t = soup.find('time', attrs={'datetime': True})
+              if t:
+                  return t['datetime'][:10]
+              # Last resort: regex on raw html for ISO date near "publish"
+              m = _re.search(r'publish[^"\']{0,30}["\'](\d{4}-\d{2}-\d{2})', script.string if False else '', _re.I)
+              return ''
+
           def fetch_page(url):
               """Fetch page with retry on 403/429/5xx using different User-Agents."""
               from bs4 import BeautifulSoup
@@ -244,12 +276,13 @@ jobs:
                           continue
                       resp.raise_for_status()
                       soup = BeautifulSoup(resp.text, 'html.parser')
+                      pub_date = _extract_pub_date(soup)
                       for tag in soup(['script', 'style', 'nav', 'footer',
                                        'header', 'aside', 'form']):
                           tag.decompose()
                       text  = soup.get_text(separator='\n')
                       lines = [l.strip() for l in text.splitlines() if l.strip()]
-                      return '\n'.join(lines)
+                      return {'text': '\n'.join(lines), 'pub_date': pub_date}
                   except Exception as e:
                       last_err = e
                       if '403' not in str(e) and '429' not in str(e) and '5' not in str(e)[:3]:
@@ -266,10 +299,12 @@ jobs:
                   if isinstance(result, tuple):
                       _, err = result
                       item['full_text'] = f"FETCH_ERROR: {err}"
+                      item['pub_date']  = ''
                       print(f"    ERROR (all retries failed): {err}", file=sys.stderr)
                   else:
-                      item['full_text'] = result[:15000]
-                      print(f"    {len(result)} chars fetched")
+                      item['full_text'] = result['text'][:15000]
+                      item['pub_date']  = result.get('pub_date', '')
+                      print(f"    {len(result['text'])} chars fetched, date={item['pub_date'] or 'unknown'}")
                   time.sleep(1)
 
           # ── STEP 3: Process with Groq ───────────────────────────────────────
