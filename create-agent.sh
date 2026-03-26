@@ -10,15 +10,21 @@ set -e
 
 NAME="${1:-}"
 DESCRIPTION="${2:-}"
+EFFORT="${3:-medium}"  # default: medium
 
 # Validation
 if [ -z "$NAME" ] || [ -z "$DESCRIPTION" ]; then
-  echo "❌ Usage: $0 \"agent-name\" \"Description\""
+  echo "❌ Usage: $0 \"agent-name\" \"Description\" [low|medium|high]"
   echo ""
   echo "Examples:"
   echo "  bash create-agent.sh \"optimizer\" \"Оптимизирует код\""
-  echo "  bash create-agent.sh \"debugger\" \"Найди и исправь баги\""
+  echo "  bash create-agent.sh \"debugger\" \"Найди баги\" high"
   exit 1
+fi
+
+# Validate effort
+if [[ ! "$EFFORT" =~ ^(low|medium|high)$ ]]; then
+  EFFORT="medium"
 fi
 
 # Normalize name (lowercase, replace spaces with hyphens)
@@ -47,7 +53,7 @@ description: __AGENT_DESCRIPTION__
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
 model: haiku
 memory: project
-effort: medium
+effort: __EFFORT__
 maxTurns: 10
 background: false
 config:
@@ -171,6 +177,7 @@ AGENT_EOF
 CREATION_DATE=$(date '+%Y-%m-%d')
 sed -i "s/__AGENT_NAME__/$NAME/g" "$AGENT_DIR/$NAME.md"
 sed -i "s/__AGENT_DESCRIPTION__/$DESCRIPTION/g" "$AGENT_DIR/$NAME.md"
+sed -i "s/__EFFORT__/$EFFORT/g" "$AGENT_DIR/$NAME.md"
 sed -i "s/__CREATION_DATE__/$CREATION_DATE/g" "$AGENT_DIR/$NAME.md"
 
 echo "✅ Created agent config: $AGENT_DIR/$NAME.md"
