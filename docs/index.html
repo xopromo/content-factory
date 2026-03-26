@@ -3,13 +3,395 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 VK Targeting Pipeline</title>
-    <script>
-        // Редирект на новый pipeline dashboard
-        window.location.href = './pipeline/';
-    </script>
+    <title>🎮 VK Targeting Pipeline - Параллельный анализ инсайтов</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .font-control {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .font-control label {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .font-control input[type="range"] {
+            width: 150px;
+        }
+
+        .font-size-display {
+            font-size: 0.9em;
+            color: #666;
+            min-width: 40px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .pipeline-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .pipeline-stage {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-top: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .pipeline-stage:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .stage-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .stage-name {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .stage-description {
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        .stage-stats {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .stage-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95em;
+        }
+
+        .stage-button:hover {
+            transform: translateX(5px);
+        }
+
+        .stage-1 { border-top-color: #ff6b6b; }
+        .stage-2 { border-top-color: #4ecdc4; }
+        .stage-3 { border-top-color: #45b7d1; }
+        .stage-4 { border-top-color: #96ceb4; }
+
+        .flow-diagram {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .flow-diagram h2 {
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .flow {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .flow-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .flow-arrow {
+            font-size: 1.5em;
+            color: #667eea;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            color: #1565c0;
+        }
+
+        @media (max-width: 768px) {
+            .pipeline-container {
+                grid-template-columns: 1fr;
+            }
+
+            .flow {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
-    <p>Перенаправляю на новый dashboard... <a href="./pipeline/">Кликни если не сработал редирект</a></p>
+    <div class="container">
+        <header>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+                <div>
+                    <h1>🎮 VK Targeting Pipeline</h1>
+                    <p class="subtitle">Параллельный анализ инсайтов: Поиск → Идеи → Оценка → Вердикт</p>
+                </div>
+                <div class="header-controls">
+                    <div class="font-control">
+                        <label for="fontSizeSlider">📏 Размер:</label>
+                        <input type="range" id="fontSizeSlider" min="12" max="20" value="16" step="1">
+                        <span class="font-size-display"><span id="fontSizeValue">16</span>px</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-insights">0</div>
+                    <div class="stat-label">Инсайтов найдено</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-ideas">0</div>
+                    <div class="stat-label">Идей сгенерировано</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="top-verdict">0</div>
+                    <div class="stat-label">TOP рекомендаций</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="pipeline-status">🟢</div>
+                    <div class="stat-label">Статус pipeline</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="flow-diagram">
+            <h2>📊 Как работает параллельный pipeline</h2>
+            <div class="flow">
+                <div class="flow-box">1️⃣ Фрилансер<br/>Ищет инсайты</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">2️⃣ Brainstormer<br/>Генерирует идеи</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">3️⃣ Critic<br/>Оценивает</div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-box">4️⃣ Judge<br/>Выносит вердикт</div>
+            </div>
+            <p style="color: #666; margin-top: 15px;">
+                <strong>На этапе тестирования:</strong> Все агенты работают ПАРАЛЛЕЛЬНО без ожидания друг друга.
+                Каждый пишет свои результаты в отдельный файл на GitHub Pages.
+            </p>
+        </div>
+
+        <div class="pipeline-container">
+            <div class="pipeline-stage stage-1">
+                <div class="stage-icon">🔍</div>
+                <div class="stage-name">Этап 1: Фрилансер</div>
+                <div class="stage-description">
+                    Ищет материалы и выделяет инсайты с анализом
+                </div>
+                <div class="stage-stats">
+                    <strong>Входящие:</strong> Квесты<br/>
+                    <strong>Выходящие:</strong> Инсайты с анализом<br/>
+                    <strong>Примеры:</strong> Лайфхаки, кейсы
+                </div>
+                <a href="1-freelancer.html" class="stage-button">📌 Открыть результаты →</a>
+            </div>
+
+            <div class="pipeline-stage stage-2">
+                <div class="stage-icon">💡</div>
+                <div class="stage-name">Этап 2: Brainstormer</div>
+                <div class="stage-description">
+                    Генерирует стратегические идеи на основе инсайтов
+                </div>
+                <div class="stage-stats">
+                    <strong>Входящие:</strong> Инсайты (1 этап)<br/>
+                    <strong>Выходящие:</strong> Идеи<br/>
+                    <strong>Примеры:</strong> Стратегии, комбо
+                </div>
+                <a href="2-brainstormer.html" class="stage-button">💭 Открыть идеи →</a>
+            </div>
+
+            <div class="pipeline-stage stage-3">
+                <div class="stage-icon">⚔️</div>
+                <div class="stage-name">Этап 3: Critic</div>
+                <div class="stage-description">
+                    Критически оценивает реалистичность идей
+                </div>
+                <div class="stage-stats">
+                    <strong>Входящие:</strong> Идеи (2 этап)<br/>
+                    <strong>Выходящие:</strong> Оценки & риски<br/>
+                    <strong>Примеры:</strong> Проблемы, решения
+                </div>
+                <a href="3-critic.html" class="stage-button">🔍 Открыть оценки →</a>
+            </div>
+
+            <div class="pipeline-stage stage-4">
+                <div class="stage-icon">⚖️</div>
+                <div class="stage-name">Этап 4: Judge</div>
+                <div class="stage-description">
+                    Выносит финальный вердикт и создаёт план действий
+                </div>
+                <div class="stage-stats">
+                    <strong>Входящие:</strong> Всё выше<br/>
+                    <strong>Выходящие:</strong> TOP-5 + план<br/>
+                    <strong>Примеры:</strong> Решения, ROI
+                </div>
+                <a href="4-judge.html" class="stage-button">📋 Открыть вердикт →</a>
+            </div>
+        </div>
+
+        <div class="flow-diagram">
+            <h2>🎯 Как использовать</h2>
+            <div class="info-box">
+                <strong>Шаг 1:</strong> Откройся на "Этап 1: Фрилансер" и смотри найденные инсайты<br/>
+                <strong>Шаг 2:</strong> На каждый инсайт ставь 👍 или 👎 - это даёт агенту обратную связь<br/>
+                <strong>Шаг 3:</strong> Проходи по этапам 2, 3, 4 - видишь как идеи развиваются<br/>
+                <strong>Шаг 4:</strong> На этапе 4 (Judge) смотришь TOP-5 рекомендаций с ACTION PLAN<br/>
+            </div>
+
+            <div class="info-box" style="margin-top: 15px; background: #fff3cd; border-left-color: #ffc107; color: #856404;">
+                <strong>💡 В тестовом режиме:</strong> Все агенты работают параллельно, каждые 5 минут появляются новые результаты.
+                Обновляй страницу чтобы увидеть свежие данные!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Управление размером шрифта
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+
+        if (fontSizeSlider) {
+            fontSizeSlider.addEventListener('input', (e) => {
+                const size = e.target.value;
+                fontSizeValue.textContent = size;
+                document.body.style.fontSize = size + 'px';
+                localStorage.setItem('fontSize', size);
+            });
+
+            // Восстановить сохранённый размер шрифта
+            const savedFontSize = localStorage.getItem('fontSize');
+            if (savedFontSize) {
+                fontSizeSlider.value = savedFontSize;
+                fontSizeValue.textContent = savedFontSize;
+                document.body.style.fontSize = savedFontSize + 'px';
+            }
+        }
+
+        // Имитация данных для демо
+        function updateStats() {
+            document.getElementById('total-insights').textContent = '12';
+            document.getElementById('total-ideas').textContent = '28';
+            document.getElementById('top-verdict').textContent = '5';
+            document.getElementById('pipeline-status').textContent = '🟢';
+        }
+
+        document.addEventListener('DOMContentLoaded', updateStats);
+
+        // Auto-refresh каждые 30 сек
+        setInterval(updateStats, 30000);
+    </script>
 </body>
 </html>
