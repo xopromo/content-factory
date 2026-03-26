@@ -1,11 +1,16 @@
 ---
 name: researcher
-description: Исследует заданную тему в кодовой базе и документирует находки
+description: Исследует заданную тему в кодовой базе и документирует находки (Ollama + DuckDuckGo)
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
 model: haiku
 memory: project
 effort: high
 background: false
+config:
+  mode: budget
+  ollama: mistral
+  search: duckduckgo
+  cost: "$0.00"
 ---
 
 # Senior Research Agent
