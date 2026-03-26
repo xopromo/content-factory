@@ -1,0 +1,169 @@
+# 🌐 GLOBAL AGENT CONFIGURATION
+# Все новые агенты наследуют эти настройки автоматически
+#
+# Структура:
+# - defaults: стандартные значения для всех агентов
+# - modes: budget (бесплатно) vs production (платно)
+# - capabilities: что умеют делать все агенты
+# - tools: инструменты для всех
+
+version: "1.0"
+lastUpdated: "2026-03-26"
+
+# ===== РЕЖИМЫ РАБОТЫ =====
+modes:
+  budget:
+    enabled: true
+    description: "Бесплатные инструменты + локальные LLM"
+    cost: "$0.00 per run"
+
+    llm:
+      provider: ollama
+      host: http://localhost:11434
+      models:
+        default: mistral              # быстрый, для большинства задач
+        reasoning: neural-chat        # для сложного анализа и логики
+        coding: codellama             # для разбора кода
+      timeout: 30
+      stream: false
+
+    search:
+      provider: duckduckgo            # встроен в Python
+      maxResults: 10
+      timeout: 10
+      free: true
+
+    tools:
+      - Read, Grep, Glob              # локальные файлы
+      - Bash                          # выполнение команд
+      - WebFetch, WebSearch           # интернет поиск (бесплатно)
+
+  production:
+    enabled: false
+    description: "Платные сервисы для высокого качества"
+    cost: "$0.35-0.50 per run"
+
+    llm:
+      provider: anthropic
+      model: claude-opus-4-6
+      apiKey: ${ANTHROPIC_API_KEY}
+      timeout: 30
+
+    search:
+      provider: web_search            # Anthropic native
+      maxResults: 10
+      free: false
+
+    tools:
+      - все инструменты как в budget
+
+
+# ===== СТАНДАРТНЫЕ НАСТРОЙКИ ДЛЯ ВСЕХ НОВЫХ АГЕНТОВ =====
+defaults:
+  model: haiku                    # всегда дешевле для начала
+  memory: project                 # сохранять результаты
+  effort: medium                  # по умолчанию
+  maxTurns: 10
+  background: false
+
+  tools:
+    allowed:
+      - Read                      # чтение файлов
+      - Grep                      # поиск по содержанию
+      - Glob                      # поиск файлов
+      - Bash                      # выполнение команд
+      - WebFetch                  # загрузка страниц
+      - WebSearch                 # поиск в интернете
+    disallowed: []                # заполнить если нужно
+
+  capabilities:
+    # Все агенты автоматически могут:
+    - read_local_files            # Read, Grep, Glob
+    - search_internet             # WebSearch через DuckDuckGo
+    - fetch_webpages              # WebFetch с cleanup
+    - run_commands                # Bash для утилит
+    - save_to_markdown            # output в .md файлы
+    - track_token_costs           # учёт затрат
+    - interact_with_agents        # передача данных другим агентам
+    - memory_persistence          # сохранение в MEMORY.md/project
+
+  output:
+    format: markdown              # всегда markdown
+    language: russian             # всегда русский
+    include_costs: true           # обязательно токены
+    include_sources: true         # источники информации
+
+
+# ===== НОВЫЕ ФИЧИ (добавляются сюда и наследуются) =====
+features:
+  version_1:
+    - offline_ollama              # локальные нейросети
+    - free_duckduckgo_search      # бесплатный поиск
+    - token_cost_tracking         # учёт стоимости
+    - agent_interaction           # взаимодействие агентов
+    - markdown_memory             # MEMORY.md для сохранения
+
+  future_v2:
+    # Добавляй новые фичи сюда и они автоматически наследуются!
+    - vector_search               # поиск по семантике
+    - local_rag                   # RAG с локальными документами
+    - file_caching                # кэширование результатов
+    - parallel_agents             # запуск нескольких параллельно
+    # ...
+
+
+# ===== СТОИМОСТЬ НАСТРОЙКИ =====
+costs:
+  budget_mode:
+    per_run: "$0.00"
+    monthly_unlimited: "$0.00"
+    comment: "Полностью бесплатно на локальной машине"
+
+  production_mode:
+    per_run: "$0.35-0.50"
+    monthly_100_runs: "$35-50"
+    comment: "Только для critical tasks или больших объёмов"
+
+
+# ===== ТРЕБОВАНИЯ ДЛЯ ВСЕХ АГЕНТОВ =====
+requirements:
+  output:
+    - "Ответ на простом русском без жаргона"
+    - "Структурированный формат (markdown)"
+    - "Стоимость в конце (input/output токены)"
+    - "Источники информации если использовал интернет"
+
+  interaction:
+    - "Может читать output других агентов"
+    - "Может писать результаты в MEMORY.md"
+    - "Может передавать данные следующему агенту"
+
+  search:
+    - "DuckDuckGo для поиска (всегда бесплатно)"
+    - "WebFetch для загрузки и очистки страниц"
+    - "Timeout 10 сек для интернет операций"
+
+
+# ===== ИНСТРУКЦИЯ ДЛЯ РАЗРАБОТЧИКА =====
+# Когда создаёшь нового агента:
+#
+# 1. Скопируй AGENT_TEMPLATE.md → agents/[new-agent]/[new-agent].md
+# 2. В YAML frontmatter автоматически наследуются:
+#    - tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
+#    - model: haiku
+#    - memory: project
+#    - config: base-config.yml
+#    - ВСЕ новые фичи из features.version_*
+# 3. Добавь специфичные инструкции для этого агента
+# 4. Всё остальное наследуется автоматически!
+#
+# Новая фича? Добавь в features.future_v2 → все агенты получат её!
+
+
+# ===== CHECKLIST ДЛЯ НОВОГО АГЕНТА =====
+# ✅ Наследует tools (Read, Grep, Glob, Bash, WebFetch, WebSearch)
+# ✅ Наследует модель (haiku) и memory (project)
+# ✅ Наследует поиск (DuckDuckGo) и LLM (Ollama)
+# ✅ Наследует требования к output (русский + стоимость)
+# ✅ Наследует умение взаимодействовать с другими агентами
+# ✅ Автоматически получит все будущие фичи!
