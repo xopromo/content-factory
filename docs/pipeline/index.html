@@ -16,6 +16,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            font-size: 16px;
         }
 
         .container {
@@ -32,12 +33,41 @@
         }
 
         h1 {
-            font-size: 2.5em;
+            font-size: 2em;
             margin-bottom: 10px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .font-control {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .font-control label {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .font-control input[type="range"] {
+            width: 150px;
+        }
+
+        .font-size-display {
+            font-size: 0.9em;
+            color: #666;
+            min-width: 40px;
         }
 
         .subtitle {
@@ -203,8 +233,19 @@
 <body>
     <div class="container">
         <header>
-            <h1>🎮 VK Targeting Pipeline</h1>
-            <p class="subtitle">Параллельный анализ инсайтов: Поиск → Идеи → Оценка → Вердикт</p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+                <div>
+                    <h1>🎮 VK Targeting Pipeline</h1>
+                    <p class="subtitle">Параллельный анализ инсайтов: Поиск → Идеи → Оценка → Вердикт</p>
+                </div>
+                <div class="header-controls">
+                    <div class="font-control">
+                        <label for="fontSizeSlider">📏 Размер:</label>
+                        <input type="range" id="fontSizeSlider" min="12" max="20" value="16" step="1">
+                        <span class="font-size-display"><span id="fontSizeValue">16</span>px</span>
+                    </div>
+                </div>
+            </div>
 
             <div class="stats-grid">
                 <div class="stat-card">
@@ -318,6 +359,27 @@
     </div>
 
     <script>
+        // Управление размером шрифта
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+
+        if (fontSizeSlider) {
+            fontSizeSlider.addEventListener('input', (e) => {
+                const size = e.target.value;
+                fontSizeValue.textContent = size;
+                document.body.style.fontSize = size + 'px';
+                localStorage.setItem('fontSize', size);
+            });
+
+            // Восстановить сохранённый размер шрифта
+            const savedFontSize = localStorage.getItem('fontSize');
+            if (savedFontSize) {
+                fontSizeSlider.value = savedFontSize;
+                fontSizeValue.textContent = savedFontSize;
+                document.body.style.fontSize = savedFontSize + 'px';
+            }
+        }
+
         // Имитация данных для демо
         function updateStats() {
             document.getElementById('total-insights').textContent = '12';
