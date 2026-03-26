@@ -8,9 +8,10 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #45b7d1 0%, #2196F3 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            font-size: 16px;
         }
         .container { max-width: 1200px; margin: 0 auto; }
         header {
@@ -20,7 +21,31 @@
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
-        h1 { color: #45b7d1; margin-bottom: 10px; }
+        h1 { color: #667eea; margin-bottom: 10px; font-size: 1.8em; }
+        .header-controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .font-control {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .font-control label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .font-control input[type="range"] {
+            width: 150px;
+        }
+        .font-size-display {
+            font-size: 0.9em;
+            color: #666;
+            min-width: 40px;
+        }
         .panel {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 10px;
@@ -28,36 +53,134 @@
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
-        .review-card {
-            background: #f5f5f5;
-            border-left: 4px solid #45b7d1;
+        .panel h2 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+        .critique-card {
+            background: #f9f9f9;
+            border-left: 4px solid #ff9800;
             padding: 15px;
             margin-bottom: 15px;
             border-radius: 6px;
         }
-        .review-title { font-weight: 600; margin-bottom: 8px; color: #333; }
-        .score { 
-            display: inline-block;
-            background: #2196F3;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.9em;
-            margin: 5px 0;
+        .critique-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 1.05em;
         }
-        .pros, .cons {
+        .critique-footer {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            font-size: 0.85em;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .risk-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .risk-low {
+            background: #d4edda;
+            color: #155724;
+        }
+        .risk-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .risk-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .verdict-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .verdict-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+        .verdict-caveats {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .verdict-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .risks-section, .mitigations-section, .strengths-section, .weaknesses-section {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
             margin: 8px 0;
-            font-size: 0.95em;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        .risks-section {
+            border-left: 3px solid #f44336;
+        }
+        .mitigations-section {
+            border-left: 3px solid #4CAF50;
+        }
+        .strengths-section {
+            border-left: 3px solid #2196F3;
+        }
+        .weaknesses-section {
+            border-left: 3px solid #ff9800;
+        }
+        .risks-section ul, .mitigations-section ul, .strengths-section ul, .weaknesses-section ul {
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+        .risks-section li, .mitigations-section li, .strengths-section li, .weaknesses-section li {
+            margin-bottom: 4px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
         }
         .nav-link {
             display: inline-block;
-            background: #45b7d1;
+            background: #667eea;
             color: white;
             padding: 10px 20px;
             border-radius: 6px;
             text-decoration: none;
-            font-size: 0.95em;
-            margin: 5px 10px 5px 0;
+            font-size: 0.9em;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .error {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .stats {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
         }
     </style>
 </head>
@@ -65,51 +188,174 @@
     <div class="container">
         <header>
             <h1>⚔️ Этап 3: Critic - Оценка идей</h1>
-            <p>Критически оценивает реалистичность идей от brainstormer</p>
+            <p>Критически оценивает реалистичность и риски идей от Brainstormer</p>
+            <div class="header-controls">
+                <div class="font-control">
+                    <label for="fontSizeSlider">📏 Размер шрифта:</label>
+                    <input type="range" id="fontSizeSlider" min="12" max="20" value="16" step="1">
+                    <span class="font-size-display"><span id="fontSizeValue">16</span>px</span>
+                </div>
+            </div>
         </header>
 
         <div class="panel">
-            <h2>🔍 Оценка идей</h2>
-
-            <div class="review-card">
-                <div class="review-title">🎯 Идея 1: Комбо "ЧВП + Видео"</div>
-                <div class="score">Вероятность успеха: 92%</div>
-                <div class="pros">
-                    <strong>✅ Преимущества:</strong> Комбинация двух проверенных методов, легко внедрить, не требует больших затрат
-                </div>
-                <div class="cons">
-                    <strong>⚠️ Риски:</strong> Требует качественного видео контента, нужно время на тестирование
-                </div>
+            <h2>🔍 Критическая оценка идей</h2>
+            <div id="critiques-container">
+                <div class="loading">⏳ Загружаю оценки...</div>
             </div>
-
-            <div class="review-card">
-                <div class="review-title">🎬 Идея 2: Lead Forms + видео</div>
-                <div class="score">Вероятность успеха: 88%</div>
-                <div class="pros">
-                    <strong>✅ Преимущества:</strong> Доказанный метод (+30% конверсии), простая реализация в ВК
-                </div>
-                <div class="cons">
-                    <strong>⚠️ Риски:</strong> Зависит от качества видео и формы, требует A/B тестирования
-                </div>
-            </div>
-
-            <div class="review-card">
-                <div class="review-title">🧪 Идея 3: Multi-video A/B тестирование</div>
-                <div class="score">Вероятность успеха: 85%</div>
-                <div class="pros">
-                    <strong>✅ Преимущества:</strong> Алгоритм ВК做 большую часть работы, можно запустить быстро
-                </div>
-                <div class="cons">
-                    <strong>⚠️ Риски:</strong> Требует создания нескольких видео вариантов, может потребить бюджет на обучение
-                </div>
-            </div>
+            <div class="stats" id="stats-container"></div>
         </div>
 
         <div class="panel">
-            <a href="index.html" class="nav-link">← На главный dashboard</a>
-            <a href="2-brainstormer.html" class="nav-link">← Этап 2: Идеи</a>
-            <a href="4-judge.html" class="nav-link">Этап 4: Вердикт →</a>
+            <h2>📌 Инструкция</h2>
+            <p><strong>Что значат метрики:</strong></p>
+            <ul style="margin-left: 20px; line-height: 1.8;">
+                <li><strong>Риск:</strong> Низкий/Средний/Высокий - уровень риска при реализации идеи</li>
+                <li><strong>Вероятность успеха:</strong> % шанс что идея сработает как задумано</li>
+                <li><strong>Вердикт:</strong> Одобрить / С оговорками / Отклонить</li>
+                <li><strong>Риски:</strong> Потенциальные проблемы при реализации</li>
+                <li><strong>Смягчение:</strong> Как уменьшить риски</li>
+            </ul>
+        </div>
+
+        <div class="panel">
+            <h2>🔄 Навигация</h2>
+            <div class="nav-links">
+                <a href="2-brainstormer.html" class="nav-link">← Вернуться: Идеи Brainstormer</a>
+                <a href="4-judge.html" class="nav-link">Этап 4: Решение Judge →</a>
+            </div>
         </div>
     </div>
+
+    <script>
+        // Управление размером шрифта
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+
+        fontSizeSlider.addEventListener('input', (e) => {
+            const size = e.target.value;
+            fontSizeValue.textContent = size;
+            document.body.style.fontSize = size + 'px';
+            localStorage.setItem('fontSize', size);
+        });
+
+        const savedFontSize = localStorage.getItem('fontSize');
+        if (savedFontSize) {
+            fontSizeSlider.value = savedFontSize;
+            fontSizeValue.textContent = savedFontSize;
+            document.body.style.fontSize = savedFontSize + 'px';
+        }
+
+        // Загрузка данных из JSON
+        async function loadCritiques() {
+            try {
+                const response = await fetch('./data/critique.json');
+                if (!response.ok) throw new Error('Не удалось загрузить данные');
+
+                const data = await response.json();
+                renderCritiques(data.critiques);
+                updateStats(data.critique_meta, data.summary);
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                document.getElementById('critiques-container').innerHTML =
+                    '<div class="error">⚠️ Ошибка загрузки данных. Проверьте доступность файла critique.json</div>';
+            }
+        }
+
+        function renderCritiques(critiques) {
+            const container = document.getElementById('critiques-container');
+            container.innerHTML = '';
+
+            if (!critiques || critiques.length === 0) {
+                container.innerHTML = '<p style="color: #999;">Нет оценок. Critic ещё думает...</p>';
+                return;
+            }
+
+            // Сортируем по вероятности успеха (новые/высокие first)
+            const sortedCritiques = [...critiques].sort((a, b) =>
+                b.success_probability - a.success_probability
+            );
+
+            sortedCritiques.forEach((critique) => {
+                const card = document.createElement('div');
+                card.className = 'critique-card';
+                card.id = `critique-${critique.critique_id}`;
+
+                const riskClass = `risk-${critique.risk_level.toLowerCase()}`;
+                const verdictClass = `verdict-${critique.final_verdict.toLowerCase().replace(' ', '-')}`;
+
+                // Форматируем риски и смягчение
+                let risksHtml = '<strong>⚠️ Риски:</strong><ul>';
+                if (critique.risks && Array.isArray(critique.risks)) {
+                    critique.risks.forEach(risk => {
+                        risksHtml += `<li>${risk}</li>`;
+                    });
+                }
+                risksHtml += '</ul>';
+
+                let mitigationsHtml = '<strong>✅ Смягчение рисков:</strong><ul>';
+                if (critique.mitigations && Array.isArray(critique.mitigations)) {
+                    critique.mitigations.forEach(mit => {
+                        mitigationsHtml += `<li>${mit}</li>`;
+                    });
+                }
+                mitigationsHtml += '</ul>';
+
+                let strengthsHtml = '<strong>💪 Преимущества:</strong><ul>';
+                if (critique.strengths && Array.isArray(critique.strengths)) {
+                    critique.strengths.slice(0, 3).forEach(str => {
+                        strengthsHtml += `<li>${str}</li>`;
+                    });
+                }
+                strengthsHtml += '</ul>';
+
+                let weaknessesHtml = '<strong>⚡ Недостатки:</strong><ul>';
+                if (critique.weaknesses && Array.isArray(critique.weaknesses)) {
+                    critique.weaknesses.slice(0, 3).forEach(weak => {
+                        weaknessesHtml += `<li>${weak}</li>`;
+                    });
+                }
+                weaknessesHtml += '</ul>';
+
+                card.innerHTML = `
+                    <div class="critique-title">${critique.title}</div>
+                    <div class="critique-footer">
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <span class="risk-badge ${riskClass}">Риск: ${critique.risk_level}</span>
+                            <span style="color: #666;">Вероятность: ${critique.success_probability}%</span>
+                            <span class="verdict-badge ${verdictClass}">${critique.final_verdict}</span>
+                        </div>
+                    </div>
+                    <div class="strengths-section">${strengthsHtml}</div>
+                    <div class="weaknesses-section">${weaknessesHtml}</div>
+                    <div class="risks-section">${risksHtml}</div>
+                    <div class="mitigations-section">${mitigationsHtml}</div>
+                    <div style="font-size: 0.85em; color: #999; margin-top: 10px;">
+                        Сложность: ${critique.implementation_difficulty} • Сроки: ${critique.estimated_timeline_days} дней
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function updateStats(meta, summary) {
+            const statsContainer = document.getElementById('stats-container');
+            const generatedAt = new Date(meta.generated_at).toLocaleString('ru-RU');
+
+            if (summary) {
+                statsContainer.innerHTML = `
+                    📊 <strong>Статистика:</strong> ${summary.approved_ideas} одобрено, ${summary.approved_with_caveats} с оговорками, ${summary.rejected_ideas} отклонено • Средняя вероятность: ${summary.average_success_probability}% • Сгенерировано: ${generatedAt}
+                `;
+            } else {
+                statsContainer.innerHTML = `
+                    📊 <strong>Статистика:</strong> ${meta.total_critiques} оценок • Сгенерировано: ${generatedAt}
+                `;
+            }
+        }
+
+        // Загружаем данные при загрузке страницы
+        document.addEventListener('DOMContentLoaded', loadCritiques);
+    </script>
 </body>
 </html>

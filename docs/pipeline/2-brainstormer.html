@@ -8,9 +8,10 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            font-size: 16px;
         }
         .container { max-width: 1200px; margin: 0 auto; }
         header {
@@ -20,7 +21,31 @@
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
-        h1 { color: #4ecdc4; margin-bottom: 10px; }
+        h1 { color: #667eea; margin-bottom: 10px; font-size: 1.8em; }
+        .header-controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .font-control {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .font-control label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .font-control input[type="range"] {
+            width: 150px;
+        }
+        .font-size-display {
+            font-size: 0.9em;
+            color: #666;
+            min-width: 40px;
+        }
         .panel {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 10px;
@@ -28,25 +53,148 @@
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
+        .panel h2 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
         .idea-card {
-            background: #f0f9ff;
-            border-left: 4px solid #4ecdc4;
+            background: #f9f9f9;
+            border-left: 4px solid #4CAF50;
             padding: 15px;
             margin-bottom: 15px;
             border-radius: 6px;
         }
-        .idea-title { font-weight: 600; margin-bottom: 8px; color: #333; }
-        .idea-based { color: #666; font-size: 0.9em; margin-bottom: 8px; }
-        .idea-description { color: #555; line-height: 1.5; }
+        .idea-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 1.05em;
+        }
+        .idea-description {
+            background: #f0f8ff;
+            padding: 10px;
+            border-radius: 4px;
+            color: #333;
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin: 8px 0;
+        }
+        .idea-expected {
+            background: #e8f5e9;
+            padding: 10px;
+            border-radius: 4px;
+            color: #1b5e20;
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin: 8px 0;
+        }
+        .implementation-steps {
+            background: #fff3e0;
+            padding: 10px;
+            border-radius: 4px;
+            color: #e65100;
+            font-size: 0.85em;
+            line-height: 1.5;
+            margin: 8px 0;
+        }
+        .implementation-steps ol {
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+        .implementation-steps li {
+            margin-bottom: 4px;
+        }
+        .idea-footer {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            font-size: 0.85em;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .idea-meta-item {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            color: #666;
+        }
+        .complexity-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .complexity-low {
+            background: #d4edda;
+            color: #155724;
+        }
+        .complexity-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .complexity-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .like-btn, .dislike-btn {
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            background: #e8e8e8;
+            color: #666;
+            transition: all 0.2s ease;
+        }
+        .like-btn:hover, .dislike-btn:hover {
+            background: #d8d8d8;
+        }
+        .like-btn.selected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .dislike-btn.selected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
         .nav-link {
             display: inline-block;
-            background: #4ecdc4;
+            background: #667eea;
             color: white;
             padding: 10px 20px;
             border-radius: 6px;
             text-decoration: none;
-            font-size: 0.95em;
-            margin: 5px 10px 5px 0;
+            font-size: 0.9em;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .error {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .stats {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
         }
     </style>
 </head>
@@ -54,45 +202,179 @@
     <div class="container">
         <header>
             <h1>💡 Этап 2: Brainstormer - Генерация идей</h1>
-            <p>Генерирует стратегические идеи на основе инсайтов от фрилансера</p>
+            <p>Генерирует 3-5 стратегических идей на основе инсайтов от Фрилансера</p>
+            <div class="header-controls">
+                <div class="font-control">
+                    <label for="fontSizeSlider">📏 Размер шрифта:</label>
+                    <input type="range" id="fontSizeSlider" min="12" max="20" value="16" step="1">
+                    <span class="font-size-display"><span id="fontSizeValue">16</span>px</span>
+                </div>
+            </div>
         </header>
 
         <div class="panel">
-            <h2>🚀 Сгенерированные идеи</h2>
-
-            <div class="idea-card">
-                <div class="idea-title">🎯 Идея 1: Комбо "ЧВП + Видео" для максимума</div>
-                <div class="idea-based">← Основано на инсайтах: оптимизация по ЧВП + видео форматы</div>
-                <div class="idea-description">
-                    Комбинируем два самых мощных инструмента: оптимизацию по целевым действиям (ЧВП) + видео контент.
-                    Результат: система автоматически находит аудиторию готовую совершить целевое действие И показывает им видео которое лучше всего работает.
-                </div>
+            <h2>💭 Идеи и стратегии</h2>
+            <div id="ideas-container">
+                <div class="loading">⏳ Загружаю идеи...</div>
             </div>
-
-            <div class="idea-card">
-                <div class="idea-title">🎬 Идея 2: Lead Forms + видео для максимума лидов</div>
-                <div class="idea-based">← Основано на инсайтах: Lead Forms (+30%) + видео форматы</div>
-                <div class="idea-description">
-                    Встроенные Lead Forms + видеоконтент = лиды остаются в платформе и видят видео которое их привлекает.
-                    Стратегия: видео привлекает внимание, Lead Form снимает долгосрочных контактов.
-                </div>
-            </div>
-
-            <div class="idea-card">
-                <div class="idea-title">🧪 Идея 3: Стратегия multi-video A/B тестирования</div>
-                <div class="idea-based">← Основано на инсайте: видео приоритет + A/B тестирование</div>
-                <div class="idea-description">
-                    Создаёшь 5-10 разных видео вариантов (разные углы, музыка, длина) и тестируешь их одновременно.
-                    Алгоритм ВК автоматически находит какое видео лучше работает с какой аудиторией.
-                </div>
-            </div>
+            <div class="stats" id="stats-container"></div>
         </div>
 
         <div class="panel">
-            <a href="index.html" class="nav-link">← На главный dashboard</a>
-            <a href="1-freelancer.html" class="nav-link">← Этап 1: Инсайты</a>
-            <a href="3-critic.html" class="nav-link">Этап 3: Оценка →</a>
+            <h2>📌 Инструкция</h2>
+            <p><strong>Как оценивать идеи:</strong></p>
+            <ul style="margin-left: 20px; line-height: 1.8;">
+                <li><strong>👍 Лайк</strong> - идея мне нравится, это реально можно внедрить</li>
+                <li><strong>👎 Дизлайк</strong> - идея не подходит, пропустить эту стратегию</li>
+            </ul>
+            <p style="margin-top: 15px; color: #666;">
+                Твои оценки помогают следующему этапу (Critic) понять, какие идеи проверять более тщательно.
+            </p>
+        </div>
+
+        <div class="panel">
+            <h2>🔄 Навигация</h2>
+            <div class="nav-links">
+                <a href="1-freelancer.html" class="nav-link">← Вернуться: Инсайты Фрилансера</a>
+                <a href="3-critic.html" class="nav-link">Этап 3: Критика Critic →</a>
+            </div>
         </div>
     </div>
+
+    <script>
+        // Управление размером шрифта
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+
+        fontSizeSlider.addEventListener('input', (e) => {
+            const size = e.target.value;
+            fontSizeValue.textContent = size;
+            document.body.style.fontSize = size + 'px';
+            localStorage.setItem('fontSize', size);
+        });
+
+        // Восстановить сохранённый размер шрифта
+        const savedFontSize = localStorage.getItem('fontSize');
+        if (savedFontSize) {
+            fontSizeSlider.value = savedFontSize;
+            fontSizeValue.textContent = savedFontSize;
+            document.body.style.fontSize = savedFontSize + 'px';
+        }
+
+        // Загрузка данных из JSON
+        async function loadIdeas() {
+            try {
+                const response = await fetch('./data/brainstorm.json');
+                if (!response.ok) throw new Error('Не удалось загрузить данные');
+
+                const data = await response.json();
+                renderIdeas(data.brainstorm_session.ideas);
+                updateStats(data.brainstorm_session);
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                document.getElementById('ideas-container').innerHTML =
+                    '<div class="error">⚠️ Ошибка загрузки данных. Проверьте доступность файла brainstorm.json</div>';
+            }
+        }
+
+        function renderIdeas(ideas) {
+            const container = document.getElementById('ideas-container');
+            container.innerHTML = '';
+
+            if (!ideas || ideas.length === 0) {
+                container.innerHTML = '<p style="color: #999;">Нет идей. Brainstormer ещё думает...</p>';
+                return;
+            }
+
+            // Сортируем по релевантности (новые/высокие first)
+            const sortedIdeas = [...ideas].sort((a, b) =>
+                b.relevance_score - a.relevance_score
+            );
+
+            sortedIdeas.forEach((idea) => {
+                const card = document.createElement('div');
+                card.className = 'idea-card';
+                card.id = `idea-${idea.idea_id}`;
+
+                const complexityClass = `complexity-${idea.complexity}`;
+
+                // Форматируем шаги реализации
+                let stepsHtml = '<strong>Шаги реализации:</strong><ol>';
+                if (idea.implementation_steps && Array.isArray(idea.implementation_steps)) {
+                    idea.implementation_steps.slice(0, 3).forEach(step => {
+                        stepsHtml += `<li>${step}</li>`;
+                    });
+                    if (idea.implementation_steps.length > 3) {
+                        stepsHtml += `<li>... и ещё ${idea.implementation_steps.length - 3} шагов</li>`;
+                    }
+                }
+                stepsHtml += '</ol>';
+
+                card.innerHTML = `
+                    <div class="idea-title">${idea.title}</div>
+                    <div class="idea-description">
+                        <strong>📝 Описание:</strong> ${idea.description}
+                    </div>
+                    <div class="idea-expected">
+                        <strong>✅ Ожидаемый результат:</strong> ${idea.expected_result}
+                    </div>
+                    <div class="implementation-steps">${stepsHtml}</div>
+                    <div class="idea-footer">
+                        <div class="idea-meta-item">
+                            <span class="complexity-badge ${complexityClass}">${idea.complexity}</span>
+                        </div>
+                        <div class="idea-meta-item">
+                            <span>🎯 Релевантность: ${(idea.relevance_score * 100).toFixed(0)}%</span>
+                        </div>
+                        <div style="margin-left: auto; display: flex; gap: 8px;">
+                            <button class="like-btn" data-idea-id="${idea.idea_id}" data-rating="1">👍 Лайк</button>
+                            <button class="dislike-btn" data-idea-id="${idea.idea_id}" data-rating="-1">👎 Дизлайк</button>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+
+            // Добавляем обработчики клика на кнопки
+            document.querySelectorAll('.like-btn, .dislike-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const ideaId = e.target.dataset.ideaId;
+                    const rating = parseInt(e.target.dataset.rating);
+                    const card = document.getElementById(`idea-${ideaId}`);
+
+                    card.querySelectorAll('.like-btn, .dislike-btn').forEach(b => b.classList.remove('selected'));
+                    e.target.classList.add('selected');
+
+                    const ratings = JSON.parse(localStorage.getItem('idea_ratings') || '{}');
+                    ratings[ideaId] = rating;
+                    localStorage.setItem('idea_ratings', JSON.stringify(ratings));
+                });
+            });
+
+            // Восстанавливаем сохранённые оценки
+            const savedRatings = JSON.parse(localStorage.getItem('idea_ratings') || '{}');
+            Object.entries(savedRatings).forEach(([ideaId, rating]) => {
+                const card = document.getElementById(`idea-${ideaId}`);
+                if (card) {
+                    const btnClass = rating > 0 ? '.like-btn' : '.dislike-btn';
+                    card.querySelector(btnClass)?.classList.add('selected');
+                }
+            });
+        }
+
+        function updateStats(session) {
+            const statsContainer = document.getElementById('stats-container');
+            const createdAt = new Date(session.created_at).toLocaleString('ru-RU');
+
+            statsContainer.innerHTML = `
+                📊 <strong>Статистика:</strong> ${session.total_ideas} идей сгенерировано • Создано: ${createdAt}<br>
+                🎯 <strong>Фреймворк:</strong> ${session.strategy_framework}
+            `;
+        }
+
+        // Загружаем данные при загрузке страницы
+        document.addEventListener('DOMContentLoaded', loadIdeas);
+    </script>
 </body>
 </html>
