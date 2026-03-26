@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Этап 3: Critic - Оценка идей</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #45b7d1 0%, #2196F3 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        h1 { color: #45b7d1; margin-bottom: 10px; }
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .review-card {
+            background: #f5f5f5;
+            border-left: 4px solid #45b7d1;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+        }
+        .review-title { font-weight: 600; margin-bottom: 8px; color: #333; }
+        .score { 
+            display: inline-block;
+            background: #2196F3;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+        .pros, .cons {
+            margin: 8px 0;
+            font-size: 0.95em;
+        }
+        .nav-link {
+            display: inline-block;
+            background: #45b7d1;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.95em;
+            margin: 5px 10px 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚔️ Этап 3: Critic - Оценка идей</h1>
+            <p>Критически оценивает реалистичность идей от brainstormer</p>
+        </header>
+
+        <div class="panel">
+            <h2>🔍 Оценка идей</h2>
+
+            <div class="review-card">
+                <div class="review-title">🎯 Идея 1: Комбо "ЧВП + Видео"</div>
+                <div class="score">Вероятность успеха: 92%</div>
+                <div class="pros">
+                    <strong>✅ Преимущества:</strong> Комбинация двух проверенных методов, легко внедрить, не требует больших затрат
+                </div>
+                <div class="cons">
+                    <strong>⚠️ Риски:</strong> Требует качественного видео контента, нужно время на тестирование
+                </div>
+            </div>
+
+            <div class="review-card">
+                <div class="review-title">🎬 Идея 2: Lead Forms + видео</div>
+                <div class="score">Вероятность успеха: 88%</div>
+                <div class="pros">
+                    <strong>✅ Преимущества:</strong> Доказанный метод (+30% конверсии), простая реализация в ВК
+                </div>
+                <div class="cons">
+                    <strong>⚠️ Риски:</strong> Зависит от качества видео и формы, требует A/B тестирования
+                </div>
+            </div>
+
+            <div class="review-card">
+                <div class="review-title">🧪 Идея 3: Multi-video A/B тестирование</div>
+                <div class="score">Вероятность успеха: 85%</div>
+                <div class="pros">
+                    <strong>✅ Преимущества:</strong> Алгоритм ВК做 большую часть работы, можно запустить быстро
+                </div>
+                <div class="cons">
+                    <strong>⚠️ Риски:</strong> Требует создания нескольких видео вариантов, может потребить бюджет на обучение
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <a href="index.html" class="nav-link">← На главный dashboard</a>
+            <a href="2-brainstormer.html" class="nav-link">← Этап 2: Идеи</a>
+            <a href="4-judge.html" class="nav-link">Этап 4: Вердикт →</a>
+        </div>
+    </div>
+</body>
+</html>
