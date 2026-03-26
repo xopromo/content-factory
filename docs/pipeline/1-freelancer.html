@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Этап 1: Фрилансер - Поиск инсайтов</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        h1 { color: #667eea; margin-bottom: 10px; }
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .insight-card {
+            background: #f9f9f9;
+            border-left: 4px solid #ff6b6b;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+        }
+        .insight-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .insight-analysis {
+            background: #fff9e6;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 8px 0;
+            color: #666;
+            font-size: 0.95em;
+        }
+        .insight-conclusion {
+            background: #e6f7ff;
+            padding: 10px;
+            border-radius: 4px;
+            color: #0066cc;
+            font-size: 0.95em;
+        }
+        .rating-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .like-btn, .dislike-btn {
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .like-btn { background: #d4edda; color: #155724; }
+        .dislike-btn { background: #f8d7da; color: #721c24; }
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .nav-link {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Этап 1: Фрилансер - Поиск инсайтов</h1>
+            <p>Ищет материалы про таргет ВК и выделяет <strong>инсайты с анализом</strong> (не просто статьи!)</p>
+        </header>
+
+        <div class="panel">
+            <h2>📊 Последние инсайты</h2>
+
+            <div class="insight-card">
+                <div class="insight-title">💡 Лайфхак: Оптимизация по ЧВП (Целевые действия) +35% ROAS</div>
+                <div class="insight-analysis">
+                    <strong>📌 Анализ:</strong> Система ВК умнее людей - дай ей данные о целевых действиях (покупки, заполнения форм) и она автоматически найдёт идеальную аудиторию без ручной сегментации
+                </div>
+                <div class="insight-conclusion">
+                    <strong>✅ Практический вывод:</strong> Вместо ручной сегментации → используй оптимизацию по ЧВП → экономишь время и повышаешь ROAS на 35%
+                </div>
+                <div class="rating-buttons">
+                    <button class="like-btn">👍 Лайк</button>
+                    <button class="dislike-btn">👎 Дизлайк</button>
+                </div>
+            </div>
+
+            <div class="insight-card">
+                <div class="insight-title">🎬 Видео форматы - главный приоритет в 2026</div>
+                <div class="insight-analysis">
+                    <strong>📌 Анализ:</strong> Видеореклама 10-15 секунд создаёт глубокий контакт с мозгом. Баннеры забываются через часть, видео - запечатлевается на дни. Алгоритм ВК также приоритизирует видеоконтент
+                </div>
+                <div class="insight-conclusion">
+                    <strong>✅ Практический вывод:</strong> Переходи на видео форматы → даже дешёвые видео с телефона работают лучше чем профессиональные баннеры
+                </div>
+                <div class="rating-buttons">
+                    <button class="like-btn">👍 Лайк</button>
+                    <button class="dislike-btn">👎 Дизлайк</button>
+                </div>
+            </div>
+
+            <div class="insight-card">
+                <div class="insight-title">📈 Lead Forms встроенные в ВК +30% конверсия</div>
+                <div class="insight-analysis">
+                    <strong>📌 Анализ:</strong> Когда пользователь должен покидать ВК и переходить на сайт - теряешь 60% конверсии. Lead Forms встроены в платформу - пользователь не уходит из привычной среды
+                </div>
+                <div class="insight-conclusion">
+                    <strong>✅ Практический вывод:</strong> Используй Lead Forms вместо редиректов на сайт → получаешь +30% конверсии и более качественных лидов
+                </div>
+                <div class="rating-buttons">
+                    <button class="like-btn">👍 Лайк</button>
+                    <button class="dislike-btn">👎 Дизлайк</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>🎯 Текущие квесты</h2>
+            <p>✅ Эффективность таргетирования ВК в 2026 (5 инсайтов найдено)</p>
+            <p>⏳ Lead Forms для максимизации конверсии (в процессе)</p>
+            <p>⏳ A/B тестирование креативов (в очереди)</p>
+        </div>
+
+        <div class="panel">
+            <h2>📌 Инструкция</h2>
+            <p><strong>Как оценивать инсайты:</strong></p>
+            <ul style="margin-left: 20px; line-height: 1.8;">
+                <li><strong>👍 Лайк</strong> - инсайт реально полезен, агент будет искать больше похожего</li>
+                <li><strong>👎 Дизлайк</strong> - не релевантно, агент забудет эту тему</li>
+            </ul>
+            <p style="margin-top: 15px; color: #666;">
+                Твои оценки помогают агенту УЧИТЬСЯ и искать более релевантные материалы в следующих циклах.
+            </p>
+        </div>
+
+        <div class="panel">
+            <h2>🔄 Навигация</h2>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">← Вернуться на главный dashboard</a>
+                <a href="2-brainstormer.html" class="nav-link">Этап 2: Идеи Brainstormer →</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
