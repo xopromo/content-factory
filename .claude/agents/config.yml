@@ -1,0 +1,89 @@
+# 🤖 Агенты конфигурация
+# Режимы: production (платные Claude API) или budget (бесплатные Ollama + DuckDuckGo)
+
+mode: budget  # production | budget
+
+# ===== РЕЖИМ: BUDGET (Бесплатный) =====
+budget:
+  enabled: true
+
+  # Локальный LLM (Ollama)
+  ollama:
+    host: http://localhost:11434
+    models:
+      default: mistral         # быстрый и дешёвый
+      reasoning: neural-chat   # для сложного анализа
+      coding: codellama        # для кода
+    timeout: 30
+    stream: false
+
+  # Поисковик (DuckDuckGo - всегда бесплатен)
+  search:
+    provider: duckduckgo  # встроен в Python
+    maxResults: 10
+    timeout: 10
+
+# ===== РЕЖИМ: PRODUCTION (Платный, для высокого качества) =====
+production:
+  enabled: false
+
+  # Claude API
+  claude:
+    model: claude-opus-4-6
+    apiKey: ${ANTHROPIC_API_KEY}
+    timeout: 30
+
+  # Поисковик (WebSearch через Anthropic)
+  search:
+    provider: web_search
+    maxResults: 10
+    timeout: 10
+
+# ===== ПЕРЕКЛЮЧЕНИЕ АГЕНТОВ =====
+agents:
+  researcher:
+    mode: budget           # всегда на бесплатном
+    model: mistral         # ollama
+    search: duckduckgo
+    effort: high
+    cost_per_run: "$0.00"
+
+  code-reviewer:
+    mode: budget
+    model: mistral         # ollama
+    cost_per_run: "$0.00"
+
+  quality-analyzer:
+    mode: budget
+    model: neural-chat     # для лучшего анализа
+    cost_per_run: "$0.00"
+
+  brainstormer:
+    mode: budget
+    model: mistral
+    cost_per_run: "$0.00"
+
+  critic:
+    mode: budget
+    model: neural-chat     # критический анализ требует логики
+    cost_per_run: "$0.00"
+
+  judge:
+    mode: budget
+    model: neural-chat     # выносит вердикты
+    cost_per_run: "$0.00"
+
+# ===== СТОИМОСТЬ СРАВНЕНИЕ =====
+costs:
+  research_with_claude: "$0.088 (Claude API)"
+  research_with_ollama: "$0.00 (локально)"
+  monthly_savings:
+    claude_only: "$1000+ (50 исследований/день)"
+    ollama_only: "$0 (неограниченно)"
+    hybrid: "$100-200 (платные для critical tasks)"
+
+# ===== УСТАНОВКА OLLAMA =====
+# docker run -d -p 11434:11434 --name ollama ollama/ollama
+# ollama pull mistral
+# ollama pull neural-chat
+# ollama pull codellama

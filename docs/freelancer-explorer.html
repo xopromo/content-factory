@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Фрилансер Explorer - Автоматический поиск инсайтов</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .panel h2 {
+            margin-bottom: 20px;
+            color: #667eea;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quest-item {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .quest-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .quest-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .priority-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .priority-5 { background: #ff4757; color: white; }
+        .priority-4 { background: #ffa502; color: white; }
+        .priority-3 { background: #ffd93d; color: #333; }
+        .priority-2 { background: #6bcf7f; color: white; }
+        .priority-1 { background: #a4b0bd; color: white; }
+
+        .logs-container {
+            grid-column: 1 / -1;
+        }
+
+        .log-entry {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .log-entry:hover {
+            background: #f0f0f0;
+            transform: translateX(5px);
+        }
+
+        .log-time {
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 8px;
+        }
+
+        .log-finding {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .log-summary {
+            color: #666;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .log-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+        }
+
+        .rating-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .like-btn, .dislike-btn {
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.2s ease;
+        }
+
+        .like-btn {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .like-btn:hover {
+            background: #2e7d32;
+            color: white;
+        }
+
+        .like-btn.active {
+            background: #2e7d32;
+            color: white;
+        }
+
+        .dislike-btn {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .dislike-btn:hover {
+            background: #c62828;
+            color: white;
+        }
+
+        .dislike-btn.active {
+            background: #c62828;
+            color: white;
+        }
+
+        .source-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.85em;
+        }
+
+        .source-link:hover {
+            text-decoration: underline;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9em;
+        }
+
+        .filter-btn:hover {
+            border-color: #667eea;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-completed {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .refresh-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 20px;
+            color: #1565c0;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 Фрилансер Explorer</h1>
+            <p class="subtitle">Автоматический поиск инсайтов об эффективности рекламы ВКонтакте</p>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-logs">0</div>
+                    <div class="stat-label">Находок</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-quests">0</div>
+                    <div class="stat-label">Квестов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avg-rating">0.0</div>
+                    <div class="stat-label">Средний рейтинг</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="last-update">--:--</div>
+                    <div class="stat-label">Последнее обновление</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="panel">
+                <h2>📋 Текущие квесты</h2>
+                <div id="quests-list"></div>
+            </div>
+
+            <div class="panel">
+                <h2>📊 Статистика</h2>
+                <div id="stats-details"></div>
+            </div>
+        </div>
+
+        <div class="panel logs-container">
+            <h2>📖 Журнал находок</h2>
+            <div class="filter-bar" id="filter-bar"></div>
+            <div id="logs-list"></div>
+            <div class="refresh-info">
+                💡 Система обновляется каждые 5 минут. Ставь лайки (👍) на интересные находки - агент будет искать больше похожего!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Имитация данных для демо
+        const mockData = {
+            logs: [
+                {
+                    log_id: "log_001",
+                    timestamp: "2026-03-26T10:30:00Z",
+                    quest_id: "quest_001",
+                    finding: "Лайфхак: Оптимизация бюджета по ЧВП увеличивает ROAS на 35%",
+                    summary: "Вместо оптимизации по кликам выбери оптимизацию по ЧВП (Целевые действия в пикселе). Это автоматически находит людей, готовых совершить целевое действие.",
+                    source_url: "https://example.com/vk-targeting-tips",
+                    rating: 1,
+                    user_feedback: "👍",
+                    relevance_score: 0.98,
+                    category: "лайфхак"
+                },
+                {
+                    log_id: "log_002",
+                    timestamp: "2026-03-26T10:25:00Z",
+                    quest_id: "quest_002",
+                    finding: "Кейс: e-commerce увеличил продажи на 250% через ретаргетинг",
+                    summary: "Fashion бренд применил сложный ретаргетинг: разные аудитории для тех кто посмотрел товар, добавил в корзину или покинул сайт. ROI поднялся с 1:2 до 1:5",
+                    source_url: "https://example.com/ecommerce-case",
+                    rating: 0,
+                    user_feedback: null,
+                    relevance_score: 0.95,
+                    category: "кейс"
+                }
+            ],
+            quests: [
+                {
+                    id: "quest_001",
+                    title: "CTR оптимизация в ВК",
+                    status: "in_progress",
+                    priority: 5,
+                    evidence_count: 4,
+                    rating_sum: 3
+                },
+                {
+                    id: "quest_002",
+                    title: "Ретаргетинг стратегии",
+                    status: "in_progress",
+                    priority: 4,
+                    evidence_count: 2,
+                    rating_sum: 0
+                },
+                {
+                    id: "quest_003",
+                    title: "A/B тестирование креативов",
+                    status: "pending",
+                    priority: 3,
+                    evidence_count: 0,
+                    rating_sum: 0
+                }
+            ],
+            stats: {
+                total_logs: 2,
+                total_quests: 3,
+                completed_quests: 5,
+                avg_relevance: 0.96
+            }
+        };
+
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function getPriorityColor(priority) {
+            return `priority-${priority}`;
+        }
+
+        function getStatusClass(status) {
+            if (status === 'in_progress') return 'status-active';
+            if (status === 'completed') return 'status-completed';
+            return 'status-pending';
+        }
+
+        function renderQuests() {
+            const questsList = document.getElementById('quests-list');
+            questsList.innerHTML = mockData.quests.map(quest => `
+                <div class="quest-item">
+                    <div class="quest-title">${quest.title}</div>
+                    <div class="quest-meta">
+                        <span class="priority-badge ${getPriorityColor(quest.priority)}">Приоритет ${quest.priority}</span>
+                        <span class="status-badge ${getStatusClass(quest.status)}">${quest.status}</span>
+                        <span>📊 ${quest.evidence_count} доказательств</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderStats() {
+            const statsDetails = document.getElementById('stats-details');
+            statsDetails.innerHTML = `
+                <div style="line-height: 1.8;">
+                    <p><strong>📊 Всего находок:</strong> ${mockData.stats.total_logs}</p>
+                    <p><strong>📋 Активных квестов:</strong> ${mockData.stats.total_quests}</p>
+                    <p><strong>✅ Завершённых квестов:</strong> ${mockData.stats.completed_quests}</p>
+                    <p><strong>⭐ Средняя релевантность:</strong> ${(mockData.stats.avg_relevance * 100).toFixed(0)}%</p>
+                    <p><strong>🧠 Паттернов выучено:</strong> 8</p>
+                    <p><strong>📈 Learning curve:</strong> +5% в день</p>
+                </div>
+            `;
+        }
+
+        function renderLogs() {
+            const logsList = document.getElementById('logs-list');
+            logsList.innerHTML = mockData.logs.map(log => `
+                <div class="log-entry">
+                    <div class="log-time">⏰ ${formatTime(log.timestamp)}</div>
+                    <div class="log-finding">🎯 ${log.finding}</div>
+                    <div class="log-summary">${log.summary}</div>
+                    <div class="log-footer">
+                        <div>
+                            <a href="${log.source_url}" target="_blank" class="source-link">🔗 Источник</a>
+                            <span style="color: #999;">• Релевантность: ${(log.relevance_score * 100).toFixed(0)}%</span>
+                        </div>
+                        <div class="rating-buttons">
+                            <button class="like-btn ${log.user_feedback === '👍' ? 'active' : ''}">👍 ${log.rating > 0 ? '+' + log.rating : ''}</button>
+                            <button class="dislike-btn ${log.user_feedback === '👎' ? 'active' : ''}">👎 ${log.rating < 0 ? log.rating : ''}</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('total-logs').textContent = mockData.stats.total_logs;
+            document.getElementById('total-quests').textContent = mockData.stats.total_quests;
+            document.getElementById('avg-rating').textContent = (mockData.stats.avg_relevance).toFixed(2);
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function init() {
+            updateStats();
+            renderQuests();
+            renderStats();
+            renderLogs();
+
+            // Обновляй каждые 30 сек (для демо)
+            setInterval(() => {
+                updateStats();
+                // В реальной системе здесь будет загрузка актуальных данных из logs.json
+            }, 30000);
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
