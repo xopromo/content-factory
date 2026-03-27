@@ -22,7 +22,8 @@ def test_yandex_parsing():
         print(f"🔍 Открываю: {search_url}")
 
         page.goto(search_url, timeout=30000)
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("domcontentloaded")
+        time.sleep(2)  # Дай JavaScript время на рендеринг
 
         print("✅ Страница загружена")
 
