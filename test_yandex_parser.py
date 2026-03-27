@@ -29,35 +29,49 @@ def test_yandex_parsing():
 
         # Получить HTML
         html = page.content()
+
+        # Сохрани HTML для анализа
+        with open('yandex_page.html', 'w', encoding='utf-8') as f:
+            f.write(html)
+        print("📄 HTML сохранен в yandex_page.html")
+
         soup = BeautifulSoup(html, 'html.parser')
 
         # Найти ссылки в результатах поиска
-        # Яндекс использует классы для результатов
         results = []
 
-        # Попробуем найти результаты (Яндекс часто меняет структуру)
-        # Ищем h2 с ссылками
-        for h2 in soup.find_all('h2', class_='ErgoPaidSnippet__title'):
-            link = h2.find('a')
-            if link:
-                url = link.get('href')
-                title = link.get_text().strip()
-                results.append({
-                    'title': title,
-                    'url': url
-                })
+        # Попробуем разные селекторы
+        selectors = [
+            ('h2', 'ErgoPaidSnippet__title'),
+            ('h2', None),
+            ('a', 'Link'),
+            ('article', None),
+            ('div', 'serp-item'),
+        ]
 
-        # Если не нашли - попробуем другой селектор
-        if not results:
-            for h2 in soup.find_all('h2'):
-                link = h2.find('a')
-                if link and 'http' in link.get('href', ''):
-                    url = link.get('href')
+        for tag, cls in selectors:
+            if cls:
+                elements = soup.find_all(tag, class_=cls)
+            else:
+                elements = soup.find_all(tag)
+
+            for elem in elements[:5]:
+                link = elem.find('a') if tag != 'a' else elem
+                if link:
+                    url = link.get('href', '')
                     title = link.get_text().strip()
-                    results.append({
-                        'title': title,
-                        'url': url
-                    })
+                    if url and 'http' in url and title and len(title) > 5:
+                        results.append({
+                            'title': title[:100],
+                            'url': url
+                        })
+
+            if results:
+                print(f"✅ Найдены результаты используя селектор: {tag}, class={cls}")
+                break
+
+        if not results:
+            print("⚠️  Селекторы не сработали. Проверь yandex_page.html")
 
         # Вывести первые 4 результата
         print(f"\n📊 Найдено результатов: {len(results)}")
