@@ -1,0 +1,55 @@
+name: Traffic Research Agent
+
+on:
+  schedule:
+    # Запускать каждый день в 09:00 UTC
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+    # Позволяет запускать вручную
+
+permissions:
+  contents: write
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Configure Git
+        run: |
+          git config --global user.email "traffic-agent@content-factory.local"
+          git config --global user.name "Traffic Research Agent"
+
+      - name: Run traffic research
+        run: python3 traffic_researcher.py
+
+      - name: Commit changes
+        run: |
+          git add -A
+          git diff --quiet && git diff --staged --quiet || (
+            git commit -m "🔍 Traffic research update - $(date +'%Y-%m-%d %H:%M:%S')" && \
+            git push origin main || git push origin $(git rev-parse --abbrev-ref HEAD)
+          )
+        continue-on-error: true
+
+      - name: Create summary
+        run: |
+          echo "✅ Traffic research completed successfully"
+          echo "📊 Results:"
+          if [ -f docs/research/insights/index.json ]; then
+            python3 -c "
+            import json
+            with open('docs/research/insights/index.json') as f:
+              data = json.load(f)
+              print(f\"Total insights: {data.get('total_insights', 0)}\")
+              print(f\"Last updated: {data.get('last_updated', 'N/A')}\")
+            "
+          fi
