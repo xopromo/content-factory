@@ -1,0 +1,35 @@
+{
+  "account": {
+    "username": "your_username",
+    "password": "your_password"
+  },
+  "search": {
+    "hashtags": ["#AI", "#Tech", "#Python"],
+    "keywords": ["machine learning", "automation"],
+    "limit": 5
+  },
+  "comment_generation": {
+    "model": "ollama",
+    "ollama_url": "http://localhost:11434",
+    "ollama_model": "mistral",
+    "gpt4all_model": "orca-mini",
+    "tone": "friendly",
+    "max_length": 280,
+    "templates": [
+      "Интересно! {comment}",
+      "Согласен, {comment}",
+      "{comment} Спасибо за пост!"
+    ]
+  },
+  "scheduling": {
+    "mode": "manual",
+    "frequency": "daily",
+    "time": "14:00",
+    "realtime": false
+  },
+  "filters": {
+    "min_engagement": 0,
+    "skip_duplicates": true,
+    "skip_own_posts": true
+  }
+}
