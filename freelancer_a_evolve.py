@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 from typing import Optional
 import agent_evolve as ae
-from agent_evolve.types import Task, Feedback, Trajectory
+from agent_evolve import Task, Feedback, Trajectory
 
 
 logger = logging.getLogger(__name__)
