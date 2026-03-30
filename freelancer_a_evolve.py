@@ -144,7 +144,7 @@ Provide VK targeting insights in this format:
 
 Generate 3-5 detailed insights."""
 
-            # Step 3: Try each LLM provider in order
+            # Step 3: Try each free cloud LLM provider in order
             for provider_name, provider_config in LLM_PROVIDERS.items():
                 api_key = os.getenv(provider_config['key_env'])
                 if not api_key:
@@ -187,7 +187,7 @@ Generate 3-5 detailed insights."""
                     logger.warning(f"{provider_name} failed: {e}")
                     continue
 
-            logger.warning("All LLM providers failed, using mock insights")
+            logger.warning("All free LLM providers failed, using mock insights")
             return self._generate_insights(query)
 
         except ImportError:
