@@ -18,6 +18,8 @@ class Feedback:
     score: float
     detail: str
     metadata: Optional[Dict[str, Any]] = None
+    success: Optional[bool] = None
+    raw: Optional[Dict[str, Any]] = None
 
 
 @dataclass
