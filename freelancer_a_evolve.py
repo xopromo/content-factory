@@ -1,11 +1,11 @@
 """A-Evolve integration for freelancer VK targeting insights agent
 
-Uses Ollama for local LLM (free) + WebSearch for information gathering
+Uses free cloud APIs (Groq, Mistral, Cerebras) + DuckDuckGo for information gathering
 """
 
 import json
 import logging
-import subprocess
+import os
 from pathlib import Path
 from typing import Optional
 import agent_evolve as ae
@@ -14,9 +14,24 @@ from agent_evolve.types import Task, Feedback, Trajectory
 
 logger = logging.getLogger(__name__)
 
-# Configuration
-OLLAMA_MODEL = "mistral"  # Change to your preferred model
-OLLAMA_BASE_URL = "http://localhost:11434"
+# Free cloud LLM providers (in order of preference)
+LLM_PROVIDERS = {
+    'groq': {
+        'api_url': 'https://api.groq.com/openai/v1/chat/completions',
+        'model': 'llama-3.3-70b-versatile',
+        'key_env': 'GROQ_API_KEY'
+    },
+    'mistral': {
+        'api_url': 'https://api.mistral.ai/v1/chat/completions',
+        'model': 'mistral-small-latest',
+        'key_env': 'MISTRAL_API_KEY'
+    },
+    'cerebras': {
+        'api_url': 'https://api.cerebras.ai/v1/chat/completions',
+        'model': 'llama-3.1-8b',
+        'key_env': 'CEREBRAS_API_KEY'
+    }
+}
 
 
 class FreelancerAgent(ae.BaseAgent):
@@ -41,7 +56,7 @@ class FreelancerAgent(ae.BaseAgent):
 
     def solve(self, task: Task) -> Trajectory:
         """
-        Solve a task about VK targeting insights using Ollama
+        Solve a task about VK targeting insights using free cloud LLMs
 
         Args:
             task: A-Evolve Task with input and metadata
@@ -53,19 +68,14 @@ class FreelancerAgent(ae.BaseAgent):
             query = task.input
             steps = []
 
-            # Step 1: Check if Ollama is running
-            ollama_available = self._check_ollama()
-            if not ollama_available:
-                logger.warning(f"Ollama not available, using mock insights")
-                insights = self._generate_insights(query)
-            else:
-                # Step 2: Use Ollama with the evolvable system prompt
-                insights = self._generate_with_ollama(query)
-                steps.append({
-                    "type": "ollama_generation",
-                    "model": OLLAMA_MODEL,
-                    "status": "success"
-                })
+            # Generate insights using cloud LLM
+            insights = self._generate_with_cloud_llm(query)
+
+            steps.append({
+                "type": "cloud_llm_generation",
+                "providers_available": list(LLM_PROVIDERS.keys()),
+                "status": "success"
+            })
 
             return Trajectory(
                 task_id=task.id,
@@ -87,18 +97,6 @@ class FreelancerAgent(ae.BaseAgent):
                 steps=[{"error": str(e)}]
             )
 
-    def _check_ollama(self) -> bool:
-        """Check if Ollama is running"""
-        try:
-            result = subprocess.run(
-                ["curl", "-s", f"{OLLAMA_BASE_URL}/api/tags"],
-                capture_output=True,
-                timeout=2
-            )
-            return result.returncode == 0
-        except Exception:
-            return False
-
     def _search_duckduckgo(self, query: str) -> str:
         """Search for information using DuckDuckGo (free)"""
         try:
@@ -119,8 +117,8 @@ class FreelancerAgent(ae.BaseAgent):
             logger.warning(f"DuckDuckGo search failed: {e}")
             return ""
 
-    def _generate_with_ollama(self, query: str) -> str:
-        """Generate insights using Ollama + DuckDuckGo search"""
+    def _generate_with_cloud_llm(self, query: str) -> str:
+        """Generate insights using free cloud LLM APIs + DuckDuckGo search"""
         try:
             import requests
 
@@ -128,9 +126,8 @@ class FreelancerAgent(ae.BaseAgent):
             search_context = self._search_duckduckgo(query)
 
             # Step 2: Combine system prompt + search results + query
-            prompt = f"""{self.system_prompt}
-
-## Current Information (from web search):
+            system_message = self.system_prompt
+            user_message = f"""## Current Information (from web search):
 {search_context if search_context else "(No search results - will use knowledge)"}
 
 ## Your Task:
@@ -145,36 +142,56 @@ Provide VK targeting insights in this format:
 ⭐ Impact: [high/medium/low]
 🔗 Source: [URL or reference]
 
-Generate 3-5 detailed insights.
-"""
+Generate 3-5 detailed insights."""
 
-            # Step 3: Generate using Ollama (FREE local model)
-            response = requests.post(
-                f"{OLLAMA_BASE_URL}/api/generate",
-                json={
-                    "model": OLLAMA_MODEL,
-                    "prompt": prompt,
-                    "stream": False,
-                    "temperature": 0.7,
-                },
-                timeout=60
-            )
+            # Step 3: Try each LLM provider in order
+            for provider_name, provider_config in LLM_PROVIDERS.items():
+                api_key = os.getenv(provider_config['key_env'])
+                if not api_key:
+                    logger.debug(f"Skipping {provider_name}: no API key ({provider_config['key_env']})")
+                    continue
 
-            if response.status_code == 200:
-                result = response.json()
-                output = result.get("response", "")
+                try:
+                    logger.info(f"Trying {provider_name}...")
+                    response = requests.post(
+                        provider_config['api_url'],
+                        headers={
+                            'Authorization': f'Bearer {api_key}',
+                            'Content-Type': 'application/json'
+                        },
+                        json={
+                            'model': provider_config['model'],
+                            'messages': [
+                                {'role': 'system', 'content': system_message},
+                                {'role': 'user', 'content': user_message}
+                            ],
+                            'temperature': 0.7,
+                            'max_tokens': 2000
+                        },
+                        timeout=30
+                    )
 
-                # Add source attribution
-                if search_context:
-                    output += "\n\n---\n*Generated using Ollama + DuckDuckGo search (100% FREE)*"
+                    if response.status_code == 200:
+                        result = response.json()
+                        output = result['choices'][0]['message']['content']
+                        logger.info(f"✓ Generated using {provider_name}")
+                        return output
+                    elif response.status_code == 429:
+                        logger.warning(f"{provider_name}: rate limited, trying next...")
+                        continue
+                    else:
+                        logger.warning(f"{provider_name}: HTTP {response.status_code}")
+                        continue
 
-                return output
-            else:
-                logger.warning(f"Ollama error: {response.status_code}")
-                return self._generate_insights(query)
+                except Exception as e:
+                    logger.warning(f"{provider_name} failed: {e}")
+                    continue
+
+            logger.warning("All LLM providers failed, using mock insights")
+            return self._generate_insights(query)
 
         except ImportError:
-            logger.warning("duckduckgo_search not installed, using mock insights")
+            logger.warning("requests library not available, using mock insights")
             return self._generate_insights(query)
         except Exception as e:
             logger.warning(f"Generation failed: {e}, using mock insights")
@@ -215,7 +232,7 @@ class FreelancerBenchmark(ae.BenchmarkAdapter):
     def __init__(self):
         """Initialize benchmark with scoring criteria"""
         self.name = "freelancer-insights"
-        self.task_count = 5  # Use 5 test tasks
+        self.task_count = 5
 
     def get_tasks(self, split: str = "train", limit: int = 10) -> list[Task]:
         """Get benchmark tasks for freelancer evaluation"""
