@@ -1,0 +1,14 @@
+name: vk-targeting-insights-agent
+version: 0.1.0
+contract_version: "1.0"
+
+agent:
+  type: reference
+  entrypoint: freelancer_a_evolve.FreelancerAgent
+
+evolvable_layers:
+  - prompts
+  - skills
+  - memory
+
+reload_strategy: hot
