@@ -1,1 +1,16 @@
 .env*
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+ENV/
+.venv
+a_evolve/__pycache__/
+freelancer_workspace/venv/
+.DS_Store
+*.egg-info/
+dist/
+build/
