@@ -247,23 +247,39 @@
         // Загрузка данных из JSON
         async function loadInsights() {
             try {
+                const container = document.getElementById('insights-container');
+                container.innerHTML = '⏳ Загружаю инсайты...';
+
                 // Добавляем timestamp для сброса браузерного кеша
                 const cacheBreaker = new Date().getTime();
-                const response = await fetch(`./data/logs.json?v=2026-03-30-0813&t=${cacheBreaker}`, {
+                const url = `./data/logs.json?v=2026-03-30-0813&t=${cacheBreaker}`;
+
+                console.log('🔄 Загрузка из:', url);
+
+                const response = await fetch(url, {
                     cache: 'no-store',
                     headers: {
                         'Cache-Control': 'no-cache, no-store, must-revalidate'
                     }
                 });
-                if (!response.ok) throw new Error('Не удалось загрузить данные');
+
+                console.log('📡 Статус ответа:', response.status, response.statusText);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
 
                 const data = await response.json();
+                console.log('✅ Загружено логов:', data.total_logs);
+                console.log('📝 Первый лог ID:', data.logs[0]?.log_id);
+
                 renderInsights(data.logs);
                 updateStats(data);
             } catch (error) {
-                console.error('Ошибка загрузки:', error);
+                console.error('❌ Ошибка загрузки:', error);
+                console.error('Стек:', error.stack);
                 document.getElementById('insights-container').innerHTML =
-                    '<div class="error">⚠️ Ошибка загрузки данных. Проверьте доступность файла logs.json</div>';
+                    `<div class="error">❌ Ошибка загрузки данных:<br><code>${error.message}</code><br><br>Проверь консоль браузера (F12) для деталей</div>`;
             }
         }
 
