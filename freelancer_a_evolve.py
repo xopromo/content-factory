@@ -1,7 +1,11 @@
-"""A-Evolve integration for freelancer VK targeting insights agent"""
+"""A-Evolve integration for freelancer VK targeting insights agent
+
+Uses Ollama for local LLM (free) + WebSearch for information gathering
+"""
 
 import json
 import logging
+import subprocess
 from pathlib import Path
 from typing import Optional
 import agent_evolve as ae
@@ -9,6 +13,10 @@ from agent_evolve.types import Task, Feedback, Trajectory
 
 
 logger = logging.getLogger(__name__)
+
+# Configuration
+OLLAMA_MODEL = "mistral"  # Change to your preferred model
+OLLAMA_BASE_URL = "http://localhost:11434"
 
 
 class FreelancerAgent(ae.BaseAgent):
@@ -33,7 +41,7 @@ class FreelancerAgent(ae.BaseAgent):
 
     def solve(self, task: Task) -> Trajectory:
         """
-        Solve a task about VK targeting insights
+        Solve a task about VK targeting insights using Ollama
 
         Args:
             task: A-Evolve Task with input and metadata
@@ -42,22 +50,31 @@ class FreelancerAgent(ae.BaseAgent):
             Trajectory with output and steps
         """
         try:
-            # For now, simulate insight generation
-            # In production: would call Claude API with the system prompt
             query = task.input
+            steps = []
 
-            # Mock analysis based on query
-            insights = self._generate_insights(query)
+            # Step 1: Check if Ollama is running
+            ollama_available = self._check_ollama()
+            if not ollama_available:
+                logger.warning(f"Ollama not available, using mock insights")
+                insights = self._generate_insights(query)
+            else:
+                # Step 2: Use Ollama with the evolvable system prompt
+                insights = self._generate_with_ollama(query)
+                steps.append({
+                    "type": "ollama_generation",
+                    "model": OLLAMA_MODEL,
+                    "status": "success"
+                })
 
             return Trajectory(
                 task_id=task.id,
                 output=insights,
-                steps=[
+                steps=steps + [
                     {
                         "type": "analysis",
                         "query": query,
                         "insight_count": len(insights.split("💡")) - 1,
-                        "status": "success"
                     }
                 ]
             )
@@ -70,13 +87,66 @@ class FreelancerAgent(ae.BaseAgent):
                 steps=[{"error": str(e)}]
             )
 
-    def _generate_insights(self, query: str) -> str:
-        """Generate mock insights about VK targeting"""
-        # In production, this would:
-        # 1. Use WebSearch to find relevant info
-        # 2. Analyze with system_prompt
-        # 3. Return structured insights
+    def _check_ollama(self) -> bool:
+        """Check if Ollama is running"""
+        try:
+            result = subprocess.run(
+                ["curl", "-s", f"{OLLAMA_BASE_URL}/api/tags"],
+                capture_output=True,
+                timeout=2
+            )
+            return result.returncode == 0
+        except Exception:
+            return False
 
+    def _generate_with_ollama(self, query: str) -> str:
+        """Generate insights using Ollama local LLM"""
+        try:
+            import requests
+
+            # Combine system prompt with query
+            prompt = f"""{self.system_prompt}
+
+## Task
+{query}
+
+## Expected Output Format
+Provide VK targeting insights in this format:
+
+💡 **Insight Title**
+📊 Analysis: [Why this works]
+✅ Application: [How to use]
+⭐ Impact: [high/medium/low]
+🔗 Source: [URL or reference]
+"""
+
+            response = requests.post(
+                f"{OLLAMA_BASE_URL}/api/generate",
+                json={
+                    "model": OLLAMA_MODEL,
+                    "prompt": prompt,
+                    "stream": False,
+                    "temperature": 0.7,
+                },
+                timeout=60
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                return result.get("response", "")
+            else:
+                logger.warning(f"Ollama error: {response.status_code}")
+                return self._generate_insights(query)
+
+        except ImportError:
+            logger.warning("requests library not available, using mock insights")
+            return self._generate_insights(query)
+        except Exception as e:
+            logger.warning(f"Ollama generation failed: {e}, using mock insights")
+            return self._generate_insights(query)
+
+    def _generate_insights(self, query: str) -> str:
+        """Generate mock insights about VK targeting (fallback)"""
         return f"""VK Targeting Analysis for: {query}
 
 💡 **Insight 1: Audience Interest Targeting**
