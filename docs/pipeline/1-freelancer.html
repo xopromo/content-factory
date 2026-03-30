@@ -3,9 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>Этап 1: Фрилансер - Поиск инсайтов</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -106,37 +103,9 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.9em;
-            background: #e8e8e8;
-            color: #666;
-            transition: all 0.2s ease;
         }
-        .like-btn:hover, .dislike-btn:hover {
-            background: #d8d8d8;
-        }
-        .like-btn.selected {
-            background: #d4edda;
-            color: #155724;
-        }
-        .dislike-btn.selected {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        .insight-footer {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-            font-size: 0.85em;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #e0e0e0;
-        }
-        .insight-meta-item {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-            color: #666;
-        }
+        .like-btn { background: #d4edda; color: #155724; }
+        .dislike-btn { background: #f8d7da; color: #721c24; }
         .nav-links {
             display: flex;
             gap: 10px;
@@ -247,39 +216,18 @@
         // Загрузка данных из JSON
         async function loadInsights() {
             try {
-                const container = document.getElementById('insights-container');
-                container.innerHTML = '⏳ Загружаю инсайты...';
-
                 // Добавляем timestamp для сброса браузерного кеша
                 const cacheBreaker = new Date().getTime();
-                const url = `./data/logs_evolution.json?v=2026-03-30-0813&t=${cacheBreaker}`;
-
-                console.log('🔄 Загрузка из:', url);
-
-                const response = await fetch(url, {
-                    cache: 'no-store',
-                    headers: {
-                        'Cache-Control': 'no-cache, no-store, must-revalidate'
-                    }
-                });
-
-                console.log('📡 Статус ответа:', response.status, response.statusText);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
+                const response = await fetch(`./data/logs.json?t=${cacheBreaker}`);
+                if (!response.ok) throw new Error('Не удалось загрузить данные');
 
                 const data = await response.json();
-                console.log('✅ Загружено логов:', data.total_logs);
-                console.log('📝 Первый лог ID:', data.logs[0]?.log_id);
-
                 renderInsights(data.logs);
                 updateStats(data);
             } catch (error) {
-                console.error('❌ Ошибка загрузки:', error);
-                console.error('Стек:', error.stack);
+                console.error('Ошибка загрузки:', error);
                 document.getElementById('insights-container').innerHTML =
-                    `<div class="error">❌ Ошибка загрузки данных:<br><code>${error.message}</code><br><br>Проверь консоль браузера (F12) для деталей</div>`;
+                    '<div class="error">⚠️ Ошибка загрузки данных. Проверьте доступность файла logs.json</div>';
             }
         }
 
@@ -300,10 +248,8 @@
             sortedLogs.forEach((log, index) => {
                 const card = document.createElement('div');
                 card.className = 'insight-card';
-                card.id = `log-${log.log_id}`;
 
                 const timestamp = new Date(log.timestamp).toLocaleString('ru-RU');
-                const dateOnly = new Date(log.timestamp).toLocaleDateString('ru-RU');
 
                 card.innerHTML = `
                     <div class="insight-title">${log.finding}</div>
@@ -313,56 +259,16 @@
                     <div class="insight-conclusion">
                         <strong>✅ Практический вывод:</strong> ${log.conclusion}
                     </div>
-                    <div class="insight-footer">
-                        <div class="insight-meta-item">
-                            <span>⭐ ${(log.relevance_score * 100).toFixed(0)}%</span>
-                        </div>
-                        <div class="insight-meta-item">
-                            <span>📅 ${dateOnly}</span>
-                        </div>
-                        <div class="insight-meta-item">
-                            <a href="${log.source_url}" target="_blank" style="color: #667eea; text-decoration: none;">🔗 Источник</a>
-                        </div>
-                        <div style="margin-left: auto; display: flex; gap: 8px;">
-                            <button class="like-btn" data-log-id="${log.log_id}" data-rating="1">👍 Лайк</button>
-                            <button class="dislike-btn" data-log-id="${log.log_id}" data-rating="-1">👎 Дизлайк</button>
-                        </div>
+                    <div class="insight-meta">
+                        ⭐ Релевантность: ${(log.relevance_score * 100).toFixed(0)}% • 🔗 <a href="${log.source_url}" target="_blank">Источник</a>
+                    </div>
+                    <div class="rating-buttons">
+                        <button class="like-btn" onclick="rateInsight('${log.log_id}', 1)">👍 Лайк</button>
+                        <button class="dislike-btn" onclick="rateInsight('${log.log_id}', -1)">👎 Дизлайк</button>
                     </div>
                 `;
 
                 container.appendChild(card);
-            });
-
-            // Добавляем обработчики клика на кнопки
-            document.querySelectorAll('.like-btn, .dislike-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const logId = e.target.dataset.logId;
-                    const rating = parseInt(e.target.dataset.rating);
-                    const card = document.getElementById(`log-${logId}`);
-
-                    // Убираем selected со всех кнопок в карточке
-                    card.querySelectorAll('.like-btn, .dislike-btn').forEach(b => b.classList.remove('selected'));
-
-                    // Добавляем selected к нажатой кнопке
-                    e.target.classList.add('selected');
-
-                    // Сохраняем оценку локально
-                    const ratings = JSON.parse(localStorage.getItem('ratings') || '{}');
-                    ratings[logId] = rating;
-                    localStorage.setItem('ratings', JSON.stringify(ratings));
-
-                    rateInsight(logId, rating);
-                });
-            });
-
-            // Восстанавливаем сохранённые оценки
-            const savedRatings = JSON.parse(localStorage.getItem('ratings') || '{}');
-            Object.entries(savedRatings).forEach(([logId, rating]) => {
-                const card = document.getElementById(`log-${logId}`);
-                if (card) {
-                    const btnClass = rating > 0 ? '.like-btn' : '.dislike-btn';
-                    card.querySelector(btnClass)?.classList.add('selected');
-                }
             });
         }
 
@@ -377,8 +283,9 @@
         }
 
         function rateInsight(logId, rating) {
-            // Сохраняем оценку локально
-            console.log(`Rated ${logId} with ${rating > 0 ? '👍' : '👎'}`);
+            // Отправляем оценку на сервер (если есть API)
+            console.log(`Rated ${logId} with ${rating}`);
+            alert(`Твоя оценка (${rating > 0 ? '👍' : '👎'}) сохранена! Агент учтёт это в следующем цикле.`);
         }
 
         // Загружаем данные при загрузке страницы

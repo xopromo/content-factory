@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 from freelancer_a_evolve import FreelancerAgent, FreelancerBenchmark
-import a_evolve as ae
+import agent_evolve as ae
 
 
 def log_prompt_change(agent, cycle_num, gen_num, old_prompt, new_prompt, score):

@@ -4,7 +4,21 @@
 import json
 from pathlib import Path
 from datetime import datetime
+from dataclasses import dataclass, field
+from typing import Optional, List, Dict, Any
 from freelancer_a_evolve import FreelancerAgent
+
+# Task и Trajectory объекты для агента
+@dataclass
+class Task:
+    id: str
+    input: str
+
+@dataclass
+class Trajectory:
+    task_id: str
+    output: str
+    steps: List[Dict[str, Any]] = field(default_factory=list)
 
 # Задачи для поиска инсайтов
 SEARCH_TASKS = [
@@ -27,34 +41,38 @@ def main():
     agent = FreelancerAgent(workspace_path=workspace_path)
 
     insights_found = []
-    
-    for idx, task in enumerate(SEARCH_TASKS, 1):
+
+    for idx, task_text in enumerate(SEARCH_TASKS, 1):
         print(f"\n{'='*70}")
         print(f"ЗАДАЧА {idx}/{len(SEARCH_TASKS)}")
         print(f"{'='*70}")
-        print(f"📌 {task}\n")
-        
+        print(f"📌 {task_text}\n")
+
         try:
+            # Создаём Task объект с id атрибутом
+            task = Task(id=f"search_{idx:03d}", input=task_text)
+
             # Запускаем агента на задачу
-            result = agent.solve(task)
-            
+            trajectory = agent.solve(task)
+            result = trajectory.output
+
             print(f"✅ Результат найден!\n")
             print(f"📝 Инсайты:\n{result[:500]}...\n" if len(result) > 500 else f"📝 Инсайты:\n{result}\n")
-            
+
             insights_found.append({
                 "task_id": f"search_{idx:03d}",
                 "timestamp": datetime.now().isoformat(),
-                "task": task,
+                "task": task_text,
                 "result": result,
                 "length": len(result)
             })
-            
+
         except Exception as e:
             print(f"❌ Ошибка: {e}\n")
             insights_found.append({
                 "task_id": f"search_{idx:03d}",
                 "timestamp": datetime.now().isoformat(),
-                "task": task,
+                "task": task_text,
                 "error": str(e),
                 "result": None
             })
