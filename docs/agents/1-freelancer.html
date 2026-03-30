@@ -251,19 +251,31 @@
                 const cacheBreaker = new Date().getTime();
                 const url = `./data/logs.json?v=2026-03-30&t=${cacheBreaker}`;
 
+                console.log('🔄 Загружаю с URL:', url);
+
                 const response = await fetch(url, {
                     cache: 'no-store',
                     headers: {
                         'Cache-Control': 'no-cache, no-store, must-revalidate'
                     }
                 });
+
+                console.log('📡 Статус ответа:', response.status);
+
                 if (!response.ok) throw new Error('Не удалось загрузить данные');
 
                 const data = await response.json();
+
+                // Сохраняем для отладки
+                window.logsData = data;
+                console.log('✅ Загружено логов:', data.logs?.length);
+                console.log('📊 Total logs:', data.total_logs);
+                console.log('🕐 Last update:', data.last_update);
+
                 renderInsights(data.logs);
                 updateStats(data);
             } catch (error) {
-                console.error('Ошибка загрузки:', error);
+                console.error('❌ Ошибка загрузки:', error);
                 document.getElementById('insights-container').innerHTML =
                     '<div class="error">⚠️ Ошибка загрузки данных. Проверьте доступность файла logs.json</div>';
             }
