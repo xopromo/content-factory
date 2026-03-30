@@ -16,20 +16,24 @@ logger = logging.getLogger(__name__)
 
 # Free cloud LLM providers (in order of preference)
 LLM_PROVIDERS = {
-    'groq': {
-        'api_url': 'https://api.groq.com/openai/v1/chat/completions',
-        'model': 'llama-3.3-70b-versatile',
-        'key_env': 'GROQ_API_KEY'
-    },
     'mistral': {
         'api_url': 'https://api.mistral.ai/v1/chat/completions',
         'model': 'mistral-small-latest',
+        'key_file': '~/.mistral_key',
         'key_env': 'MISTRAL_API_KEY'
     },
     'cerebras': {
         'api_url': 'https://api.cerebras.ai/v1/chat/completions',
         'model': 'llama-3.1-8b',
+        'key_file': '~/.cerebras_key',
         'key_env': 'CEREBRAS_API_KEY'
+    },
+    'gemini': {
+        'api_url': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent',
+        'model': 'gemini-2.0-flash-lite',
+        'key_file': '~/.gemini_key',
+        'key_env': 'GEMINI_API_KEY',
+        'is_gemini': True
     }
 }
 
@@ -146,37 +150,72 @@ Generate 3-5 detailed insights."""
 
             # Step 3: Try each free cloud LLM provider in order
             for provider_name, provider_config in LLM_PROVIDERS.items():
-                api_key = os.getenv(provider_config['key_env'])
+                # Try to get API key from file first, then from env
+                api_key = None
+                if 'key_file' in provider_config:
+                    key_file = os.path.expanduser(provider_config['key_file'])
+                    try:
+                        with open(key_file, 'r') as f:
+                            api_key = f.read().strip()
+                    except FileNotFoundError:
+                        pass
+
                 if not api_key:
-                    logger.debug(f"Skipping {provider_name}: no API key ({provider_config['key_env']})")
+                    api_key = os.getenv(provider_config['key_env'])
+
+                if not api_key:
+                    logger.debug(f"Skipping {provider_name}: no API key")
                     continue
 
                 try:
                     logger.info(f"Trying {provider_name}...")
-                    response = requests.post(
-                        provider_config['api_url'],
-                        headers={
-                            'Authorization': f'Bearer {api_key}',
-                            'Content-Type': 'application/json'
-                        },
-                        json={
-                            'model': provider_config['model'],
-                            'messages': [
-                                {'role': 'system', 'content': system_message},
-                                {'role': 'user', 'content': user_message}
-                            ],
-                            'temperature': 0.7,
-                            'max_tokens': 2000
-                        },
-                        timeout=30
-                    )
 
-                    if response.status_code == 200:
-                        result = response.json()
-                        output = result['choices'][0]['message']['content']
-                        logger.info(f"✓ Generated using {provider_name}")
-                        return output
-                    elif response.status_code == 429:
+                    # Special handling for Gemini
+                    if provider_config.get('is_gemini'):
+                        response = requests.post(
+                            f"{provider_config['api_url']}?key={api_key}",
+                            headers={'Content-Type': 'application/json'},
+                            json={
+                                'contents': [
+                                    {'parts': [{'text': f"{system_message}\n\n{user_message}"}]}
+                                ],
+                                'generationConfig': {'maxOutputTokens': 2000, 'temperature': 0.7}
+                            },
+                            timeout=30
+                        )
+
+                        if response.status_code == 200:
+                            result = response.json()
+                            output = result['candidates'][0]['content']['parts'][0]['text']
+                            logger.info(f"✓ Generated using {provider_name}")
+                            return output
+                    else:
+                        # Standard OpenAI-compatible API
+                        response = requests.post(
+                            provider_config['api_url'],
+                            headers={
+                                'Authorization': f'Bearer {api_key}',
+                                'Content-Type': 'application/json'
+                            },
+                            json={
+                                'model': provider_config['model'],
+                                'messages': [
+                                    {'role': 'system', 'content': system_message},
+                                    {'role': 'user', 'content': user_message}
+                                ],
+                                'temperature': 0.7,
+                                'max_tokens': 2000
+                            },
+                            timeout=30
+                        )
+
+                        if response.status_code == 200:
+                            result = response.json()
+                            output = result['choices'][0]['message']['content']
+                            logger.info(f"✓ Generated using {provider_name}")
+                            return output
+
+                    if response.status_code == 429:
                         logger.warning(f"{provider_name}: rate limited, trying next...")
                         continue
                     else:
