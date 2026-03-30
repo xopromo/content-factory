@@ -218,7 +218,7 @@
             try {
                 // Добавляем timestamp для сброса браузерного кеша
                 const cacheBreaker = new Date().getTime();
-                const response = await fetch(`./data/logs.json?t=${cacheBreaker}`);
+                const response = await fetch(`./data/logs.json?v=20260330115158&t=${cacheBreaker}`);
                 if (!response.ok) throw new Error('Не удалось загрузить данные');
 
                 const data = await response.json();
