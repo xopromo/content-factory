@@ -99,15 +99,41 @@ class FreelancerAgent(ae.BaseAgent):
         except Exception:
             return False
 
+    def _search_duckduckgo(self, query: str) -> str:
+        """Search for information using DuckDuckGo (free)"""
+        try:
+            from duckduckgo_search import DDGS
+
+            ddgs = DDGS()
+            results = ddgs.text(query, max_results=5)
+
+            search_results = "## Search Results:\n\n"
+            for i, result in enumerate(results, 1):
+                search_results += f"{i}. **{result['title']}**\n"
+                search_results += f"   {result['body'][:200]}...\n"
+                search_results += f"   🔗 {result['href']}\n\n"
+
+            return search_results
+
+        except Exception as e:
+            logger.warning(f"DuckDuckGo search failed: {e}")
+            return ""
+
     def _generate_with_ollama(self, query: str) -> str:
-        """Generate insights using Ollama local LLM"""
+        """Generate insights using Ollama + DuckDuckGo search"""
         try:
             import requests
 
-            # Combine system prompt with query
+            # Step 1: Search for information (FREE via DuckDuckGo)
+            search_context = self._search_duckduckgo(query)
+
+            # Step 2: Combine system prompt + search results + query
             prompt = f"""{self.system_prompt}
 
-## Task
+## Current Information (from web search):
+{search_context if search_context else "(No search results - will use knowledge)"}
+
+## Your Task:
 {query}
 
 ## Expected Output Format
@@ -118,8 +144,11 @@ Provide VK targeting insights in this format:
 ✅ Application: [How to use]
 ⭐ Impact: [high/medium/low]
 🔗 Source: [URL or reference]
+
+Generate 3-5 detailed insights.
 """
 
+            # Step 3: Generate using Ollama (FREE local model)
             response = requests.post(
                 f"{OLLAMA_BASE_URL}/api/generate",
                 json={
@@ -133,16 +162,22 @@ Provide VK targeting insights in this format:
 
             if response.status_code == 200:
                 result = response.json()
-                return result.get("response", "")
+                output = result.get("response", "")
+
+                # Add source attribution
+                if search_context:
+                    output += "\n\n---\n*Generated using Ollama + DuckDuckGo search (100% FREE)*"
+
+                return output
             else:
                 logger.warning(f"Ollama error: {response.status_code}")
                 return self._generate_insights(query)
 
         except ImportError:
-            logger.warning("requests library not available, using mock insights")
+            logger.warning("duckduckgo_search not installed, using mock insights")
             return self._generate_insights(query)
         except Exception as e:
-            logger.warning(f"Ollama generation failed: {e}, using mock insights")
+            logger.warning(f"Generation failed: {e}, using mock insights")
             return self._generate_insights(query)
 
     def _generate_insights(self, query: str) -> str:
