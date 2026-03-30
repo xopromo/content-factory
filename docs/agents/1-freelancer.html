@@ -290,12 +290,18 @@
                 return;
             }
 
+            console.log('🎨 renderInsights called with', logs.length, 'logs');
+
             // Сортируем по времени (новые первыми)
             const sortedLogs = [...logs].sort((a, b) =>
                 new Date(b.timestamp) - new Date(a.timestamp)
             );
 
+            console.log('📊 After sorting:', sortedLogs.length, 'logs');
+
+            let displayedCount = 0;
             sortedLogs.forEach((log, index) => {
+                displayedCount++;
                 const card = document.createElement('div');
                 card.className = 'insight-card';
                 card.id = `log-${log.log_id}`;
@@ -330,6 +336,8 @@
 
                 container.appendChild(card);
             });
+
+            console.log('✨ Displayed:', displayedCount, 'insight cards');
 
             // Добавляем обработчики клика на кнопки
             document.querySelectorAll('.like-btn, .dislike-btn').forEach(btn => {
@@ -367,6 +375,8 @@
         function updateStats(data) {
             const statsContainer = document.getElementById('stats-container');
             const lastUpdate = new Date(data.last_update).toLocaleString('ru-RU');
+
+            console.log('📈 updateStats - показываем', data.total_logs, 'инсайтов');
 
             statsContainer.innerHTML = `
                 📊 <strong>Статистика:</strong> ${data.total_logs} инсайтов найдено • Обновлено: ${lastUpdate}<br>
