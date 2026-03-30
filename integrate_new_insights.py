@@ -48,6 +48,23 @@ def extract_insights_from_text(text: str, source_task: str) -> list:
 
     return insights
 
+def clean_source_url(source: str) -> str:
+    """Извлекает URL из markdown формата [текст](url) или просто url"""
+    if not source:
+        return "https://vk.com/ads"
+
+    # Если это markdown ссылка: [текст](url)
+    match = re.search(r'\]\((.+?)\)', source)
+    if match:
+        return match.group(1).strip()
+
+    # Если это просто URL
+    if source.startswith('http'):
+        return source.strip()
+
+    # Если это текст без URL, возвращаем дефолт
+    return "https://vk.com/ads"
+
 def create_log_entry(insight: dict, log_id: str, source_task: str, timestamp: str) -> dict:
     """Создаёт запись в формате logs.json"""
     return {
@@ -57,7 +74,7 @@ def create_log_entry(insight: dict, log_id: str, source_task: str, timestamp: st
         "finding": insight['title'],
         "analysis": insight['analysis'],
         "conclusion": insight['application'],
-        "source_url": insight['source'] if insight['source'] else "https://vk.com/ads",
+        "source_url": clean_source_url(insight['source']),
         "relevance_score": insight['relevance'],
         "rating": 0,
         "user_feedback": None
