@@ -216,7 +216,9 @@
         // Загрузка данных из JSON
         async function loadInsights() {
             try {
-                const response = await fetch('./data/logs.json');
+                // Добавляем timestamp для сброса браузерного кеша
+                const cacheBreaker = new Date().getTime();
+                const response = await fetch(`./data/logs.json?t=${cacheBreaker}`);
                 if (!response.ok) throw new Error('Не удалось загрузить данные');
 
                 const data = await response.json();
