@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Этап 1: Фрилансер - Поиск инсайтов</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -244,7 +247,16 @@
         // Загрузка данных из JSON
         async function loadInsights() {
             try {
-                const response = await fetch('./data/logs.json');
+                // Сбиваем кеш браузера каждый раз
+                const cacheBreaker = new Date().getTime();
+                const url = `./data/logs.json?v=2026-03-30&t=${cacheBreaker}`;
+
+                const response = await fetch(url, {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate'
+                    }
+                });
                 if (!response.ok) throw new Error('Не удалось загрузить данные');
 
                 const data = await response.json();
