@@ -1,0 +1,98 @@
+{
+  "timestamp": "2026-03-30T07:09:39.207206",
+  "total_generations": 15,
+  "best_score": 0.75,
+  "best_cycle": 1,
+  "history": [
+    {
+      "cycle": 1,
+      "generation": 1,
+      "score": 0.75,
+      "prompt_preview": "more --- name: фрилансер description: Ищет инсайты, лайфхаки, шутки и крутые кейсы про таргетированн..."
+    },
+    {
+      "cycle": 1,
+      "generation": 2,
+      "score": 0.75,
+      "prompt_preview": "more more --- name: фрилансер description: Ищет инсайты, лайфхаки, шутки и крутые кейсы про таргетир..."
+    },
+    {
+      "cycle": 1,
+      "generation": 3,
+      "score": 0.75,
+      "prompt_preview": "more more --- name: фрилансер description: Ищет инсайты, лайфхаки, шутки и крутые кейсы про clearer ..."
+    },
+    {
+      "cycle": 2,
+      "generation": 1,
+      "score": 0.75,
+      "prompt_preview": "more more --- name: фрилансер description: Ищет инсайты, лайфхаки, шутки и крутые кейсы про clearer ..."
+    },
+    {
+      "cycle": 2,
+      "generation": 2,
+      "score": 0.75,
+      "prompt_preview": "more more --- name: фрилансер description: Ищет инсайты, лайфхаки, шутки и крутые кейсы specific про..."
+    },
+    {
+      "cycle": 2,
+      "generation": 3,
+      "score": 0.75,
+      "prompt_preview": "more more --- name: фрилансер description: Ищет clearer инсайты, лайфхаки, шутки specific и крутые к..."
+    },
+    {
+      "cycle": 3,
+      "generation": 1,
+      "score": 0.75,
+      "prompt_preview": "more more --- name: фрилансер description: Ищет clearer инсайты, clearer лайфхаки, шутки specific sp..."
+    },
+    {
+      "cycle": 3,
+      "generation": 2,
+      "score": 0.75,
+      "prompt_preview": "more more --- name: фрилансер description: Ищет clearer инсайты, clearer лайфхаки, шутки specific sp..."
+    },
+    {
+      "cycle": 3,
+      "generation": 3,
+      "score": 0.75,
+      "prompt_preview": "more more --- name: фрилансер description: Ищет clearer инсайты, clearer лайфхаки, шутки specific sp..."
+    },
+    {
+      "cycle": 4,
+      "generation": 1,
+      "score": 0.75,
+      "prompt_preview": "more more --- name: фрилансер description: Ищет clearer инсайты, clearer лайфхаки, шутки specific sp..."
+    },
+    {
+      "cycle": 4,
+      "generation": 2,
+      "score": 0.75,
+      "prompt_preview": "more more --- name: фрилансер description: Ищет clearer инсайты, clearer лайфхаки, шутки specific sp..."
+    },
+    {
+      "cycle": 4,
+      "generation": 3,
+      "score": 0.75,
+      "prompt_preview": "more more --- name: фрилансер description: Ищет clearer clearer инсайты, clearer лайфхаки, specific ..."
+    },
+    {
+      "cycle": 5,
+      "generation": 1,
+      "score": 0.75,
+      "prompt_preview": "more more --- more name: фрилансер description: Ищет clearer clearer инсайты, clearer лайфхаки, spec..."
+    },
+    {
+      "cycle": 5,
+      "generation": 2,
+      "score": 0.75,
+      "prompt_preview": "more more more --- more name: фрилансер description: Ищет clearer clearer инсайты, clearer concrete ..."
+    },
+    {
+      "cycle": 5,
+      "generation": 3,
+      "score": 0.75,
+      "prompt_preview": "more more more better --- more name: фрилансер description: specific Ищет clearer clearer инсайты, c..."
+    }
+  ]
+}
