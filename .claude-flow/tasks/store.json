@@ -1,0 +1,18 @@
+{
+  "tasks": {
+    "task-1775910064369-1ylaom": {
+      "taskId": "task-1775910064369-1ylaom",
+      "type": "research",
+      "description": "Проанализировать Python файлы в проекте content-factory",
+      "priority": "high",
+      "status": "pending",
+      "progress": 0,
+      "assignedTo": [],
+      "tags": [],
+      "createdAt": "2026-04-11T12:21:04.369Z",
+      "startedAt": null,
+      "completedAt": null
+    }
+  },
+  "version": "3.0.0"
+}
