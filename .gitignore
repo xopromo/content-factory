@@ -44,3 +44,12 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Ruflo / claude-flow runtime (не хранить в git)
+.swarm/memory.db
+.swarm/memory.db-shm
+.swarm/memory.db-wal
+ruvector.db
+.claude/memory.db
+.claude-flow/logs/
+.claude-flow/sessions/
