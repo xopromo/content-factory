@@ -46,8 +46,108 @@ def is_mostly_russian(text: str) -> bool:
     return letters > 0 and cyrillic / letters >= 0.4
 
 
+def fetch_article_text(url: str, max_chars: int = 3000) -> str:
+    """Скачивает и извлекает чистый текст статьи через requests + trafilatura"""
+    try:
+        import requests as req
+        import trafilatura
+        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"}
+        r = req.get(url, headers=headers, timeout=10)
+        if r.status_code != 200:
+            return ""
+        text = trafilatura.extract(r.text, include_comments=False, include_tables=False)
+        if not text:
+            return ""
+        return text[:max_chars]
+    except Exception as e:
+        print(f"  [WARN] fetch_article failed for {url[:60]}: {e}")
+        return ""
+
+
+def summarize_with_llm(title: str, article_text: str, platform: str) -> str:
+    """Summarizes article text using a free cloud LLM (Gemini → Mistral → fallback)"""
+    LLM_PROVIDERS = [
+        {
+            "name": "gemini",
+            "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent",
+            "key_file": "~/.gemini_key",
+            "key_env": "GEMINI_API_KEY",
+            "is_gemini": True,
+        },
+        {
+            "name": "mistral",
+            "url": "https://api.mistral.ai/v1/chat/completions",
+            "model": "mistral-small-latest",
+            "key_file": "~/.mistral_key",
+            "key_env": "MISTRAL_API_KEY",
+        },
+        {
+            "name": "cerebras",
+            "url": "https://api.cerebras.ai/v1/chat/completions",
+            "model": "llama-3.1-8b",
+            "key_file": "~/.cerebras_key",
+            "key_env": "CEREBRAS_API_KEY",
+        },
+    ]
+
+    prompt = f"""Ты эксперт по digital-маркетингу. Прочитай статью и напиши краткое саммари на русском языке (3-5 предложений), выделяя конкретные инсайты, лайфхаки и практические советы по теме {platform}.
+
+Заголовок: {title}
+
+Текст статьи:
+{article_text}
+
+Саммари (только полезные факты, без воды):"""
+
+    try:
+        import requests as req
+    except ImportError:
+        return ""
+
+    for provider in LLM_PROVIDERS:
+        api_key = None
+        key_file = os.path.expanduser(provider.get("key_file", ""))
+        try:
+            api_key = open(key_file).read().strip()
+        except Exception:
+            pass
+        if not api_key:
+            api_key = os.getenv(provider.get("key_env", ""))
+        if not api_key:
+            continue
+
+        try:
+            if provider.get("is_gemini"):
+                resp = req.post(
+                    f"{provider['url']}?key={api_key}",
+                    headers={"Content-Type": "application/json"},
+                    json={"contents": [{"parts": [{"text": prompt}]}],
+                          "generationConfig": {"maxOutputTokens": 400, "temperature": 0.4}},
+                    timeout=20,
+                )
+                if resp.status_code == 200:
+                    return resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+            else:
+                resp = req.post(
+                    provider["url"],
+                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                    json={"model": provider["model"],
+                          "messages": [{"role": "user", "content": prompt}],
+                          "max_tokens": 400, "temperature": 0.4},
+                    timeout=20,
+                )
+                if resp.status_code == 200:
+                    return resp.json()["choices"][0]["message"]["content"].strip()
+        except Exception as e:
+            print(f"  [WARN] LLM {provider['name']} failed: {e}")
+            continue
+
+    return ""
+
+
 def extract_insights_from_search(results: List[Dict[str, str]], platform: str, topic: str) -> List[Dict[str, str]]:
-    """Извлекает структурированные инсайты из результатов поиска"""
+    """Извлекает структурированные инсайты из результатов поиска.
+    Для каждого результата пытается скачать полный текст и сделать LLM-саммари."""
     insights = []
     for r in results:
         title = r.get("title", "").strip()
@@ -55,11 +155,21 @@ def extract_insights_from_search(results: List[Dict[str, str]], platform: str, t
         href = r.get("href", "")
         if not body:
             continue
-        # Пропускаем нерусскоязычный контент
         if not is_mostly_russian(title + " " + body):
             print(f"  [SKIP] Non-Russian content: {title[:60]}")
             continue
-        content = body[:500]
+
+        # Пробуем получить полный текст статьи
+        article_text = fetch_article_text(href) if href else ""
+        if article_text and is_mostly_russian(article_text):
+            llm_summary = summarize_with_llm(title, article_text, platform)
+            content = llm_summary if llm_summary else article_text[:500]
+            print(f"  [OK] Full article + LLM summary: {title[:50]}")
+        else:
+            # Fallback: сниппет из поиска
+            content = body[:500]
+            print(f"  [OK] Snippet fallback: {title[:50]}")
+
         insights.append({
             "title": title[:80] if title else topic,
             "content": content,
