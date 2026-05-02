@@ -140,13 +140,32 @@ def summarize_with_llm(title: str, article_text: str, platform: str) -> str:
                 else:
                     result = resp.json()["choices"][0]["message"]["content"].strip()
                 print(f"  [LLM] {p['name']} OK")
-                return result
+                return clean_summary(result)
 
             print(f"  [WARN] {p['name']}: HTTP {resp.status_code}, trying next...")
         except Exception as e:
             print(f"  [WARN] {p['name']} failed: {e}, trying next...")
 
     return ""
+
+
+def clean_summary(text: str) -> str:
+    """Убирает markdown-разметку, нумерацию, заголовки типа Саммари, длинные тире"""
+    # Убираем заголовки типа "**Саммари...:**" или "## Саммари"
+    text = re.sub(r'(?mi)^[*#\s]*саммари[^:\n]*[:\n]+', '', text)
+    # Убираем **жирный** → просто текст
+    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+    # Убираем *курсив*
+    text = re.sub(r'\*(.+?)\*', r'\1', text)
+    # Убираем нумерацию строк "1. ", "2. "
+    text = re.sub(r'(?m)^\d+\.\s+', '', text)
+    # Длинные тире → дефис
+    text = text.replace('—', '-').replace('–', '-')
+    # Убираем markdown-заголовки ## ### и т.д.
+    text = re.sub(r'(?m)^#{1,6}\s+', '', text)
+    # Схлопываем множественные пустые строки
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    return text.strip()
 
 
 def extract_insights_from_search(results: List[Dict[str, str]], platform: str, topic: str) -> List[Dict[str, str]]:
@@ -163,20 +182,25 @@ def extract_insights_from_search(results: List[Dict[str, str]], platform: str, t
             print(f"  [SKIP] Non-Russian content: {title[:60]}")
             continue
 
-        # Пробуем получить полный текст статьи
+        snippet = body[:300]
+
+        # Пробуем получить полный текст статьи и сделать LLM-саммари
         article_text = fetch_article_text(href) if href else ""
         if article_text and is_mostly_russian(article_text):
             llm_summary = summarize_with_llm(title, article_text, platform)
-            content = llm_summary if llm_summary else article_text[:500]
             print(f"  [OK] Full article + LLM summary: {title[:50]}")
         else:
-            # Fallback: сниппет из поиска
-            content = body[:500]
+            llm_summary = ""
             print(f"  [OK] Snippet fallback: {title[:50]}")
+
+        # content = саммари если есть, иначе сниппет
+        content = llm_summary if llm_summary else snippet
 
         insights.append({
             "title": title[:80] if title else topic,
             "content": content,
+            "snippet": snippet,
+            "summary": llm_summary,
             "source_url": href,
         })
     return insights
@@ -250,12 +274,15 @@ class TrafficResearchAgent:
 
     def add_insight(self, platform: str, title: str, content: str,
                     category: str, confidence: int = 7,
-                    source_url: Optional[str] = None):
+                    source_url: Optional[str] = None,
+                    snippet: str = "", summary: str = ""):
         insight = {
             "id": len(self.session_log["insights"]) + 1,
             "platform": platform,
             "title": title,
             "content": content,
+            "snippet": snippet,
+            "summary": summary,
             "category": category,
             "confidence": confidence,
             "discovered_at": datetime.now().isoformat(),
@@ -305,6 +332,8 @@ class TrafficResearchAgent:
                     category=category,
                     confidence=default_confidence,
                     source_url=url,
+                    snippet=ins.get("snippet", ""),
+                    summary=ins.get("summary", ""),
                 )
                 if url_key:
                     self.seen_urls.add(url_key)

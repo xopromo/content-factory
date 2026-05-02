@@ -231,6 +231,25 @@
       margin-bottom: 5px;
       line-height: 1.4;
     }
+    /* Insight body tabs */
+    .insight-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .itab {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding-bottom: 2px;
+      border-bottom: 1px solid transparent;
+      transition: color 150ms, border-color 150ms;
+      user-select: none;
+    }
+    .itab:hover { color: var(--text); }
+    .itab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
     .insight-body {
       font-size: 12px;
       color: var(--text-muted);
@@ -539,12 +558,30 @@
     });
   }
 
+  let insightIdCounter = 0;
+
   function renderInsightItem(ins) {
     const dateAdded = fmtDate(ins.discovered_at);
+    const hasSummary = ins.summary && ins.summary.trim().length > 0;
+    const hasSnippet = ins.snippet && ins.snippet.trim().length > 0;
+    const showTabs = hasSummary && hasSnippet;
+    const uid = ++insightIdCounter;
+
+    const tabs = showTabs ? `
+      <div class="insight-tabs">
+        <span class="itab active" data-uid="${uid}" data-tab="summary">Саммари</span>
+        <span class="itab" data-uid="${uid}" data-tab="snippet">Сниппет</span>
+      </div>` : '';
+
+    const bodyContent = hasSummary ? ins.summary : (ins.content || ins.snippet || '');
+    const snippetContent = hasSnippet ? ins.snippet : ins.content;
+
     return `
       <div class="insight">
         <div class="insight-title">${esc(ins.title)}</div>
-        <div class="insight-body">${esc(ins.content)}</div>
+        ${tabs}
+        <div class="insight-body" id="ibody-${uid}-summary">${esc(bodyContent)}</div>
+        ${showTabs ? `<div class="insight-body hidden" id="ibody-${uid}-snippet">${esc(snippetContent)}</div>` : ''}
         <div class="insight-footer">
           <span class="insight-meta-text"><span class="cat">${esc(catRu(ins.category))}</span> · ${ins.confidence}/10${dateAdded ? ' · ' + dateAdded : ''}</span>
           ${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" class="source-link">↗ источник</a>` : ''}
@@ -646,6 +683,21 @@
       document.getElementById('categoryGrid').innerHTML = '<div class="state-msg">⚠️ Ошибка загрузки данных</div>';
     }
   }
+
+  // Insight body tab switching (delegated)
+  document.addEventListener('click', e => {
+    const itab = e.target.closest('.itab');
+    if (!itab) return;
+    const uid = itab.dataset.uid;
+    const tab = itab.dataset.tab;
+    // Switch active tab label
+    document.querySelectorAll(`.itab[data-uid="${uid}"]`).forEach(t => t.classList.toggle('active', t === itab));
+    // Switch body panels
+    ['summary', 'snippet'].forEach(name => {
+      const el = document.getElementById(`ibody-${uid}-${name}`);
+      if (el) el.classList.toggle('hidden', name !== tab);
+    });
+  });
 
   // Tab switching
   document.querySelectorAll('.tab').forEach(tab => {
