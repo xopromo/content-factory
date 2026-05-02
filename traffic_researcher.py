@@ -15,8 +15,6 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 import hashlib
 
-from research_dates import resolve_publication_date
-
 
 def search_web(query: str, max_results: int = 5) -> List[Dict[str, str]]:
     """Поиск в DuckDuckGo через пакет ddgs"""
@@ -30,6 +28,15 @@ def search_web(query: str, max_results: int = 5) -> List[Dict[str, str]]:
         return []
 
 
+def normalize_url(url: str) -> str:
+    """Нормализует URL для сравнения — убирает схему, www и trailing slash"""
+    url = url.lower().strip()
+    for prefix in ("https://", "http://", "www."):
+        if url.startswith(prefix):
+            url = url[len(prefix):]
+    return url.rstrip("/")
+
+
 def extract_insights_from_search(results: List[Dict[str, str]], platform: str, topic: str) -> List[Dict[str, str]]:
     """Извлекает структурированные инсайты из результатов поиска"""
     insights = []
@@ -39,13 +46,11 @@ def extract_insights_from_search(results: List[Dict[str, str]], platform: str, t
         href = r.get("href", "")
         if not body:
             continue
-        # Берём первые 300 символов как контент
         content = body[:500]
         insights.append({
             "title": title[:80] if title else topic,
             "content": content,
             "source_url": href,
-            "source_published_at": resolve_publication_date(content=content, source_url=href),
         })
     return insights
 
@@ -64,6 +69,9 @@ class TrafficResearchAgent:
         self.logs_dir.mkdir(exist_ok=True)
         self.insights_dir.mkdir(exist_ok=True)
 
+        self.seen_urls_file = self.insights_dir / "seen_urls.json"
+        self.seen_urls = self._load_seen_urls()
+
         self.session_id = self._generate_session_id()
         self.log_file = self.logs_dir / f"session_{self.session_id}.json"
         self.session_log = {
@@ -79,6 +87,23 @@ class TrafficResearchAgent:
                 "research_hours": 0
             }
         }
+
+    def _load_seen_urls(self) -> set:
+        """Загружает список уже виденных URL из файла"""
+        if self.seen_urls_file.exists():
+            try:
+                data = json.loads(self.seen_urls_file.read_text(encoding="utf-8"))
+                return set(data.get("urls", []))
+            except Exception:
+                return set()
+        return set()
+
+    def _save_seen_urls(self):
+        """Сохраняет список виденных URL на диск"""
+        self.seen_urls_file.write_text(
+            json.dumps({"urls": sorted(self.seen_urls)}, ensure_ascii=False, indent=2),
+            encoding="utf-8"
+        )
 
     def _generate_session_id(self) -> str:
         timestamp = datetime.now().isoformat()
@@ -98,8 +123,7 @@ class TrafficResearchAgent:
 
     def add_insight(self, platform: str, title: str, content: str,
                     category: str, confidence: int = 7,
-                    source_url: Optional[str] = None,
-                    source_published_at: Optional[str] = None):
+                    source_url: Optional[str] = None):
         insight = {
             "id": len(self.session_log["insights"]) + 1,
             "platform": platform,
@@ -108,7 +132,6 @@ class TrafficResearchAgent:
             "category": category,
             "confidence": confidence,
             "discovered_at": datetime.now().isoformat(),
-            "source_published_at": source_published_at,
             "tags": self._extract_tags(title + " " + content),
             "source_url": source_url or "",
         }
@@ -143,15 +166,21 @@ class TrafficResearchAgent:
 
             raw_insights = extract_insights_from_search(results, platform, query)
             for ins in raw_insights:
+                url = ins.get("source_url", "")
+                url_key = normalize_url(url) if url else ""
+                if url_key and url_key in self.seen_urls:
+                    print(f"  [SKIP] Already seen: {url[:60]}")
+                    continue
                 self.add_insight(
                     platform=platform,
                     title=ins["title"],
                     content=ins["content"],
                     category=category,
                     confidence=default_confidence,
-                    source_url=ins.get("source_url"),
-                    source_published_at=ins.get("source_published_at"),
+                    source_url=url,
                 )
+                if url_key:
+                    self.seen_urls.add(url_key)
                 total += 1
 
         return total
@@ -234,6 +263,7 @@ class TrafficResearchAgent:
         with open(insights_file, 'w', encoding='utf-8') as f:
             json.dump(self.session_log["insights"], f, ensure_ascii=False, indent=2)
 
+        self._save_seen_urls()
         self._update_insights_index()
 
     def _update_insights_index(self):
@@ -250,16 +280,13 @@ class TrafficResearchAgent:
             except Exception as e:
                 print(f"Error reading {insight_file}: {e}")
 
-        # Дедупликация по title+platform
+        # Дедупликация по URL (primary) и title+platform (fallback)
         seen = set()
         unique_insights = []
         for ins in all_insights:
-            if "source_published_at" not in ins:
-                ins["source_published_at"] = resolve_publication_date(
-                    content=ins.get("content", ""),
-                    source_url=ins.get("source_url", ""),
-                )
-            key = (ins.get("platform", ""), ins.get("title", ""))
+            url_key = normalize_url(ins.get("source_url", ""))
+            title_key = (ins.get("platform", ""), ins.get("title", "")[:60])
+            key = url_key if url_key else str(title_key)
             if key not in seen:
                 seen.add(key)
                 unique_insights.append(ins)

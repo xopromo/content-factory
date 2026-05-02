@@ -1,0 +1,566 @@
+{
+  "session_id": "0e7fbc87",
+  "started_at": "2026-05-02T21:02:40.096718",
+  "platform": "local",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-05-02T21:02:40.096762",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "0e7fbc87",
+        "target_platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:40.096822",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:40.096863",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:41.606534",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:42.311058",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:43.163624",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:43.770377",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "请教一下如何使用俄罗斯的社交软件VK？ - 知乎",
+        "category": "updates",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:43.770499",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "vk.com 俄罗斯最大的社交网站，它的特点是什么，有什么值得我们学习借...",
+        "category": "updates",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:43.770567",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "请教一下如何使用俄罗斯的社交软件VK？ - 知乎",
+        "category": "updates",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:43.770616",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:44.391955",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 3
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:44.392073",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:44.392105",
+      "action": "Searching: Threads продвижение стратегия 2026 охват",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:45.107471",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "готовая стратегия продвижения через Threads на 2026 годПродвижение в Threads в 2",
+        "category": "content_strategy",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:45.107591",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Продвижение в Threads в 2026: как набрать подписчиков в новой ...",
+        "category": "content_strategy",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:45.107613",
+      "action": "Searching: Threads хэштеги discoverability алгоритм 2026",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:45.769448",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Threads запустил хэштеги в публикациях | Postium",
+        "category": "discovery",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:45.769559",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Хештеги-приманки: что реально работает в ВК в 2026 году?",
+        "category": "discovery",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:45.769624",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "How To Use Audio Post On Threads App - YouTube",
+        "category": "discovery",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:45.769680",
+      "action": "Searching: Threads монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:46.587557",
+      "action": "Searching: Threads вирусный контент что работает",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:52.701853",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 5
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:52.701928",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:52.701949",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:02:59.052076",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:03:04.745280",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Яндекс Директ для интернет-магазина 2026: гайд по... | Red Meteors",
+        "category": "bidding",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:03:04.745339",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:03:10.961467",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Минус-слова в Яндекс.Директ 2025: готовые списки для 20 ниш",
+        "category": "filtering",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:03:10.961512",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:03:17.412992",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:03:23.602391",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 2
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:03:23.602516",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-02T21:03:23.602570",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 10,
+        "insights_by_platform": {
+          "VK": 3,
+          "Threads": 5,
+          "Yandex Direct": 2
+        },
+        "insights_by_category": {
+          "updates": 3,
+          "content_strategy": 2,
+          "discovery": 3,
+          "bidding": 1,
+          "filtering": 1
+        },
+        "top_categories": [
+          [
+            "updates",
+            [
+              {
+                "id": 1,
+                "platform": "VK",
+                "title": "请教一下如何使用俄罗斯的社交软件VK？ - 知乎",
+                "content": "VK（VKontakte）作为俄罗斯本土最大的月活超1亿的社交平台，成为外贸开拓客户的新途径。 然而，VK对新注册账号的风控越来越严格，如果操作不当，很容易触发封号机制。",
+                "category": "updates",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:02:43.770341",
+                "tags": [],
+                "source_url": "https://www.zhihu.com/question/310514536/answers/updated"
+              },
+              {
+                "id": 2,
+                "platform": "VK",
+                "title": "vk.com 俄罗斯最大的社交网站，它的特点是什么，有什么值得我们学习借...",
+                "content": "VK （俄罗斯的“微信+QQ音乐+淘宝”综合体）最厉害的就是 超级接地气 ——社交、购物、听歌全搞定，而且特别会玩 群组卖货，商家直接在社群里开店。 咱们 万众科技 （专门帮中国企业搞定俄罗斯市场的）作为 中俄跨境数字化服务商，可结合VK的 B2B2C生态，帮中国客户通过VK群组运营、 俄语SEO 等 ...",
+                "category": "updates",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:02:43.770484",
+                "tags": [],
+                "source_url": "https://www.zhihu.com/question/20058640/answers/updated"
+              },
+              {
+                "id": 3,
+                "platform": "VK",
+                "title": "请教一下如何使用俄罗斯的社交软件VK？ - 知乎",
+                "content": "请教一下如何使用俄罗斯的社交软件VK？ 本身有学俄语，VK的东西我是知道这个比较有名气的。 但是不会注册登录呀，所以想像各位懂得这方面知识的人请教一下，还请讲解的时候说的详细一些。 谢谢啦！ 显示全部 关注者 153 被浏览",
+                "category": "updates",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:02:43.770557",
+                "tags": [],
+                "source_url": "https://www.zhihu.com/question/310514536"
+              }
+            ]
+          ],
+          [
+            "discovery",
+            [
+              {
+                "id": 6,
+                "platform": "Threads",
+                "title": "Threads запустил хэштеги в публикациях | Postium",
+                "content": "Как добавить хэштеги в Threads и как они будут работать. При публикации поста в Threads вы сможете выбрать и добавить тему (хэштег), который свяжет вашу публикацию с другими, посвящёнными этой теме.",
+                "category": "discovery",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:02:45.769415",
+                "tags": [],
+                "source_url": "https://postium.ru/threads-testiruet-xeshtegi/"
+              },
+              {
+                "id": 7,
+                "platform": "Threads",
+                "title": "Хештеги-приманки: что реально работает в ВК в 2026 году?",
+                "content": "Часто после редактирования хештеги перестают отображаться в поисковой выдаче ВК. Алгоритм их просто «забывает». Поэтому правило номер один: вычитывайте текст до публикации и старайтесь избегать правок в постах с важными хештегами.",
+                "category": "discovery",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:02:45.769545",
+                "tags": [],
+                "source_url": "https://vk.com/wall-51714675_202"
+              },
+              {
+                "id": 8,
+                "platform": "Threads",
+                "title": "How To Use Audio Post On Threads App - YouTube",
+                "content": "Welcome to our latest tutorial! In this video, we're going to dive deep into the wonderful world of audio posts on the Threads App.",
+                "category": "discovery",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:02:45.769613",
+                "tags": [],
+                "source_url": "https://www.youtube.com/watch?v=Na4wPpMQ85o"
+              }
+            ]
+          ],
+          [
+            "content_strategy",
+            [
+              {
+                "id": 4,
+                "platform": "Threads",
+                "title": "готовая стратегия продвижения через Threads на 2026 годПродвижение в Threads в 2",
+                "content": "Jan 15, 2026 · готовая стратегия продвижения через Threads на 2026 год МНОГО МИЛЛИОНОВ 542 subscribers Subscribed В 2026 году охваты в Threads значительно выше, чем в Twitter/X — платформа активно «раздаёт» охват для привлечения авторов. Стратегия продвижения в Threads Первое: привяжите к активному Instagram-аккаунту. Mar 5, 2026 · В 2026 году человек сталкивается с тысячами рекламных сообщений в день. И в борьбе за внимание пользователя побеждает не тот, кто громче заявляет о себе, а тот, чей б",
+                "category": "content_strategy",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:02:45.107436",
+                "tags": [],
+                "source_url": "https://www.youtube.com/watch?v=V0srrEPTSBY"
+              },
+              {
+                "id": 5,
+                "platform": "Threads",
+                "title": "Продвижение в Threads в 2026: как набрать подписчиков в новой ...",
+                "content": "В 2026 году охваты в Threads значительно выше, чем в Twitter/X — платформа активно «раздаёт» охват для привлечения авторов. Стратегия продвижения в Threads Первое: привяжите к активному Instagram-аккаунту.",
+                "category": "content_strategy",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:02:45.107576",
+                "tags": [],
+                "source_url": "https://likeboom.ru/blog/prodvizhenie-threads-2026-podpischiki"
+              }
+            ]
+          ],
+          [
+            "bidding",
+            [
+              {
+                "id": 9,
+                "platform": "Yandex Direct",
+                "title": "Яндекс Директ для интернет-магазина 2026: гайд по... | Red Meteors",
+                "content": "Хаб-гайд по Яндекс Директу для e-commerce 2026: трёхэтапная стратегия, ДРР как главная метрика, канонический микс кампаний, нишевые бенчмарки по 10 категориям, роадмап масштабирования и чек-лист из 25 пунктов.",
+                "category": "bidding",
+                "confidence": 8,
+                "discovered_at": "2026-05-02T21:03:04.745252",
+                "tags": [],
+                "source_url": "https://redmeteors.ru/blog/yandex-direct-dlya-internet-magazina-2026"
+              }
+            ]
+          ],
+          [
+            "filtering",
+            [
+              {
+                "id": 10,
+                "platform": "Yandex Direct",
+                "title": "Минус-слова в Яндекс.Директ 2025: готовые списки для 20 ниш",
+                "content": "Скачайте готовые списки минус-слов для Яндекс.Директ на 2025 год. Универсальный набор и специализированные минус-фразы для 20 популярных ниш. Инструкция по применению операторов, полезные сервисы и инструменты.",
+                "category": "filtering",
+                "confidence": 8,
+                "discovered_at": "2026-05-02T21:03:10.961440",
+                "tags": [],
+                "source_url": "https://wesma.agency/blog/minus-slova-v-yandeks-direkt-gotovyye-spiski-dlya-20-populyarnykh-nish/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "VK",
+      "title": "请教一下如何使用俄罗斯的社交软件VK？ - 知乎",
+      "content": "VK（VKontakte）作为俄罗斯本土最大的月活超1亿的社交平台，成为外贸开拓客户的新途径。 然而，VK对新注册账号的风控越来越严格，如果操作不当，很容易触发封号机制。",
+      "category": "updates",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:02:43.770341",
+      "tags": [],
+      "source_url": "https://www.zhihu.com/question/310514536/answers/updated"
+    },
+    {
+      "id": 2,
+      "platform": "VK",
+      "title": "vk.com 俄罗斯最大的社交网站，它的特点是什么，有什么值得我们学习借...",
+      "content": "VK （俄罗斯的“微信+QQ音乐+淘宝”综合体）最厉害的就是 超级接地气 ——社交、购物、听歌全搞定，而且特别会玩 群组卖货，商家直接在社群里开店。 咱们 万众科技 （专门帮中国企业搞定俄罗斯市场的）作为 中俄跨境数字化服务商，可结合VK的 B2B2C生态，帮中国客户通过VK群组运营、 俄语SEO 等 ...",
+      "category": "updates",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:02:43.770484",
+      "tags": [],
+      "source_url": "https://www.zhihu.com/question/20058640/answers/updated"
+    },
+    {
+      "id": 3,
+      "platform": "VK",
+      "title": "请教一下如何使用俄罗斯的社交软件VK？ - 知乎",
+      "content": "请教一下如何使用俄罗斯的社交软件VK？ 本身有学俄语，VK的东西我是知道这个比较有名气的。 但是不会注册登录呀，所以想像各位懂得这方面知识的人请教一下，还请讲解的时候说的详细一些。 谢谢啦！ 显示全部 关注者 153 被浏览",
+      "category": "updates",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:02:43.770557",
+      "tags": [],
+      "source_url": "https://www.zhihu.com/question/310514536"
+    },
+    {
+      "id": 4,
+      "platform": "Threads",
+      "title": "готовая стратегия продвижения через Threads на 2026 годПродвижение в Threads в 2",
+      "content": "Jan 15, 2026 · готовая стратегия продвижения через Threads на 2026 год МНОГО МИЛЛИОНОВ 542 subscribers Subscribed В 2026 году охваты в Threads значительно выше, чем в Twitter/X — платформа активно «раздаёт» охват для привлечения авторов. Стратегия продвижения в Threads Первое: привяжите к активному Instagram-аккаунту. Mar 5, 2026 · В 2026 году человек сталкивается с тысячами рекламных сообщений в день. И в борьбе за внимание пользователя побеждает не тот, кто громче заявляет о себе, а тот, чей б",
+      "category": "content_strategy",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:02:45.107436",
+      "tags": [],
+      "source_url": "https://www.youtube.com/watch?v=V0srrEPTSBY"
+    },
+    {
+      "id": 5,
+      "platform": "Threads",
+      "title": "Продвижение в Threads в 2026: как набрать подписчиков в новой ...",
+      "content": "В 2026 году охваты в Threads значительно выше, чем в Twitter/X — платформа активно «раздаёт» охват для привлечения авторов. Стратегия продвижения в Threads Первое: привяжите к активному Instagram-аккаунту.",
+      "category": "content_strategy",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:02:45.107576",
+      "tags": [],
+      "source_url": "https://likeboom.ru/blog/prodvizhenie-threads-2026-podpischiki"
+    },
+    {
+      "id": 6,
+      "platform": "Threads",
+      "title": "Threads запустил хэштеги в публикациях | Postium",
+      "content": "Как добавить хэштеги в Threads и как они будут работать. При публикации поста в Threads вы сможете выбрать и добавить тему (хэштег), который свяжет вашу публикацию с другими, посвящёнными этой теме.",
+      "category": "discovery",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:02:45.769415",
+      "tags": [],
+      "source_url": "https://postium.ru/threads-testiruet-xeshtegi/"
+    },
+    {
+      "id": 7,
+      "platform": "Threads",
+      "title": "Хештеги-приманки: что реально работает в ВК в 2026 году?",
+      "content": "Часто после редактирования хештеги перестают отображаться в поисковой выдаче ВК. Алгоритм их просто «забывает». Поэтому правило номер один: вычитывайте текст до публикации и старайтесь избегать правок в постах с важными хештегами.",
+      "category": "discovery",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:02:45.769545",
+      "tags": [],
+      "source_url": "https://vk.com/wall-51714675_202"
+    },
+    {
+      "id": 8,
+      "platform": "Threads",
+      "title": "How To Use Audio Post On Threads App - YouTube",
+      "content": "Welcome to our latest tutorial! In this video, we're going to dive deep into the wonderful world of audio posts on the Threads App.",
+      "category": "discovery",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:02:45.769613",
+      "tags": [],
+      "source_url": "https://www.youtube.com/watch?v=Na4wPpMQ85o"
+    },
+    {
+      "id": 9,
+      "platform": "Yandex Direct",
+      "title": "Яндекс Директ для интернет-магазина 2026: гайд по... | Red Meteors",
+      "content": "Хаб-гайд по Яндекс Директу для e-commerce 2026: трёхэтапная стратегия, ДРР как главная метрика, канонический микс кампаний, нишевые бенчмарки по 10 категориям, роадмап масштабирования и чек-лист из 25 пунктов.",
+      "category": "bidding",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T21:03:04.745252",
+      "tags": [],
+      "source_url": "https://redmeteors.ru/blog/yandex-direct-dlya-internet-magazina-2026"
+    },
+    {
+      "id": 10,
+      "platform": "Yandex Direct",
+      "title": "Минус-слова в Яндекс.Директ 2025: готовые списки для 20 ниш",
+      "content": "Скачайте готовые списки минус-слов для Яндекс.Директ на 2025 год. Универсальный набор и специализированные минус-фразы для 20 популярных ниш. Инструкция по применению операторов, полезные сервисы и инструменты.",
+      "category": "filtering",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T21:03:10.961440",
+      "tags": [],
+      "source_url": "https://wesma.agency/blog/minus-slova-v-yandeks-direkt-gotovyye-spiski-dlya-20-populyarnykh-nish/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 10,
+    "research_hours": 0
+  },
+  "ended_at": "2026-05-02T21:03:23.603113"
+}
