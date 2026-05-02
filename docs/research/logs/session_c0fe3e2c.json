@@ -1,0 +1,1342 @@
+{
+  "session_id": "c0fe3e2c",
+  "started_at": "2026-05-02T18:18:07.848083",
+  "platform": "local",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-05-02T18:18:07.848168",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "c0fe3e2c",
+        "target_platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:07.848273",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:07.848310",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:10.222198",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Настройка таргета ВКонтакте 2026: пошаговая инструкция для старого и нового каби",
+        "category": "targeting",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:10.222355",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Таргетированная реклама ВКонтакте в 2026 году: стратегии, продвижение и тренды V",
+        "category": "targeting",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:10.222391",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "ВКонтакте в 2026: алгоритмы ВК, тренды контента, трафик и таргетированная реклам",
+        "category": "targeting",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:10.222415",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:11.626500",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Как запустить рекламу ВКонтакте с телефона в 2026 году...",
+        "category": "budget_optimization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:11.626651",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Оптимизация бюджета кампании новый инструмент... - YouTube",
+        "category": "budget_optimization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:11.626718",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Формула ROI в маркетинге: как рассчитать рентабельность...",
+        "category": "budget_optimization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:11.626752",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:13.650304",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Лучшее время для ... - ВКонтакте",
+        "category": "timing",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:13.650477",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Лучшее время для публикации постов во ВКонтакте",
+        "category": "timing",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:13.650509",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Лучшее время для публикации постов в ВКонтакте",
+        "category": "timing",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:13.650534",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:14.327966",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Офлайн конференция в Питере: обновления VK Рекламы 2026",
+        "category": "updates",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:14.328047",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Таргет во ВКонтакте в 2026: чего ждать и как... — Маркетинг на vc.ru",
+        "category": "updates",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:14.328072",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "ВКонтакте 2026: Полный гид по алгоритмам и продвижению",
+        "category": "updates",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:14.328096",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:15.591977",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Как избежать ошибок таргетинга во ВКонтакте. Лучшие практики...",
+        "category": "mistakes",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:15.592140",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Как настроить таргет в ВК – пошаговая инструкция",
+        "category": "mistakes",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:15.592218",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Почему таргетированная реклама не работает: 6 типичных...",
+        "category": "mistakes",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:15.592386",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 15
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:15.592486",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:15.592526",
+      "action": "Searching: Threads продвижение стратегия 2026 охват",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:17.184090",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "25+ способов продвижения в Threads* в 2026 году — как вести аккаунт и ...",
+        "category": "content_strategy",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:17.184276",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Продвижение в Threads в 2026: как набрать подписчиков в новой соцсети ...",
+        "category": "content_strategy",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:17.184404",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Как продвигать Threads* в 2026 году: полное руководство по росту ...",
+        "category": "content_strategy",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:17.184455",
+      "action": "Searching: Threads хэштеги discoverability алгоритм 2026",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:18.484626",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Threads запустил хэштеги в публикациях | Postium",
+        "category": "discovery",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:18.484728",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "How To Use Audio Post On Threads App - YouTube",
+        "category": "discovery",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:18.484756",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Хештеги-приманки: что реально работает в ВК в 2026 году?",
+        "category": "discovery",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:18.484772",
+      "action": "Searching: Threads монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:19.459920",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Как продвигаться в Threads? — Гусарские Наставления на vc.ru",
+        "category": "monetization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:19.460028",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Как зарабатывать на Threads — Руководство для начинающих",
+        "category": "monetization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:19.460077",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Threads монетизация 2025: заработок до $5000 с кейсами",
+        "category": "monetization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:19.460119",
+      "action": "Searching: Threads вирусный контент что работает",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:26.834632",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Полный гайд по Threads: технические секреты и стратегии...",
+        "category": "viral",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:26.835180",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Threads: обзор новой соцсети [хайп 2026?] + как скачать...",
+        "category": "viral",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:26.835233",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Контент-стратегия для Threads: создание вирусного... | Viralmaxing",
+        "category": "viral",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:26.835277",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 12
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:26.835367",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:26.835456",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:27.756994",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Yandex Wordstat",
+        "category": "keywords",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:27.757123",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Дзен - Яндекс Вордстат",
+        "category": "keywords",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:27.757193",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Яндекс Вордстат: как искать и анализировать ключевые слова — подробная ...",
+        "category": "keywords",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:27.757288",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:28.539486",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Стратегии Яндекс Директа в 2026: гайд по выбору для e-commerce",
+        "category": "bidding",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:28.539581",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Яндекс.Директ 2026 — полный гайд по настройке и ведению...",
+        "category": "bidding",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:28.539609",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Яндекс Директ для интернет-магазина 2026: гайд по... | Red Meteors",
+        "category": "bidding",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:28.539626",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:29.269862",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Минус-слова и минус-фразы | Яндекс Директ",
+        "category": "filtering",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:29.269941",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Минус-слова Яндекс Директ - список 3937 минус-фраз, как...",
+        "category": "filtering",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:29.269968",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Минус-слова в Яндекс.Директ 2025: готовые списки для 20 ниш",
+        "category": "filtering",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:29.269983",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:30.588918",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Как увеличить клики в Яндекс Директ и Google Ads: простые ...",
+        "category": "optimization",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:30.589036",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Как увеличить CTR в Яндекс Директе: 9 способов | Postium",
+        "category": "optimization",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:30.589080",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "13 способов увеличить CTR в Яндекс Директ",
+        "category": "optimization",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:30.589097",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:31.357786",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Что нового в Директе: разбираем последние изменения",
+        "category": "updates",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:31.357877",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Яндекс Директ найдёт клиентов для бизнеса и предпринимателей",
+        "category": "updates",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:31.357904",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Промокод Яндекс Директ на Апрель-Май 2026 - Скидка до 5000...",
+        "category": "updates",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:31.357923",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 15
+      }
+    },
+    {
+      "timestamp": "2026-05-02T18:18:31.357941",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-02T18:18:31.358026",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 42,
+        "insights_by_platform": {
+          "VK": 15,
+          "Threads": 12,
+          "Yandex Direct": 15
+        },
+        "insights_by_category": {
+          "targeting": 3,
+          "budget_optimization": 3,
+          "timing": 3,
+          "updates": 6,
+          "mistakes": 3,
+          "content_strategy": 3,
+          "discovery": 3,
+          "monetization": 3,
+          "viral": 3,
+          "keywords": 3,
+          "bidding": 3,
+          "filtering": 3,
+          "optimization": 3
+        },
+        "top_categories": [
+          [
+            "updates",
+            [
+              {
+                "id": 10,
+                "platform": "VK",
+                "title": "Офлайн конференция в Питере: обновления VK Рекламы 2026",
+                "content": "Новинки VK Рекламы 2026: что изменится и как это использовать. Узнайте от представителя VK о планах развития платформы и ключевых проектах, которые помогут улучшить эффективность ваших кампаний.",
+                "category": "updates",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:14.327928",
+                "tags": [],
+                "source_url": "https://vitamin.tools/vk_ads_spb_2603"
+              },
+              {
+                "id": 11,
+                "platform": "VK",
+                "title": "Таргет во ВКонтакте в 2026: чего ждать и как... — Маркетинг на vc.ru",
+                "content": "VK Ads в 2026: управление данными и воронкой, важность ретаргетинга, настройка пикселя и событий, качество лидов как новая валюта.",
+                "category": "updates",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:14.328036",
+                "tags": [],
+                "source_url": "https://vc.ru/marketing/2698887-target-vo-vkontakte-v-2026"
+              },
+              {
+                "id": 12,
+                "platform": "VK",
+                "title": "ВКонтакте 2026: Полный гид по алгоритмам и продвижению",
+                "content": "Полное руководство по продвижению ВКонтакте в 2026 году. Алгоритмы MMLM, Discovery, VK Ads, контент-стратегия, SEO, API и монетизация.",
+                "category": "updates",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:14.328064",
+                "tags": [],
+                "source_url": "https://kv-ai.ru/tpost/vk-2026-full-guide-v2"
+              },
+              {
+                "id": 40,
+                "platform": "Yandex Direct",
+                "title": "Что нового в Директе: разбираем последние изменения",
+                "content": "На вебинаре разберём новинки Яндекс Директа: расскажем про новые инструменты и обновления, объясним, какие задачи они помогают решать и как использовать их в работе. Также обсудим свежие новости с Реконфы.",
+                "category": "updates",
+                "confidence": 8,
+                "discovered_at": "2026-05-02T18:18:31.357718",
+                "tags": [],
+                "source_url": "https://yandex.ru/adv/edu/events/chto-novogo-v-direkte-razbiraem-poslednie-izmeneniya"
+              },
+              {
+                "id": 41,
+                "platform": "Yandex Direct",
+                "title": "Яндекс Директ найдёт клиентов для бизнеса и предпринимателей",
+                "content": "Яндекс Директ — сервис для продвижения в Поиске, Картах и Рекламной сети Яндекса. Создание, настройка и запуск кампаний помогают увеличить продажи и привлечь новых клиентов.",
+                "category": "updates",
+                "confidence": 8,
+                "discovered_at": "2026-05-02T18:18:31.357866",
+                "tags": [],
+                "source_url": "https://direct.yandex.ru/"
+              },
+              {
+                "id": 42,
+                "platform": "Yandex Direct",
+                "title": "Промокод Яндекс Директ на Апрель-Май 2026 - Скидка до 5000...",
+                "content": "Получите промокоды и купоны в Яндекс Директ на Апрель-Май 2026 Проверено сегодня Активных промокодов: 17. Скидка 5000 рублей на первое размещение рекламы и запуск рекламной кампании для новых клиентов.",
+                "category": "updates",
+                "confidence": 8,
+                "discovered_at": "2026-05-02T18:18:31.357896",
+                "tags": [],
+                "source_url": "https://7days.ru/promokodi/promokod-yandex-direct"
+              }
+            ]
+          ],
+          [
+            "targeting",
+            [
+              {
+                "id": 1,
+                "platform": "VK",
+                "title": "Настройка таргета ВКонтакте 2026: пошаговая инструкция для старого и нового каби",
+                "content": "March 9, 2026 - Полный гайд по настройке таргетированной рекламы ВКонтакте. Как запустить рекламу в старом кабинете и VK Ads: выбор цели, форматы объявлений, парсинг аудитории и ретаргетинг.",
+                "category": "targeting",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:10.222131",
+                "tags": [],
+                "source_url": "https://elama.ru/blog/nastroyka-targetirovannoy-reklamy-vo-vkontakte/"
+              },
+              {
+                "id": 2,
+                "platform": "VK",
+                "title": "Таргетированная реклама ВКонтакте в 2026 году: стратегии, продвижение и тренды V",
+                "content": "December 16, 2025 - Задача рекламодателя заключается в передаче системе качественных сигналов: корректно сегментировать холодную, теплую и горячую аудиторию, использовать ретаргетинг и VK Pixel, а также адаптировать креативы под этап воронки. Грамотно выстроенный таргетинг позволяет показывать рекламу каждому пользователю в нужный момент, снижать стоимость лида и повышать конверсии без избыточного ручного контроля.",
+                "category": "targeting",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:10.222308",
+                "tags": [
+                  "pixel"
+                ],
+                "source_url": "https://digitalskillsacademy.ru/blog/kak-nastroit-reklamu-vk-2026"
+              },
+              {
+                "id": 3,
+                "platform": "VK",
+                "title": "ВКонтакте в 2026: алгоритмы ВК, тренды контента, трафик и таргетированная реклам",
+                "content": "February 17, 2026 - Собрали конспект ... Эффективность ВКонтакте в 2026 году перестала зависеть от рекламных бюджетов....",
+                "category": "targeting",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:10.222381",
+                "tags": [],
+                "source_url": "https://blog.tochkadostupa.pro/kak-rabotat-vkontakte-v-2026-posle-padeniya-ohvatov-i-obnovlenij/"
+              }
+            ]
+          ],
+          [
+            "budget_optimization",
+            [
+              {
+                "id": 4,
+                "platform": "VK",
+                "title": "Как запустить рекламу ВКонтакте с телефона в 2026 году...",
+                "content": "Пошаговая инструкция по запуску рекламы ВК со смартфона через новое приложение VK Реклама. Рассказываем, как настроить кампанию, выбрать аудиторию, бюджет и отследить статистику прямо с телефона.",
+                "category": "budget_optimization",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:11.626450",
+                "tags": [],
+                "source_url": "https://elama.ru/blog/kak-zapustit-reklamu-vkontakte-s-telefona-v-2026-godu-polnoe-rukovodstvo/"
+              },
+              {
+                "id": 5,
+                "platform": "VK",
+                "title": "Оптимизация бюджета кампании новый инструмент... - YouTube",
+                "content": "© 2026 Google LLC.",
+                "category": "budget_optimization",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:11.626636",
+                "tags": [],
+                "source_url": "https://www.youtube.com/watch?v=4WiEcvXnD1g"
+              },
+              {
+                "id": 6,
+                "platform": "VK",
+                "title": "Формула ROI в маркетинге: как рассчитать рентабельность...",
+                "content": "Значение ROI показывает, насколько успешными были инвестиции: ROI < 0% — вложения не окупились, компания понесла убытки. Следует пересмотреть маркетинговую стратегию. ROI = 0% — прибыли и убытков нет, компания вышла в ноль.",
+                "category": "budget_optimization",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:11.626691",
+                "tags": [
+                  "roi"
+                ],
+                "source_url": "https://blog.promopult.ru/ecommerce/formula-roi-chto-eto-kak-eyo-poschitat.html"
+              }
+            ]
+          ],
+          [
+            "timing",
+            [
+              {
+                "id": 7,
+                "platform": "VK",
+                "title": "Лучшее время для ... - ВКонтакте",
+                "content": "Лучшее время для публикаций и рекламы в соцсетях зависит от вашей аудитории и платформы . Обычно, активность пользователей поднимается в будние дни с утра до полдня, а также вечером после работы. Например, в Инстаграм ...",
+                "category": "timing",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:13.650233",
+                "tags": [],
+                "source_url": "https://vk.com/wall-231438622_1138"
+              },
+              {
+                "id": 8,
+                "platform": "VK",
+                "title": "Лучшее время для публикации постов во ВКонтакте",
+                "content": "Лучшее время для публикации постов во ВКонтакте — исследование на выборке в 7 млн. постов, опубликованных в 2024 г. в 240 тыс. сообществ",
+                "category": "timing",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:13.650461",
+                "tags": [],
+                "source_url": "https://vc.ru/marketing/1269542-luchshee-vremya-dlya-publikacii-postov-vo-vkontakte"
+              },
+              {
+                "id": 9,
+                "platform": "VK",
+                "title": "Лучшее время для публикации постов в ВКонтакте",
+                "content": "Вовлечённость в понедельник в среднем на 12-15% ниже, чем в середине недели. Вторник, среда и четверг — золотое время для лучшего времени для публикации в соцсетях.",
+                "category": "timing",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:13.650498",
+                "tags": [],
+                "source_url": "https://skyeng.ru/it-industry/marketing/luchshee-vremya-dlya-publikacii-postov-v-vk/"
+              }
+            ]
+          ],
+          [
+            "mistakes",
+            [
+              {
+                "id": 13,
+                "platform": "VK",
+                "title": "Как избежать ошибок таргетинга во ВКонтакте. Лучшие практики...",
+                "content": "Главная ошибка: таргетинг по «всем, кто может подойти». Как избежать: Сформируй 2–3 основных портрета: возраст, пол, город, тип занятости, доход, боли, интересы.",
+                "category": "mistakes",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:15.591897",
+                "tags": [],
+                "source_url": "https://vk.com/@417425728-kak-izbezhat-oshibok-targetinga-vo-vkontakte-luchshie-prakti"
+              },
+              {
+                "id": 14,
+                "platform": "VK",
+                "title": "Как настроить таргет в ВК – пошаговая инструкция",
+                "content": "Настройка таргета ВК: как избежать слабой открутки и не слить бюджет на старте.Как настроить таргет в ВК: самые важные моментыОсновные ошибки при настройке таргетированной рекламы во ВКонтакте",
+                "category": "mistakes",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:15.592109",
+                "tags": [],
+                "source_url": "https://smmplanner.com/blog/nastroika-targhieta-v-vk-v-2022-kak-izbiezhat-slaboi-otkrutki-i-nie-slit-biudzhiet/"
+              },
+              {
+                "id": 15,
+                "platform": "VK",
+                "title": "Почему таргетированная реклама не работает: 6 типичных...",
+                "content": "Ошибки, из-за которых таргетированная реклама может не работать, бывают у всех, даже у самых опытных специалистов..Часто не учитываются принципы работы таргетингов – это также одна из причин, почему таргетированная реклама не работает.",
+                "category": "mistakes",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T18:18:15.592202",
+                "tags": [],
+                "source_url": "https://target.vk.ru/pro/articles/six-mistakes"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "VK",
+      "title": "Настройка таргета ВКонтакте 2026: пошаговая инструкция для старого и нового каби",
+      "content": "March 9, 2026 - Полный гайд по настройке таргетированной рекламы ВКонтакте. Как запустить рекламу в старом кабинете и VK Ads: выбор цели, форматы объявлений, парсинг аудитории и ретаргетинг.",
+      "category": "targeting",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:10.222131",
+      "tags": [],
+      "source_url": "https://elama.ru/blog/nastroyka-targetirovannoy-reklamy-vo-vkontakte/"
+    },
+    {
+      "id": 2,
+      "platform": "VK",
+      "title": "Таргетированная реклама ВКонтакте в 2026 году: стратегии, продвижение и тренды V",
+      "content": "December 16, 2025 - Задача рекламодателя заключается в передаче системе качественных сигналов: корректно сегментировать холодную, теплую и горячую аудиторию, использовать ретаргетинг и VK Pixel, а также адаптировать креативы под этап воронки. Грамотно выстроенный таргетинг позволяет показывать рекламу каждому пользователю в нужный момент, снижать стоимость лида и повышать конверсии без избыточного ручного контроля.",
+      "category": "targeting",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:10.222308",
+      "tags": [
+        "pixel"
+      ],
+      "source_url": "https://digitalskillsacademy.ru/blog/kak-nastroit-reklamu-vk-2026"
+    },
+    {
+      "id": 3,
+      "platform": "VK",
+      "title": "ВКонтакте в 2026: алгоритмы ВК, тренды контента, трафик и таргетированная реклам",
+      "content": "February 17, 2026 - Собрали конспект ... Эффективность ВКонтакте в 2026 году перестала зависеть от рекламных бюджетов....",
+      "category": "targeting",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:10.222381",
+      "tags": [],
+      "source_url": "https://blog.tochkadostupa.pro/kak-rabotat-vkontakte-v-2026-posle-padeniya-ohvatov-i-obnovlenij/"
+    },
+    {
+      "id": 4,
+      "platform": "VK",
+      "title": "Как запустить рекламу ВКонтакте с телефона в 2026 году...",
+      "content": "Пошаговая инструкция по запуску рекламы ВК со смартфона через новое приложение VK Реклама. Рассказываем, как настроить кампанию, выбрать аудиторию, бюджет и отследить статистику прямо с телефона.",
+      "category": "budget_optimization",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:11.626450",
+      "tags": [],
+      "source_url": "https://elama.ru/blog/kak-zapustit-reklamu-vkontakte-s-telefona-v-2026-godu-polnoe-rukovodstvo/"
+    },
+    {
+      "id": 5,
+      "platform": "VK",
+      "title": "Оптимизация бюджета кампании новый инструмент... - YouTube",
+      "content": "© 2026 Google LLC.",
+      "category": "budget_optimization",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:11.626636",
+      "tags": [],
+      "source_url": "https://www.youtube.com/watch?v=4WiEcvXnD1g"
+    },
+    {
+      "id": 6,
+      "platform": "VK",
+      "title": "Формула ROI в маркетинге: как рассчитать рентабельность...",
+      "content": "Значение ROI показывает, насколько успешными были инвестиции: ROI < 0% — вложения не окупились, компания понесла убытки. Следует пересмотреть маркетинговую стратегию. ROI = 0% — прибыли и убытков нет, компания вышла в ноль.",
+      "category": "budget_optimization",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:11.626691",
+      "tags": [
+        "roi"
+      ],
+      "source_url": "https://blog.promopult.ru/ecommerce/formula-roi-chto-eto-kak-eyo-poschitat.html"
+    },
+    {
+      "id": 7,
+      "platform": "VK",
+      "title": "Лучшее время для ... - ВКонтакте",
+      "content": "Лучшее время для публикаций и рекламы в соцсетях зависит от вашей аудитории и платформы . Обычно, активность пользователей поднимается в будние дни с утра до полдня, а также вечером после работы. Например, в Инстаграм ...",
+      "category": "timing",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:13.650233",
+      "tags": [],
+      "source_url": "https://vk.com/wall-231438622_1138"
+    },
+    {
+      "id": 8,
+      "platform": "VK",
+      "title": "Лучшее время для публикации постов во ВКонтакте",
+      "content": "Лучшее время для публикации постов во ВКонтакте — исследование на выборке в 7 млн. постов, опубликованных в 2024 г. в 240 тыс. сообществ",
+      "category": "timing",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:13.650461",
+      "tags": [],
+      "source_url": "https://vc.ru/marketing/1269542-luchshee-vremya-dlya-publikacii-postov-vo-vkontakte"
+    },
+    {
+      "id": 9,
+      "platform": "VK",
+      "title": "Лучшее время для публикации постов в ВКонтакте",
+      "content": "Вовлечённость в понедельник в среднем на 12-15% ниже, чем в середине недели. Вторник, среда и четверг — золотое время для лучшего времени для публикации в соцсетях.",
+      "category": "timing",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:13.650498",
+      "tags": [],
+      "source_url": "https://skyeng.ru/it-industry/marketing/luchshee-vremya-dlya-publikacii-postov-v-vk/"
+    },
+    {
+      "id": 10,
+      "platform": "VK",
+      "title": "Офлайн конференция в Питере: обновления VK Рекламы 2026",
+      "content": "Новинки VK Рекламы 2026: что изменится и как это использовать. Узнайте от представителя VK о планах развития платформы и ключевых проектах, которые помогут улучшить эффективность ваших кампаний.",
+      "category": "updates",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:14.327928",
+      "tags": [],
+      "source_url": "https://vitamin.tools/vk_ads_spb_2603"
+    },
+    {
+      "id": 11,
+      "platform": "VK",
+      "title": "Таргет во ВКонтакте в 2026: чего ждать и как... — Маркетинг на vc.ru",
+      "content": "VK Ads в 2026: управление данными и воронкой, важность ретаргетинга, настройка пикселя и событий, качество лидов как новая валюта.",
+      "category": "updates",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:14.328036",
+      "tags": [],
+      "source_url": "https://vc.ru/marketing/2698887-target-vo-vkontakte-v-2026"
+    },
+    {
+      "id": 12,
+      "platform": "VK",
+      "title": "ВКонтакте 2026: Полный гид по алгоритмам и продвижению",
+      "content": "Полное руководство по продвижению ВКонтакте в 2026 году. Алгоритмы MMLM, Discovery, VK Ads, контент-стратегия, SEO, API и монетизация.",
+      "category": "updates",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:14.328064",
+      "tags": [],
+      "source_url": "https://kv-ai.ru/tpost/vk-2026-full-guide-v2"
+    },
+    {
+      "id": 13,
+      "platform": "VK",
+      "title": "Как избежать ошибок таргетинга во ВКонтакте. Лучшие практики...",
+      "content": "Главная ошибка: таргетинг по «всем, кто может подойти». Как избежать: Сформируй 2–3 основных портрета: возраст, пол, город, тип занятости, доход, боли, интересы.",
+      "category": "mistakes",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:15.591897",
+      "tags": [],
+      "source_url": "https://vk.com/@417425728-kak-izbezhat-oshibok-targetinga-vo-vkontakte-luchshie-prakti"
+    },
+    {
+      "id": 14,
+      "platform": "VK",
+      "title": "Как настроить таргет в ВК – пошаговая инструкция",
+      "content": "Настройка таргета ВК: как избежать слабой открутки и не слить бюджет на старте.Как настроить таргет в ВК: самые важные моментыОсновные ошибки при настройке таргетированной рекламы во ВКонтакте",
+      "category": "mistakes",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:15.592109",
+      "tags": [],
+      "source_url": "https://smmplanner.com/blog/nastroika-targhieta-v-vk-v-2022-kak-izbiezhat-slaboi-otkrutki-i-nie-slit-biudzhiet/"
+    },
+    {
+      "id": 15,
+      "platform": "VK",
+      "title": "Почему таргетированная реклама не работает: 6 типичных...",
+      "content": "Ошибки, из-за которых таргетированная реклама может не работать, бывают у всех, даже у самых опытных специалистов..Часто не учитываются принципы работы таргетингов – это также одна из причин, почему таргетированная реклама не работает.",
+      "category": "mistakes",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:15.592202",
+      "tags": [],
+      "source_url": "https://target.vk.ru/pro/articles/six-mistakes"
+    },
+    {
+      "id": 16,
+      "platform": "Threads",
+      "title": "25+ способов продвижения в Threads* в 2026 году — как вести аккаунт и ...",
+      "content": "Как вести аккаунт в Тредс* и что публиковать. Как работают алгоритмы, как набирать охват и подписчиков. 25 способов раскрутки в Threads* с нуля.",
+      "category": "content_strategy",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:17.184000",
+      "tags": [],
+      "source_url": "https://postium.ru/prodvizhenie-threads/"
+    },
+    {
+      "id": 17,
+      "platform": "Threads",
+      "title": "Продвижение в Threads в 2026: как набрать подписчиков в новой соцсети ...",
+      "content": "В 2026 году охваты в Threads значительно выше, чем в Twitter/X — платформа активно «раздаёт» охват для привлечения авторов. Стратегия продвижения в Threads Первое: привяжите к активному Instagram-аккаунту.",
+      "category": "content_strategy",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:17.184237",
+      "tags": [],
+      "source_url": "https://likeboom.ru/blog/prodvizhenie-threads-2026-podpischiki"
+    },
+    {
+      "id": 18,
+      "platform": "Threads",
+      "title": "Как продвигать Threads* в 2026 году: полное руководство по росту ...",
+      "content": "Как продвигать Threads* в 2026 году: полное руководство по росту аккаунта - узнать больше полезного про SMM и PR: инструкции, исследования, кейсы и новости.",
+      "category": "content_strategy",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:17.184377",
+      "tags": [],
+      "source_url": "https://workspace.ru/blog/kak-prodvigat-threads-v-2026-godu-polnoe-rukovodstvo-po-rostu-akkaunta/"
+    },
+    {
+      "id": 19,
+      "platform": "Threads",
+      "title": "Threads запустил хэштеги в публикациях | Postium",
+      "content": "Как добавить хэштеги в Threads и как они будут работать. При публикации поста в Threads вы сможете выбрать и добавить тему (хэштег), который свяжет вашу публикацию с другими, посвящёнными этой теме.",
+      "category": "discovery",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:18.484557",
+      "tags": [],
+      "source_url": "https://postium.ru/threads-testiruet-xeshtegi/"
+    },
+    {
+      "id": 20,
+      "platform": "Threads",
+      "title": "How To Use Audio Post On Threads App - YouTube",
+      "content": "Welcome to our latest tutorial! In this video, we're going to dive deep into the wonderful world of audio posts on the Threads App.",
+      "category": "discovery",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:18.484720",
+      "tags": [],
+      "source_url": "https://www.youtube.com/watch?v=Na4wPpMQ85o"
+    },
+    {
+      "id": 21,
+      "platform": "Threads",
+      "title": "Хештеги-приманки: что реально работает в ВК в 2026 году?",
+      "content": "Часто после редактирования хештеги перестают отображаться в поисковой выдаче ВК. Алгоритм их просто «забывает». Поэтому правило номер один: вычитывайте текст до публикации и старайтесь избегать правок в постах с важными хештегами.",
+      "category": "discovery",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:18.484745",
+      "tags": [],
+      "source_url": "https://vk.com/wall-51714675_202"
+    },
+    {
+      "id": 22,
+      "platform": "Threads",
+      "title": "Как продвигаться в Threads? — Гусарские Наставления на vc.ru",
+      "content": "Threads не зря сравнивают с Twitter'ом. Это реально похожие соц сети. Но кроме одного момента: Twitter — это привычная среда для технарей/криптанов и онлифанщиц. Преимущественно. Если брать русскоязычную аудиторию.",
+      "category": "monetization",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:19.459831",
+      "tags": [],
+      "source_url": "https://vc.ru/id2052147/753022-kak-prodvigatsya-v-threads-o-chem-pisat-kak-nabrat-1000-podpischikov-bez-vlozhenii-est-li-klienty"
+    },
+    {
+      "id": 23,
+      "platform": "Threads",
+      "title": "Как зарабатывать на Threads — Руководство для начинающих",
+      "content": "Узнайте, как эффективно зарабатывать на Threads для новичков — от партнерского маркетинга и спонсорства до бонусной программы Threads от Meta.",
+      "category": "monetization",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:19.460018",
+      "tags": [],
+      "source_url": "https://hidemium.io/ru/blog/how-to-make-money-on-threads-a-beginners-guide/"
+    },
+    {
+      "id": 24,
+      "platform": "Threads",
+      "title": "Threads монетизация 2025: заработок до $5000 с кейсами",
+      "content": "Монетизация в Threads: как заработать до $5000 на Bonus Program, кейсы арбитражников, Threads Ads, обход ограничений. Актуальные методы заработка в 2025. Рост аудитории Threads до 350 миллионов пользователей в 2025. Статистика роста Threads.",
+      "category": "monetization",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:19.460062",
+      "tags": [],
+      "source_url": "https://trafficmafia.net/articles/monetizaciya-kontenta-v-threads/"
+    },
+    {
+      "id": 25,
+      "platform": "Threads",
+      "title": "Полный гайд по Threads: технические секреты и стратегии...",
+      "content": "Часть 1. Технический фундамент: размеры, лимиты и форматы. Многие новички совершают ошибку, просто дублируя контент из Instagram или Telegram. Это работает плохо, потому что Threads имеет свои жесткие технические ограничения и особенности отображения.",
+      "category": "viral",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:26.834487",
+      "tags": [],
+      "source_url": "https://nsys.by/seo-smm-orm-servisy/item/372-polnyj-gajd-po-threads-tekhnicheskie-sekrety-i-strategii-virusnogo-kontenta"
+    },
+    {
+      "id": 26,
+      "platform": "Threads",
+      "title": "Threads: обзор новой соцсети [хайп 2026?] + как скачать...",
+      "content": "Пока еще работает в Threads. Подписывайся на других пользователей и жди пока в ответ подпишутся на тебя; Вирусный контент. Придумай уникальный мем, захватывающий пост или челлендж, и если его подхватят остальные, тебя ждет армия подписчиков",
+      "category": "viral",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:26.835158",
+      "tags": [],
+      "source_url": "https://yak-studio.ru/blog/threads-novay-socset"
+    },
+    {
+      "id": 27,
+      "platform": "Threads",
+      "title": "Контент-стратегия для Threads: создание вирусного... | Viralmaxing",
+      "content": "Контент-стратегия в Threads кардинально отличается от подходов в других социальных сетях. Здесь важнее всего живое общение, аутентичность и способность вызывать дискуссии. Разберем, как построить систему создания контента...",
+      "category": "viral",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T18:18:26.835216",
+      "tags": [],
+      "source_url": "https://blog.viralmaxing.com/kontent-strategiya-dlya-threads"
+    },
+    {
+      "id": 28,
+      "platform": "Yandex Direct",
+      "title": "Yandex Wordstat",
+      "content": "Keyword statistics With Wordstat, you can view statistics on search queries to Yandex. See how the popularity of your queries change over time and from region to region. You can also see the top queries with selected words and learn what else users searched for on the same topic. Enter a word or phrase (like «tea» or «green tea»), and Wordstat will show you the stats on search queries ...",
+      "category": "keywords",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:27.756932",
+      "tags": [],
+      "source_url": "https://wordstat.yandex.com/"
+    },
+    {
+      "id": 29,
+      "platform": "Yandex Direct",
+      "title": "Дзен - Яндекс Вордстат",
+      "content": "Статистика поисковых запросов Вордстат — это инструмент, который показывает статистику поисковых запросов к Яндексу. С его помощью можно посмотреть, как менялась популярность интересующих вас запросов и как она ...",
+      "category": "keywords",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:27.757092",
+      "tags": [],
+      "source_url": "http://wordstat.yandex.ru/"
+    },
+    {
+      "id": 30,
+      "platform": "Yandex Direct",
+      "title": "Яндекс Вордстат: как искать и анализировать ключевые слова — подробная ...",
+      "content": "Операторы Wordstat — как искать точные и релевантные запросы Когда человек впервые заходит в Яндекс Вордстат, он видит цифры и часто принимает их за точную цифру, обозначающую количество ...",
+      "category": "keywords",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:27.757176",
+      "tags": [],
+      "source_url": "https://elama.ru/blog/kak-polzovatsya-yandeks-wordstat-instrukciya-dlya-nachinayuschih/"
+    },
+    {
+      "id": 31,
+      "platform": "Yandex Direct",
+      "title": "Стратегии Яндекс Директа в 2026: гайд по выбору для e-commerce",
+      "content": "Стратегии Яндекс Директа в 2026: какую выбрать для интернет-магазина. В 2026 году Яндекс Директ предлагает 5 стратегий управления ставками. Для интернет-магазина важно выбрать одну, которая соответствует объёму конверсий и зрелости проекта.",
+      "category": "bidding",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:28.539385",
+      "tags": [],
+      "source_url": "https://aoscoma.ru/blog/strategii-yandex-direct-2026"
+    },
+    {
+      "id": 32,
+      "platform": "Yandex Direct",
+      "title": "Яндекс.Директ 2026 — полный гайд по настройке и ведению...",
+      "content": "Полный гайд по Яндекс.Директ 2026: типы кампаний, стратегии ставок, сбор семантики, написание объявлений, оптимизация. Актуальные советы с примерами и цифрами.",
+      "category": "bidding",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:28.539571",
+      "tags": [],
+      "source_url": "https://pravda-ads.ru/blog/yandex-direct-polnyj-gajd-2026"
+    },
+    {
+      "id": 33,
+      "platform": "Yandex Direct",
+      "title": "Яндекс Директ для интернет-магазина 2026: гайд по... | Red Meteors",
+      "content": "Хаб-гайд по Яндекс Директу для e-commerce 2026: трёхэтапная стратегия, ДРР как главная метрика, канонический микс кампаний, нишевые бенчмарки по 10 категориям, роадмап масштабирования и чек-лист из 25 пунктов.",
+      "category": "bidding",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:28.539599",
+      "tags": [],
+      "source_url": "https://redmeteors.ru/blog/yandex-direct-dlya-internet-magazina-2026"
+    },
+    {
+      "id": 34,
+      "platform": "Yandex Direct",
+      "title": "Минус-слова и минус-фразы | Яндекс Директ",
+      "content": "Минус-слова и минус-фразы при показе в сетях. В сетях ключевая фраза определяет тематику площадок и интересы пользователя, в соответствии с которыми объявление может показываться.",
+      "category": "filtering",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:29.269828",
+      "tags": [],
+      "source_url": "https://yandex.ru/support/direct/ru/keywords/negative-keywords"
+    },
+    {
+      "id": 35,
+      "platform": "Yandex Direct",
+      "title": "Минус-слова Яндекс Директ - список 3937 минус-фраз, как...",
+      "content": "Узнайте, что такое минус-слова в Яндекс.Директ, как правильно их подбирать и использовать для повышения эффективности рекламных кампаний. Актуальный список минус-фраз.",
+      "category": "filtering",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:29.269931",
+      "tags": [],
+      "source_url": "https://key-client.ru/blog/minus-slova-yandex-direct/"
+    },
+    {
+      "id": 36,
+      "platform": "Yandex Direct",
+      "title": "Минус-слова в Яндекс.Директ 2025: готовые списки для 20 ниш",
+      "content": "Скачайте готовые списки минус-слов для Яндекс.Директ на 2025 год. Универсальный набор и специализированные минус-фразы для 20 популярных ниш. Инструкция по применению операторов, полезные сервисы и инструменты.",
+      "category": "filtering",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:29.269959",
+      "tags": [],
+      "source_url": "https://wesma.agency/blog/minus-slova-v-yandeks-direkt-gotovyye-spiski-dlya-20-populyarnykh-nish/"
+    },
+    {
+      "id": 37,
+      "platform": "Yandex Direct",
+      "title": "Как увеличить клики в Яндекс Директ и Google Ads: простые ...",
+      "content": "Nov 23, 2025 · Увеличение кликов в Яндекс Директ и Google Ads, методы повышения CTR, тестирование объявлений, оптимизация заголовков и описаний, использование расширений, правильный выбор ключевых слов.",
+      "category": "optimization",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:30.588858",
+      "tags": [],
+      "source_url": "https://vc.ru/direct/2612426-uvelichenie-klikov-v-yandeks-direkt-i-google-ads"
+    },
+    {
+      "id": 38,
+      "platform": "Yandex Direct",
+      "title": "Как увеличить CTR в Яндекс Директе: 9 способов | Postium",
+      "content": "Mar 22, 2025 · 9 способов повысить CTR Увеличение CTR — ключ к успешной оптимизации рекламных кампаний. Вот несколько простых шагов, которые помогут повысить кликабельность в Директе.",
+      "category": "optimization",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:30.589017",
+      "tags": [],
+      "source_url": "https://postium.ru/kak-uvelichit-ctr-v-yandeks-direkte-9-sposobov/"
+    },
+    {
+      "id": 39,
+      "platform": "Yandex Direct",
+      "title": "13 способов увеличить CTR в Яндекс Директ",
+      "content": "Aug 11, 2025 · Повышение CTR (кликабельности) в Яндекс Директ — это ключевая задача для каждого рекламодателя, стремящегося увеличить эффективность своих рекламных кампаний. Высокий CTR означает, что ваши объявления привлекают ...",
+      "category": "optimization",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:30.589068",
+      "tags": [],
+      "source_url": "https://kuznetik.ru/13-sposobov-kak-uvelichit-ctr-na-yandeks-direkt/"
+    },
+    {
+      "id": 40,
+      "platform": "Yandex Direct",
+      "title": "Что нового в Директе: разбираем последние изменения",
+      "content": "На вебинаре разберём новинки Яндекс Директа: расскажем про новые инструменты и обновления, объясним, какие задачи они помогают решать и как использовать их в работе. Также обсудим свежие новости с Реконфы.",
+      "category": "updates",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:31.357718",
+      "tags": [],
+      "source_url": "https://yandex.ru/adv/edu/events/chto-novogo-v-direkte-razbiraem-poslednie-izmeneniya"
+    },
+    {
+      "id": 41,
+      "platform": "Yandex Direct",
+      "title": "Яндекс Директ найдёт клиентов для бизнеса и предпринимателей",
+      "content": "Яндекс Директ — сервис для продвижения в Поиске, Картах и Рекламной сети Яндекса. Создание, настройка и запуск кампаний помогают увеличить продажи и привлечь новых клиентов.",
+      "category": "updates",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:31.357866",
+      "tags": [],
+      "source_url": "https://direct.yandex.ru/"
+    },
+    {
+      "id": 42,
+      "platform": "Yandex Direct",
+      "title": "Промокод Яндекс Директ на Апрель-Май 2026 - Скидка до 5000...",
+      "content": "Получите промокоды и купоны в Яндекс Директ на Апрель-Май 2026 Проверено сегодня Активных промокодов: 17. Скидка 5000 рублей на первое размещение рекламы и запуск рекламной кампании для новых клиентов.",
+      "category": "updates",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T18:18:31.357896",
+      "tags": [],
+      "source_url": "https://7days.ru/promokodi/promokod-yandex-direct"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 42,
+    "research_hours": 0
+  },
+  "ended_at": "2026-05-02T18:18:31.358719"
+}
