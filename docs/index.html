@@ -254,11 +254,11 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="total-ideas">0</div>
-                    <div class="stat-label">Идей сгенерировано</div>
+                    <div class="stat-label">Платформ охвачено</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value" id="top-verdict">0</div>
-                    <div class="stat-label">TOP рекомендаций</div>
+                    <div class="stat-value" id="top-verdict">—</div>
+                    <div class="stat-label">Последнее обновление</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="pipeline-status">🟢</div>
@@ -380,18 +380,27 @@
             }
         }
 
-        // Имитация данных для демо
-        function updateStats() {
-            document.getElementById('total-insights').textContent = '12';
-            document.getElementById('total-ideas').textContent = '28';
-            document.getElementById('top-verdict').textContent = '5';
-            document.getElementById('pipeline-status').textContent = '🟢';
+        async function updateStats() {
+            try {
+                const resp = await fetch('research/insights/index.json?_=' + Date.now());
+                const data = await resp.json();
+                document.getElementById('total-insights').textContent = data.total_insights || 0;
+                const platforms = new Set((data.insights || []).map(i => i.platform));
+                document.getElementById('total-ideas').textContent = platforms.size;
+                const lastUpdated = data.last_updated
+                    ? new Date(data.last_updated).toLocaleDateString('ru-RU')
+                    : '—';
+                document.getElementById('top-verdict').textContent = lastUpdated;
+                document.getElementById('pipeline-status').textContent = '🟢';
+            } catch (e) {
+                document.getElementById('pipeline-status').textContent = '🔴';
+            }
         }
 
         document.addEventListener('DOMContentLoaded', updateStats);
 
-        // Auto-refresh каждые 30 сек
-        setInterval(updateStats, 30000);
+        // Auto-refresh каждые 5 минут
+        setInterval(updateStats, 300000);
     </script>
 </body>
 </html>
