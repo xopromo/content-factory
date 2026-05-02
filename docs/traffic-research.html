@@ -578,19 +578,15 @@
 
     wrap.classList.remove('hidden');
 
-    if (!activeCategory) {
-      title.textContent = 'Выберите категорию';
-      meta.textContent  = `${Object.keys(byCategory).length} категорий доступно`;
-      list.innerHTML    = '<div class="filter-hint">Нажмите на категорию, чтобы увидеть связанные инсайты.</div>';
-      return;
-    }
+    const items = activeCategory
+      ? sortInsights(byCategory[activeCategory] || [])
+      : sortInsights(allInsights);
 
-    const items = sortInsights(byCategory[activeCategory] || []);
-    title.textContent = catRu(activeCategory);
+    title.textContent = activeCategory ? catRu(activeCategory) : 'Все инсайты';
     meta.textContent  = `${items.length} инсайтов`;
     list.innerHTML    = items.length
       ? items.map(renderInsightItem).join('')
-      : '<div class="filter-hint">По этой категории пока нет инсайтов.</div>';
+      : '<div class="filter-hint">Нет инсайтов.</div>';
   }
 
   function renderPlatforms() {
