@@ -417,6 +417,7 @@
                                 <div class="insight-meta">
                                     <span class="category-badge">${escapeHtml(insight.category)}</span>
                                     <span class="confidence">уверенность: ${insight.confidence}/10</span>
+                                    ${insight.source_url ? `<a href="${escapeHtml(insight.source_url)}" target="_blank" rel="noopener" style="color:#667eea;font-size:0.85em;">🔗 Читать источник</a>` : ''}
                                 </div>
                             </li>
                         `).join('')}
@@ -449,7 +450,7 @@
                 .map((insight, index) => `
                     <tr>
                         <td><strong>${escapeHtml(insight.platform)}</strong></td>
-                        <td>${escapeHtml(insight.title)}</td>
+                        <td>${insight.source_url ? `<a href="${escapeHtml(insight.source_url)}" target="_blank" rel="noopener" style="color:#667eea;">${escapeHtml(insight.title)}</a>` : escapeHtml(insight.title)}</td>
                         <td><span class="category-badge">${escapeHtml(insight.category)}</span></td>
                         <td><span class="confidence">${insight.confidence}/10</span></td>
                     </tr>
