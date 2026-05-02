@@ -1,0 +1,839 @@
+{
+  "session_id": "3f5fbfd9",
+  "started_at": "2026-05-02T21:39:29.932167",
+  "platform": "local",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-05-02T21:39:29.932198",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "3f5fbfd9",
+        "target_platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:29.932242",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:29.932263",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:31.809386",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Таргетинг ВКонтакте в 2026 году: полный обзор видов и новых алгоритмов ...",
+        "category": "targeting",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:31.809463",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Таргет ВКонтакте в 2026: что работает, а что уже нет",
+        "category": "targeting",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:31.809492",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Продвижение ВК в 2026 году: инструменты, как получать клиентов",
+        "category": "targeting",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:31.809515",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:33.087209",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:33.938990",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "ВКонтакте Вход | Добро пожаловать",
+        "category": "timing",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:33.939058",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Моя Страница | ВКонтакте",
+        "category": "timing",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:33.939086",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "ВКонтакте | Это главное сообщество Команды ВКонтакте. 2026 | ВКон...",
+        "category": "timing",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:33.939110",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:34.583981",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:35.424899",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "5 ошибок при запуске таргетированной рекламы в ВКонтакте и как их ...",
+        "category": "mistakes",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:35.424966",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Топ-5 Ошибок При Запуске Таргетированной Рекламы В Vk И Как Их Избежать ...",
+        "category": "mistakes",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:35.424992",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Ошибки В Рекламе Вконтакте — Как Избежать | Traffic‑13",
+        "category": "mistakes",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:35.425009",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 9
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:35.425024",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:35.425043",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:36.534709",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Продвижение в Threads: как экспертам и предпринимателям находить ...",
+        "category": "content_strategy",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:36.534787",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Как продвигаться в Threads в 2026 - e-peoples.ru",
+        "category": "content_strategy",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:36.534825",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:37.273727",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:38.574502",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Threads обошёл X по мобильной аудитории. Маск проигрывает войну за ...",
+        "category": "monetization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:38.574579",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Meta запустила глобальную монетизацию Threads: реклама для 400+ млн юзеров",
+        "category": "monetization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:38.574611",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Threads обогнала X (Twitter) по аудитории: число пользователей достигло ...",
+        "category": "monetization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:38.574628",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:39.485287",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Threads: новая социальная сеть, которая переплюнет... | Дзен",
+        "category": "viral",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:39.485357",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Threads социальная сеть: что это, для чего нужна и как...",
+        "category": "viral",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:39.485384",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Threads: что известно о новой соцсети, как ею... - Новости на KP.UA",
+        "category": "viral",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:39.485402",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 8
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:39.485417",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:39.485431",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:40.050409",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:40.875840",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Стратегии Яндекс Директ 2026: сравнение и выбор | HotHeads Band",
+        "category": "bidding",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:40.875918",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Снижение стоимости клика в Директе в 2026 году: оптимизация ставок для ...",
+        "category": "bidding",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:40.875947",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Автостратегии Яндекс.директ 2026: Полный Гайд + Как Снизить Cpa На 35% ...",
+        "category": "bidding",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:40.875964",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:42.046896",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:42.736403",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:43.453117",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 3
+      }
+    },
+    {
+      "timestamp": "2026-05-02T21:39:43.453158",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-02T21:39:43.453186",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 20,
+        "insights_by_platform": {
+          "VK": 9,
+          "Threads": 8,
+          "Yandex Direct": 3
+        },
+        "insights_by_category": {
+          "targeting": 3,
+          "timing": 3,
+          "mistakes": 3,
+          "content_strategy": 2,
+          "monetization": 3,
+          "viral": 3,
+          "bidding": 3
+        },
+        "top_categories": [
+          [
+            "targeting",
+            [
+              {
+                "id": 1,
+                "platform": "VK",
+                "title": "Таргетинг ВКонтакте в 2026 году: полный обзор видов и новых алгоритмов ...",
+                "content": "Узнайте, как работает современный таргетинг во ВКонтакте в 2026 году. Разбираем влияние VK Клипов, поисковых запросов внутри сети и ИИ-алгоритмов на эффективность рекламы. Гайд по видам настроек и автоматизации для ...",
+                "category": "targeting",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:31.809358",
+                "tags": [],
+                "source_url": "https://megagroup.ru/blog/kak-rabotaet-targeting-vo-vkontakte-v-2026-godu"
+              },
+              {
+                "id": 2,
+                "platform": "VK",
+                "title": "Таргет ВКонтакте в 2026: что работает, а что уже нет",
+                "content": "Таргет ВКонтакте в 2026: что работает, а что уже нет Разбираем таргетированную рекламу ВКонтакте в 2026 году: актуальные форматы, настройки аудитории, бюджеты, look-alike, ретаргетинг и типичные ошибки рекламодателей.",
+                "category": "targeting",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:31.809454",
+                "tags": [],
+                "source_url": "https://fine-mechanics.ru/blog/targeting-vkontakte-2026/"
+              },
+              {
+                "id": 3,
+                "platform": "VK",
+                "title": "Продвижение ВК в 2026 году: инструменты, как получать клиентов",
+                "content": "Продвижение ВКонтакте в 2026 году, методы привлечения клиентов, таргетированная реклама, контент-стратегия, работа с блогерами, автоматизация продаж.",
+                "category": "targeting",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:31.809484",
+                "tags": [],
+                "source_url": "https://vc.ru/marketing/2701195-prodvizhenie-vkontakte-v-2026-godu"
+              }
+            ]
+          ],
+          [
+            "timing",
+            [
+              {
+                "id": 4,
+                "platform": "VK",
+                "title": "ВКонтакте Вход | Добро пожаловать",
+                "content": "ВКонтакте – универсальное средство для общения и поиска друзей и одноклассников, которым ежедневно пользуются десятки миллионов человек. Мы хотим, чтобы друзья, однокурсники, одноклассники, соседи и коллеги всегда ...",
+                "category": "timing",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:33.938961",
+                "tags": [],
+                "source_url": "https://vk.com/"
+              },
+              {
+                "id": 5,
+                "platform": "VK",
+                "title": "Моя Страница | ВКонтакте",
+                "content": "ВКонтакте – универсальное средство для общения и поиска друзей и одноклассников, которым ежедневно пользуются десятки миллионов человек. Мы хотим, чтобы друзья, однокурсники, одноклассники, соседи и коллеги всегда ...",
+                "category": "timing",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:33.939048",
+                "tags": [],
+                "source_url": "https://vk.com/page-777107_28406709"
+              },
+              {
+                "id": 6,
+                "platform": "VK",
+                "title": "ВКонтакте | Это главное сообщество Команды ВКонтакте. 2026 | ВКон...",
+                "content": "Это главное сообщество Команды ВКонтакте. Здесь вы можете узнать обо всех новостях из первых рук. Поддержка пользователей: vk.cc/cPqh9T",
+                "category": "timing",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:33.939077",
+                "tags": [],
+                "source_url": "https://vk.com/vk"
+              }
+            ]
+          ],
+          [
+            "mistakes",
+            [
+              {
+                "id": 7,
+                "platform": "VK",
+                "title": "5 ошибок при запуске таргетированной рекламы в ВКонтакте и как их ...",
+                "content": "5 ошибок при запуске таргетированной рекламы в ВКонтакте и как их избежать Таргетированная реклама в ВКонтакте — отличный инструмент для продвижения, но ошибки при её настройке могут снизить эффективность и ...",
+                "category": "mistakes",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:35.424866",
+                "tags": [],
+                "source_url": "https://vk.com/wall-229162577_15"
+              },
+              {
+                "id": 8,
+                "platform": "VK",
+                "title": "Топ-5 Ошибок При Запуске Таргетированной Рекламы В Vk И Как Их Избежать ...",
+                "content": "Ошибка 3: Неправильный выбор формата рекламы VK предлагает различные форматы рекламы, такие как карусели, видеореклама, статичные изображения и другие.",
+                "category": "mistakes",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:35.424954",
+                "tags": [],
+                "source_url": "https://www.synapse-studio.ru/blog/useful/top-5-oshibok-pri-zapuske-targetirovannoy-reklamy-v-vk-i-kak-ikh-izbezhat"
+              },
+              {
+                "id": 9,
+                "platform": "VK",
+                "title": "Ошибки В Рекламе Вконтакте — Как Избежать | Traffic‑13",
+                "content": "Топ-ошибки в рекламных кампаниях ВК. Что не работает и как исправить. Советы от практиков.",
+                "category": "mistakes",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:35.424985",
+                "tags": [
+                  "traffic"
+                ],
+                "source_url": "https://traffic13.digital/blog/vk-oshibki"
+              }
+            ]
+          ],
+          [
+            "monetization",
+            [
+              {
+                "id": 12,
+                "platform": "Threads",
+                "title": "Threads обошёл X по мобильной аудитории. Маск проигрывает войну за ...",
+                "content": "Threads обошёл X по дневной аудитории, 141,5 миллионов пользователей, рост на 127,8%, причины роста, Meta наращивает функциональность.",
+                "category": "monetization",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:38.574472",
+                "tags": [],
+                "source_url": "https://vc.ru/id2585050/2698644-threads-oboshel-x-po-mobilnoy-auditorii"
+              },
+              {
+                "id": 13,
+                "platform": "Threads",
+                "title": "Meta запустила глобальную монетизацию Threads: реклама для 400+ млн юзеров",
+                "content": "С конца января 2026 реклама на Threads доступна всем пользователям мира — Meta расширяет инвентарь через Advantage+ и ручные кампании.",
+                "category": "monetization",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:38.574559",
+                "tags": [],
+                "source_url": "https://pressaff.com/articles/advertising-on-threads/"
+              },
+              {
+                "id": 14,
+                "platform": "Threads",
+                "title": "Threads обогнала X (Twitter) по аудитории: число пользователей достигло ...",
+                "content": "Threads официально обогнала X (Twitter) по количеству мобильных пользователей. Аудитория соцсети Meta достигла 320 млн человек в январе 2026 года.",
+                "category": "monetization",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:38.574601",
+                "tags": [],
+                "source_url": "https://abit.ee/ru/sowtware/messendzery/threads-meta-x-twitter-social-media-growth-statistics-2026-tech-news-mobile-users-ru"
+              }
+            ]
+          ],
+          [
+            "viral",
+            [
+              {
+                "id": 15,
+                "platform": "Threads",
+                "title": "Threads: новая социальная сеть, которая переплюнет... | Дзен",
+                "content": "Аделя Хайдарова, продажи, запуски. Threads: новая социальная сеть, которая переплюнет Instagram. Узнайте, почему вы должны зарегистрироваться прямо сейчас!",
+                "category": "viral",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:39.485264",
+                "tags": [],
+                "source_url": "https://dzen.ru/a/ZKdPWvTXR1yGr_dj"
+              },
+              {
+                "id": 16,
+                "platform": "Threads",
+                "title": "Threads социальная сеть: что это, для чего нужна и как...",
+                "content": "Аудитория социальной сети Threads*. Как работает. Установка, регистрация и использование. Контент и алгоритмы. Интеграция с другими платформами. Threads* против Twitter. Будет ли работать Threads* в России. Первые отзывы.",
+                "category": "viral",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:39.485347",
+                "tags": [],
+                "source_url": "https://ria.ru/20230802/threads-1882887925.html"
+              },
+              {
+                "id": 17,
+                "platform": "Threads",
+                "title": "Threads: что известно о новой соцсети, как ею... - Новости на KP.UA",
+                "content": "Как это работает. И пользователям, и тем, кто с соцсетями пока еще на «вы», в Threads все будет интуитивно понятно. Пост (сообщение) с обсуждением (комментариями) связываются в одно целое и становятся веткой – это классическая схема современных соцсетей.",
+                "category": "viral",
+                "confidence": 7,
+                "discovered_at": "2026-05-02T21:39:39.485375",
+                "tags": [],
+                "source_url": "https://kp.ua/life/a672796-threads-chto-izvestno-o-novoj-sotsseti-kak-eju-polzovatsja-i-chem-pokhozha-na-twitter-"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "VK",
+      "title": "Таргетинг ВКонтакте в 2026 году: полный обзор видов и новых алгоритмов ...",
+      "content": "Узнайте, как работает современный таргетинг во ВКонтакте в 2026 году. Разбираем влияние VK Клипов, поисковых запросов внутри сети и ИИ-алгоритмов на эффективность рекламы. Гайд по видам настроек и автоматизации для ...",
+      "category": "targeting",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:31.809358",
+      "tags": [],
+      "source_url": "https://megagroup.ru/blog/kak-rabotaet-targeting-vo-vkontakte-v-2026-godu"
+    },
+    {
+      "id": 2,
+      "platform": "VK",
+      "title": "Таргет ВКонтакте в 2026: что работает, а что уже нет",
+      "content": "Таргет ВКонтакте в 2026: что работает, а что уже нет Разбираем таргетированную рекламу ВКонтакте в 2026 году: актуальные форматы, настройки аудитории, бюджеты, look-alike, ретаргетинг и типичные ошибки рекламодателей.",
+      "category": "targeting",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:31.809454",
+      "tags": [],
+      "source_url": "https://fine-mechanics.ru/blog/targeting-vkontakte-2026/"
+    },
+    {
+      "id": 3,
+      "platform": "VK",
+      "title": "Продвижение ВК в 2026 году: инструменты, как получать клиентов",
+      "content": "Продвижение ВКонтакте в 2026 году, методы привлечения клиентов, таргетированная реклама, контент-стратегия, работа с блогерами, автоматизация продаж.",
+      "category": "targeting",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:31.809484",
+      "tags": [],
+      "source_url": "https://vc.ru/marketing/2701195-prodvizhenie-vkontakte-v-2026-godu"
+    },
+    {
+      "id": 4,
+      "platform": "VK",
+      "title": "ВКонтакте Вход | Добро пожаловать",
+      "content": "ВКонтакте – универсальное средство для общения и поиска друзей и одноклассников, которым ежедневно пользуются десятки миллионов человек. Мы хотим, чтобы друзья, однокурсники, одноклассники, соседи и коллеги всегда ...",
+      "category": "timing",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:33.938961",
+      "tags": [],
+      "source_url": "https://vk.com/"
+    },
+    {
+      "id": 5,
+      "platform": "VK",
+      "title": "Моя Страница | ВКонтакте",
+      "content": "ВКонтакте – универсальное средство для общения и поиска друзей и одноклассников, которым ежедневно пользуются десятки миллионов человек. Мы хотим, чтобы друзья, однокурсники, одноклассники, соседи и коллеги всегда ...",
+      "category": "timing",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:33.939048",
+      "tags": [],
+      "source_url": "https://vk.com/page-777107_28406709"
+    },
+    {
+      "id": 6,
+      "platform": "VK",
+      "title": "ВКонтакте | Это главное сообщество Команды ВКонтакте. 2026 | ВКон...",
+      "content": "Это главное сообщество Команды ВКонтакте. Здесь вы можете узнать обо всех новостях из первых рук. Поддержка пользователей: vk.cc/cPqh9T",
+      "category": "timing",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:33.939077",
+      "tags": [],
+      "source_url": "https://vk.com/vk"
+    },
+    {
+      "id": 7,
+      "platform": "VK",
+      "title": "5 ошибок при запуске таргетированной рекламы в ВКонтакте и как их ...",
+      "content": "5 ошибок при запуске таргетированной рекламы в ВКонтакте и как их избежать Таргетированная реклама в ВКонтакте — отличный инструмент для продвижения, но ошибки при её настройке могут снизить эффективность и ...",
+      "category": "mistakes",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:35.424866",
+      "tags": [],
+      "source_url": "https://vk.com/wall-229162577_15"
+    },
+    {
+      "id": 8,
+      "platform": "VK",
+      "title": "Топ-5 Ошибок При Запуске Таргетированной Рекламы В Vk И Как Их Избежать ...",
+      "content": "Ошибка 3: Неправильный выбор формата рекламы VK предлагает различные форматы рекламы, такие как карусели, видеореклама, статичные изображения и другие.",
+      "category": "mistakes",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:35.424954",
+      "tags": [],
+      "source_url": "https://www.synapse-studio.ru/blog/useful/top-5-oshibok-pri-zapuske-targetirovannoy-reklamy-v-vk-i-kak-ikh-izbezhat"
+    },
+    {
+      "id": 9,
+      "platform": "VK",
+      "title": "Ошибки В Рекламе Вконтакте — Как Избежать | Traffic‑13",
+      "content": "Топ-ошибки в рекламных кампаниях ВК. Что не работает и как исправить. Советы от практиков.",
+      "category": "mistakes",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:35.424985",
+      "tags": [
+        "traffic"
+      ],
+      "source_url": "https://traffic13.digital/blog/vk-oshibki"
+    },
+    {
+      "id": 10,
+      "platform": "Threads",
+      "title": "Продвижение в Threads: как экспертам и предпринимателям находить ...",
+      "content": "Продвижение в Threads: как экспертам и предпринимателям находить клиентов SMM smm, ВоронкаПродаж, КонтентМаркетинг, нейросети, охваты, ПрогревыИПродажи Роман Юдин 06.02.2026 0 Комментарии",
+      "category": "content_strategy",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:36.534678",
+      "tags": [],
+      "source_url": "https://smm-prodvijenie.ru/hotite-privlekat-klientov-cherez-threads-uznajte-prostye-strategii-i-oshibki-chtoby-vashe-prodvizhenie-stalo-effektivnym-i-pribylnym/"
+    },
+    {
+      "id": 11,
+      "platform": "Threads",
+      "title": "Как продвигаться в Threads в 2026 - e-peoples.ru",
+      "content": "Узнайте, как продвигаться в Threads в 2026 году. Почему важно стартовать сейчас, как алгоритмы оценивают активность и как партнёрство E-PEOPLES помогает расти быстро и с поддержкой.",
+      "category": "content_strategy",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:36.534750",
+      "tags": [],
+      "source_url": "https://e-peoples.ru/blog/tpost/af2hchpkh1-kak-prodvigatsya-v-threads"
+    },
+    {
+      "id": 12,
+      "platform": "Threads",
+      "title": "Threads обошёл X по мобильной аудитории. Маск проигрывает войну за ...",
+      "content": "Threads обошёл X по дневной аудитории, 141,5 миллионов пользователей, рост на 127,8%, причины роста, Meta наращивает функциональность.",
+      "category": "monetization",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:38.574472",
+      "tags": [],
+      "source_url": "https://vc.ru/id2585050/2698644-threads-oboshel-x-po-mobilnoy-auditorii"
+    },
+    {
+      "id": 13,
+      "platform": "Threads",
+      "title": "Meta запустила глобальную монетизацию Threads: реклама для 400+ млн юзеров",
+      "content": "С конца января 2026 реклама на Threads доступна всем пользователям мира — Meta расширяет инвентарь через Advantage+ и ручные кампании.",
+      "category": "monetization",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:38.574559",
+      "tags": [],
+      "source_url": "https://pressaff.com/articles/advertising-on-threads/"
+    },
+    {
+      "id": 14,
+      "platform": "Threads",
+      "title": "Threads обогнала X (Twitter) по аудитории: число пользователей достигло ...",
+      "content": "Threads официально обогнала X (Twitter) по количеству мобильных пользователей. Аудитория соцсети Meta достигла 320 млн человек в январе 2026 года.",
+      "category": "monetization",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:38.574601",
+      "tags": [],
+      "source_url": "https://abit.ee/ru/sowtware/messendzery/threads-meta-x-twitter-social-media-growth-statistics-2026-tech-news-mobile-users-ru"
+    },
+    {
+      "id": 15,
+      "platform": "Threads",
+      "title": "Threads: новая социальная сеть, которая переплюнет... | Дзен",
+      "content": "Аделя Хайдарова, продажи, запуски. Threads: новая социальная сеть, которая переплюнет Instagram. Узнайте, почему вы должны зарегистрироваться прямо сейчас!",
+      "category": "viral",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:39.485264",
+      "tags": [],
+      "source_url": "https://dzen.ru/a/ZKdPWvTXR1yGr_dj"
+    },
+    {
+      "id": 16,
+      "platform": "Threads",
+      "title": "Threads социальная сеть: что это, для чего нужна и как...",
+      "content": "Аудитория социальной сети Threads*. Как работает. Установка, регистрация и использование. Контент и алгоритмы. Интеграция с другими платформами. Threads* против Twitter. Будет ли работать Threads* в России. Первые отзывы.",
+      "category": "viral",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:39.485347",
+      "tags": [],
+      "source_url": "https://ria.ru/20230802/threads-1882887925.html"
+    },
+    {
+      "id": 17,
+      "platform": "Threads",
+      "title": "Threads: что известно о новой соцсети, как ею... - Новости на KP.UA",
+      "content": "Как это работает. И пользователям, и тем, кто с соцсетями пока еще на «вы», в Threads все будет интуитивно понятно. Пост (сообщение) с обсуждением (комментариями) связываются в одно целое и становятся веткой – это классическая схема современных соцсетей.",
+      "category": "viral",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:39:39.485375",
+      "tags": [],
+      "source_url": "https://kp.ua/life/a672796-threads-chto-izvestno-o-novoj-sotsseti-kak-eju-polzovatsja-i-chem-pokhozha-na-twitter-"
+    },
+    {
+      "id": 18,
+      "platform": "Yandex Direct",
+      "title": "Стратегии Яндекс Директ 2026: сравнение и выбор | HotHeads Band",
+      "content": "Сравнение стратегий Яндекс Директ в 2026: Максимум конверсий, Максимум кликов, ЦДРР и ЦЦК. Матрица решений от агентства HotHeads Band — выберите стратегию под свой бюджет и цели.",
+      "category": "bidding",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T21:39:40.875809",
+      "tags": [],
+      "source_url": "https://hot-head.ru/blog/tpost/strategii_yandex_direct_2026"
+    },
+    {
+      "id": 19,
+      "platform": "Yandex Direct",
+      "title": "Снижение стоимости клика в Директе в 2026 году: оптимизация ставок для ...",
+      "content": "Изучите важность передачи CRM-сигналов, работы с данными и долгосрочных стратегий для снижения CPC и роста конверсий в 2026 году.",
+      "category": "bidding",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T21:39:40.875903",
+      "tags": [
+        "cpc"
+      ],
+      "source_url": "https://seojazz.ru/blog/snizhenie-stoimosti-klika-v-direkte-v-2026-godu-optimizacija-stavok-dlja-jekonomii-na-reklame/"
+    },
+    {
+      "id": 20,
+      "platform": "Yandex Direct",
+      "title": "Автостратегии Яндекс.директ 2026: Полный Гайд + Как Снизить Cpa На 35% ...",
+      "content": "Краткий ответ: Автостратегии Яндекс.Директ — это автоматическое управление ставками на основе ML-моделей (Gradient Boosting). Основные: \"Максимум конверсий\" и \"Максимум кликов\" с ограничениями (ДРР, Цена конверсии, Бюджет ...",
+      "category": "bidding",
+      "confidence": 8,
+      "discovered_at": "2026-05-02T21:39:40.875938",
+      "tags": [],
+      "source_url": "https://rivox.io/blog/avtostrategii-yandex-direct"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 20,
+    "research_hours": 0
+  },
+  "ended_at": "2026-05-02T21:39:43.453473"
+}
