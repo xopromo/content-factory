@@ -476,13 +476,21 @@ class TrafficResearchAgent:
             except Exception as e:
                 print(f"Error reading {insight_file}: {e}")
 
-        # Дедупликация по URL (primary) и title+platform (fallback)
-        # + фильтр: только русскоязычный контент
+        # Дедупликация + фильтры: язык, релевантность, LLM-маркер нерелевантности
         seen = set()
         unique_insights = []
         for ins in all_insights:
-            text = ins.get("title", "") + " " + ins.get("content", "")
-            if not is_mostly_russian(text):
+            title   = ins.get("title", "")
+            content = ins.get("content", "")
+            snippet = ins.get("snippet", "")
+            summary = ins.get("summary", "")
+            platform = ins.get("platform", "")
+
+            if not is_mostly_russian(title + " " + content):
+                continue
+            if not is_relevant(title + " " + content + " " + snippet, platform):
+                continue
+            if summary and is_irrelevant_summary(summary):
                 continue
             url_key = normalize_url(ins.get("source_url", ""))
             title_key = (ins.get("platform", ""), ins.get("title", "")[:60])
