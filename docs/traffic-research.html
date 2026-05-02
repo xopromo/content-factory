@@ -433,13 +433,9 @@
     <div class="tab" data-view="table">Таблица</div>
     <div class="sort-group">
       <span class="sort-label-text">Сортировка:</span>
-      <button class="sort-btn active" data-sort-field="source_published_at">По дате источника</button>
+      <button class="sort-btn active" data-sort-dir="desc">Сначала новые</button>
       <span class="sort-sep">·</span>
-      <button class="sort-btn" data-sort-field="discovered_at">По дате добавления</button>
-      <div class="sort-divider"></div>
-      <button class="sort-btn active" data-sort-dir="desc">Новые ↓</button>
-      <span class="sort-sep">·</span>
-      <button class="sort-btn" data-sort-dir="asc">Старые ↑</button>
+      <button class="sort-btn" data-sort-dir="asc">Сначала старые</button>
     </div>
   </div>
 
@@ -522,33 +518,23 @@
   let byPlatform     = {};
   let byCategory     = {};
   let activeCategory = null;
-  let sortField      = 'source_published_at';
   let sortDirection  = 'desc';
 
-  function getSortValue(ins) {
-    const raw = ins?.[sortField];
-    if (!raw) return null;
-    const d = new Date(raw);
-    return Number.isNaN(d.getTime()) ? null : d.getTime();
+  function getTs(ins) {
+    const d = new Date(ins.discovered_at || 0);
+    return Number.isNaN(d.getTime()) ? 0 : d.getTime();
   }
 
   function sortInsights(items) {
     const dir = sortDirection === 'asc' ? 1 : -1;
-    return [...items].sort((a, b) => {
-      const av = getSortValue(a), bv = getSortValue(b);
-      if (av === null && bv === null) return new Date(b.discovered_at || 0) - new Date(a.discovered_at || 0);
-      if (av === null) return 1;
-      if (bv === null) return -1;
-      return (av - bv) * dir;
-    });
+    return [...items].sort((a, b) => (getTs(a) - getTs(b)) * dir);
   }
 
   function sortGroupedEntries(grouped) {
     const dir = sortDirection === 'asc' ? 1 : -1;
     return Object.entries(grouped).sort((a, b) => {
-      const af = sortInsights(a[1])[0], bf = sortInsights(b[1])[0];
-      const av = af ? (getSortValue(af) ?? 0) : 0;
-      const bv = bf ? (getSortValue(bf) ?? 0) : 0;
+      const av = sortInsights(a[1])[0] ? getTs(sortInsights(a[1])[0]) : 0;
+      const bv = sortInsights(b[1])[0] ? getTs(sortInsights(b[1])[0]) : 0;
       return (av - bv) * dir;
     });
   }
@@ -674,16 +660,6 @@
       ['categories','platforms','table'].forEach(v => {
         document.getElementById('view-' + v).classList.toggle('hidden', v !== view);
       });
-    });
-  });
-
-  // Sort field buttons
-  document.querySelectorAll('[data-sort-field]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-sort-field]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      sortField = btn.dataset.sortField;
-      renderAll();
     });
   });
 

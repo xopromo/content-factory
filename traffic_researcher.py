@@ -294,9 +294,13 @@ class TrafficResearchAgent:
                 print(f"Error reading {insight_file}: {e}")
 
         # Дедупликация по URL (primary) и title+platform (fallback)
+        # + фильтр: только русскоязычный контент
         seen = set()
         unique_insights = []
         for ins in all_insights:
+            text = ins.get("title", "") + " " + ins.get("content", "")
+            if not is_mostly_russian(text):
+                continue
             url_key = normalize_url(ins.get("source_url", ""))
             title_key = (ins.get("platform", ""), ins.get("title", "")[:60])
             key = url_key if url_key else str(title_key)

@@ -1,40 +1,7 @@
 {
-  "total_insights": 71,
-  "last_updated": "2026-05-02T21:03:23.607864",
+  "total_insights": 64,
+  "last_updated": "2026-05-02T21:36:19.189973",
   "insights": [
-    {
-      "id": 1,
-      "platform": "VK",
-      "title": "请教一下如何使用俄罗斯的社交软件VK？ - 知乎",
-      "content": "VK（VKontakte）作为俄罗斯本土最大的月活超1亿的社交平台，成为外贸开拓客户的新途径。 然而，VK对新注册账号的风控越来越严格，如果操作不当，很容易触发封号机制。",
-      "category": "updates",
-      "confidence": 7,
-      "discovered_at": "2026-05-02T21:02:43.770341",
-      "tags": [],
-      "source_url": "https://www.zhihu.com/question/310514536/answers/updated"
-    },
-    {
-      "id": 2,
-      "platform": "VK",
-      "title": "vk.com 俄罗斯最大的社交网站，它的特点是什么，有什么值得我们学习借...",
-      "content": "VK （俄罗斯的“微信+QQ音乐+淘宝”综合体）最厉害的就是 超级接地气 ——社交、购物、听歌全搞定，而且特别会玩 群组卖货，商家直接在社群里开店。 咱们 万众科技 （专门帮中国企业搞定俄罗斯市场的）作为 中俄跨境数字化服务商，可结合VK的 B2B2C生态，帮中国客户通过VK群组运营、 俄语SEO 等 ...",
-      "category": "updates",
-      "confidence": 7,
-      "discovered_at": "2026-05-02T21:02:43.770484",
-      "tags": [],
-      "source_url": "https://www.zhihu.com/question/20058640/answers/updated"
-    },
-    {
-      "id": 3,
-      "platform": "VK",
-      "title": "请教一下如何使用俄罗斯的社交软件VK？ - 知乎",
-      "content": "请教一下如何使用俄罗斯的社交软件VK？ 本身有学俄语，VK的东西我是知道这个比较有名气的。 但是不会注册登录呀，所以想像各位懂得这方面知识的人请教一下，还请讲解的时候说的详细一些。 谢谢啦！ 显示全部 关注者 153 被浏览",
-      "category": "updates",
-      "confidence": 7,
-      "discovered_at": "2026-05-02T21:02:43.770557",
-      "tags": [],
-      "source_url": "https://www.zhihu.com/question/310514536"
-    },
     {
       "id": 4,
       "platform": "Threads",
@@ -78,17 +45,6 @@
       "discovered_at": "2026-05-02T21:02:45.769545",
       "tags": [],
       "source_url": "https://vk.com/wall-51714675_202"
-    },
-    {
-      "id": 8,
-      "platform": "Threads",
-      "title": "How To Use Audio Post On Threads App - YouTube",
-      "content": "Welcome to our latest tutorial! In this video, we're going to dive deep into the wonderful world of audio posts on the Threads App.",
-      "category": "discovery",
-      "confidence": 7,
-      "discovered_at": "2026-05-02T21:02:45.769613",
-      "tags": [],
-      "source_url": "https://www.youtube.com/watch?v=Na4wPpMQ85o"
     },
     {
       "id": 9,
@@ -322,28 +278,6 @@
       "discovered_at": "2026-05-02T21:02:19.058928",
       "tags": [],
       "source_url": "https://kv-ai.ru/tpost/threads-2026-algoritm-viralnost-prompty"
-    },
-    {
-      "id": 20,
-      "platform": "Threads",
-      "title": "The 2026 Social Media Algorithm Report: What's Changing for ...",
-      "content": "Feb 14, 2026 · The 2026 Social Media Algorithm Report: What's Changing for Threads A deep dive into the latest algorithm updates across X, Threads, and LinkedIn, and how to optimize your thread content for maximum reach in 2026.",
-      "category": "discovery",
-      "confidence": 7,
-      "discovered_at": "2026-05-02T21:02:19.059049",
-      "tags": [],
-      "source_url": "https://threadmaster.ai/blog/2026-social-media-algorithm-report"
-    },
-    {
-      "id": 21,
-      "platform": "Threads",
-      "title": "Threads Algorithm 2026: How It Works | Threads to Millions",
-      "content": "Mar 8, 2026 · The 3 ranking signals the Threads algorithm uses, the critical first-hour window, and exactly how to get your posts pushed to thousands of new people.",
-      "category": "discovery",
-      "confidence": 7,
-      "discovered_at": "2026-05-02T21:02:19.059080",
-      "tags": [],
-      "source_url": "https://threadstomillions.com/blog/threads-algorithm-2026"
     },
     {
       "id": 22,
@@ -655,17 +589,6 @@
       "discovered_at": "2026-05-02T19:11:35.531560",
       "tags": [],
       "source_url": "https://m.youtube.com/watch?v=sCNiznpd8T0"
-    },
-    {
-      "id": 28,
-      "platform": "Yandex Direct",
-      "title": "Yandex Wordstat",
-      "content": "Keyword statistics With Wordstat, you can view statistics on search queries to Yandex. See how the popularity of your queries change over time and from region to region. You can also see the top queries with selected words and learn what else users searched for on the same topic. Enter a word or phrase (like «tea» or «green tea»), and Wordstat will show you the stats on search queries ...",
-      "category": "keywords",
-      "confidence": 8,
-      "discovered_at": "2026-05-02T19:11:37.683986",
-      "tags": [],
-      "source_url": "https://wordstat.yandex.com/"
     },
     {
       "id": 29,
