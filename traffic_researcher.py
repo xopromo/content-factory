@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 import hashlib
 
+from research_dates import resolve_publication_date
+
 
 def search_web(query: str, max_results: int = 5) -> List[Dict[str, str]]:
     """Поиск в DuckDuckGo через пакет ddgs"""
@@ -43,6 +45,7 @@ def extract_insights_from_search(results: List[Dict[str, str]], platform: str, t
             "title": title[:80] if title else topic,
             "content": content,
             "source_url": href,
+            "source_published_at": resolve_publication_date(content=content, source_url=href),
         })
     return insights
 
@@ -95,7 +98,8 @@ class TrafficResearchAgent:
 
     def add_insight(self, platform: str, title: str, content: str,
                     category: str, confidence: int = 7,
-                    source_url: Optional[str] = None):
+                    source_url: Optional[str] = None,
+                    source_published_at: Optional[str] = None):
         insight = {
             "id": len(self.session_log["insights"]) + 1,
             "platform": platform,
@@ -104,6 +108,7 @@ class TrafficResearchAgent:
             "category": category,
             "confidence": confidence,
             "discovered_at": datetime.now().isoformat(),
+            "source_published_at": source_published_at,
             "tags": self._extract_tags(title + " " + content),
             "source_url": source_url or "",
         }
@@ -145,6 +150,7 @@ class TrafficResearchAgent:
                     category=category,
                     confidence=default_confidence,
                     source_url=ins.get("source_url"),
+                    source_published_at=ins.get("source_published_at"),
                 )
                 total += 1
 
@@ -248,6 +254,11 @@ class TrafficResearchAgent:
         seen = set()
         unique_insights = []
         for ins in all_insights:
+            if "source_published_at" not in ins:
+                ins["source_published_at"] = resolve_publication_date(
+                    content=ins.get("content", ""),
+                    source_url=ins.get("source_url", ""),
+                )
             key = (ins.get("platform", ""), ins.get("title", ""))
             if key not in seen:
                 seen.add(key)

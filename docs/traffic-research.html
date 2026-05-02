@@ -3,23 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Traffic Research — Insights Dashboard</title>
+  <title>Traffic Research - Insights Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #1F2937;
-      --surface:   #263348;
-      --surface2:  #2d3a50;
-      --border:    rgba(255,255,255,0.08);
-      --primary:   #818CF8;
-      --primary-dim:#4f57c8;
-      --green:     #34D399;
-      --red:       #F87171;
-      --text:      #FFFFFF;
-      --text-muted:#9CA3AF;
+      --bg: #1F2937;
+      --surface: #263348;
+      --surface2: #2d3a50;
+      --border: rgba(255,255,255,0.08);
+      --primary: #818CF8;
+      --green: #34D399;
+      --text: #FFFFFF;
+      --text-muted: #9CA3AF;
       --radius-sm: 6px;
       --radius-md: 8px;
       --radius-lg: 12px;
@@ -34,7 +32,6 @@
       line-height: 1.5;
     }
 
-    /* ── Nav ── */
     .nav {
       display: flex;
       align-items: center;
@@ -48,35 +45,37 @@
       top: 0;
       z-index: 100;
     }
+
     .nav-logo {
       font-size: 15px;
       font-weight: 600;
-      color: var(--text);
       display: flex;
       align-items: center;
       gap: 8px;
     }
+
     .nav-logo svg { color: var(--primary); }
     .nav-links { display: flex; gap: 4px; margin-left: auto; }
+
     .nav-link {
       padding: 6px 12px;
       border-radius: var(--radius-sm);
       color: var(--text-muted);
       font-size: 13px;
       font-weight: 500;
-      cursor: pointer;
-      transition: color 150ms, background 150ms;
       text-decoration: none;
+      transition: color 150ms, background 150ms;
     }
+
     .nav-link:hover { color: var(--text); background: var(--surface); }
     .nav-link.active { color: var(--text); background: var(--surface2); }
 
-    /* ── Page header ── */
     .page-header {
       padding: 40px 32px 0;
       max-width: 1280px;
       margin: 0 auto;
     }
+
     .eyebrow {
       font-size: 11px;
       font-weight: 600;
@@ -85,6 +84,7 @@
       color: var(--primary);
       margin-bottom: 8px;
     }
+
     .page-title {
       font-size: 32px;
       font-weight: 700;
@@ -92,9 +92,13 @@
       line-height: 1.2;
       margin-bottom: 8px;
     }
-    .page-desc { color: var(--text-muted); font-size: 14px; max-width: 520px; }
 
-    /* ── Stats row ── */
+    .page-desc {
+      color: var(--text-muted);
+      font-size: 14px;
+      max-width: 620px;
+    }
+
     .stats-row {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -103,16 +107,27 @@
       max-width: 1280px;
       margin: 0 auto;
     }
+
     .stat-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       padding: 20px;
-      transition: border-color 300ms;
     }
-    .stat-card:hover { border-color: rgba(129,140,248,0.3); }
-    .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-bottom: 8px; }
-    .stat-value { font-size: 28px; font-weight: 700; letter-spacing: -0.025em; }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+    }
+
     .stat-badge {
       display: inline-flex;
       align-items: center;
@@ -123,24 +138,24 @@
       border-radius: 9999px;
       margin-top: 6px;
     }
+
     .badge-green { background: rgba(52,211,153,0.15); color: var(--green); }
     .badge-purple { background: rgba(129,140,248,0.15); color: var(--primary); }
 
-    /* ── Main content ── */
     .main {
       max-width: 1280px;
       margin: 0 auto;
       padding: 0 32px 48px;
     }
 
-    /* ── Tab bar ── */
     .tab-bar {
       display: flex;
       align-items: center;
       gap: 0;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 24px;
+      margin-bottom: 18px;
     }
+
     .tab {
       padding: 10px 16px;
       font-size: 13px;
@@ -152,25 +167,49 @@
       transition: color 150ms, border-color 150ms;
       user-select: none;
     }
+
     .tab:hover { color: var(--text); }
     .tab.active { color: var(--text); border-bottom-color: var(--primary); }
 
-    /* ── Platform grid ── */
+    .sort-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+
+    .sort-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .sort-select {
+      appearance: none;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      font: inherit;
+      font-size: 12px;
+      min-width: 190px;
+    }
+
     .platform-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
       gap: 16px;
     }
 
-    /* ── Card ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       overflow: hidden;
-      transition: border-color 300ms, transform 300ms;
     }
-    .card:hover { border-color: rgba(129,140,248,0.25); transform: translateY(-2px); }
+
     .card-header {
       display: flex;
       align-items: center;
@@ -178,8 +217,10 @@
       padding: 16px 20px;
       border-bottom: 1px solid var(--border);
     }
+
     .card-header-icon { font-size: 18px; }
     .card-header-title { font-size: 14px; font-weight: 600; }
+
     .card-header-count {
       margin-left: auto;
       font-size: 11px;
@@ -188,36 +229,59 @@
       padding: 2px 8px;
       border-radius: 9999px;
     }
-    .card-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 
-    /* ── Insight item ── */
+    .card-body {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
     .insight {
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: 14px;
-      transition: border-color 150ms;
     }
-    .insight:hover { border-color: rgba(129,140,248,0.3); }
+
     .insight-title {
       font-size: 13px;
       font-weight: 600;
-      color: var(--text);
       margin-bottom: 6px;
       line-height: 1.4;
     }
+
     .insight-body {
       font-size: 12px;
       color: var(--text-muted);
       line-height: 1.6;
       margin-bottom: 10px;
     }
+
+    .insight-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .date-chip {
+      font-size: 10px;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      border-radius: 9999px;
+      padding: 3px 8px;
+      white-space: nowrap;
+    }
+
     .insight-footer {
       display: flex;
       align-items: center;
       gap: 6px;
       flex-wrap: wrap;
     }
+
     .badge {
       font-size: 10px;
       font-weight: 600;
@@ -225,32 +289,38 @@
       border-radius: var(--radius-sm);
       letter-spacing: 0.02em;
     }
+
     .badge-category {
       background: rgba(129,140,248,0.15);
       color: var(--primary);
       border: 1px solid rgba(129,140,248,0.2);
     }
+
     .badge-conf {
       background: rgba(52,211,153,0.1);
       color: var(--green);
       border: 1px solid rgba(52,211,153,0.2);
     }
+
     .source-link {
       margin-left: auto;
       font-size: 11px;
       color: var(--text-muted);
       text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      transition: color 150ms;
     }
+
     .source-link:hover { color: var(--primary); }
 
-    /* ── Table view ── */
-    .table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
     table { width: 100%; border-collapse: collapse; }
     thead { background: var(--surface2); }
+
     th {
       padding: 12px 16px;
       text-align: left;
@@ -260,31 +330,32 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
       border-bottom: 1px solid var(--border);
+      white-space: nowrap;
     }
+
     td {
       padding: 12px 16px;
       font-size: 13px;
       border-bottom: 1px solid var(--border);
       vertical-align: middle;
     }
+
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: rgba(255,255,255,0.02); }
     td a { color: var(--primary); text-decoration: none; }
     td a:hover { text-decoration: underline; }
 
-    /* ── Category view ── */
     .category-grid {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 12px;
     }
+
     .cat-card {
       appearance: none;
-      width: auto;
       background: transparent;
       border: none;
-      border-radius: 0;
       padding: 0;
       text-align: left;
       font: inherit;
@@ -292,50 +363,42 @@
       display: inline-flex;
       align-items: baseline;
       gap: 6px;
-      transition: color 180ms, opacity 180ms;
       cursor: pointer;
       opacity: 0.9;
     }
-    .cat-card:hover { opacity: 1; }
-    .cat-card.active {
-      opacity: 1;
-    }
+
+    .cat-card:hover,
+    .cat-card.active { opacity: 1; }
+
     .cat-num {
-      display: inline;
-      min-width: 0;
-      height: auto;
-      padding: 0;
       font-size: 11px;
       font-weight: 600;
       color: var(--primary);
-      letter-spacing: 0;
-      background: transparent;
-      border: none;
     }
+
     .cat-name {
       font-size: 12px;
       color: var(--text-muted);
-      margin-top: 0;
       font-weight: 600;
       text-decoration: underline;
       text-decoration-color: transparent;
       text-underline-offset: 3px;
       transition: color 180ms, text-decoration-color 180ms;
     }
+
     .cat-card:hover .cat-name,
     .cat-card.active .cat-name {
       color: var(--text);
       text-decoration-color: rgba(129,140,248,0.55);
     }
-    .cat-card.active .cat-num {
-      color: var(--text);
-    }
+
     .category-results {
       margin-top: 18px;
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
+
     .category-results-header {
       display: flex;
       align-items: center;
@@ -347,19 +410,22 @@
       border-radius: var(--radius-lg);
       background: var(--surface);
     }
+
     .category-results-title {
       font-size: 14px;
       font-weight: 600;
-      color: var(--text);
     }
+
     .category-results-meta {
       font-size: 12px;
       color: var(--text-muted);
     }
+
     .results-list {
       display: grid;
       gap: 10px;
     }
+
     .filter-hint {
       padding: 28px 18px;
       border: 1px dashed var(--border);
@@ -370,7 +436,6 @@
       background: rgba(255,255,255,0.02);
     }
 
-    /* ── Footer ── */
     .footer {
       text-align: center;
       color: var(--text-muted);
@@ -380,7 +445,6 @@
       margin-top: 48px;
     }
 
-    /* ── Loading / Error ── */
     .state-msg {
       padding: 48px;
       text-align: center;
@@ -388,7 +452,6 @@
       font-size: 14px;
     }
 
-    /* ── Hidden ── */
     .hidden { display: none !important; }
 
     @media (max-width: 640px) {
@@ -396,6 +459,7 @@
       .page-header, .stats-row, .main { padding-left: 16px; padding-right: 16px; }
       .platform-grid { grid-template-columns: 1fr; }
       .page-title { font-size: 24px; }
+      .sort-select { width: 100%; }
     }
   </style>
 </head>
@@ -415,10 +479,10 @@
 <div class="page-header">
   <div class="eyebrow">Research Agent</div>
   <h1 class="page-title">Traffic Insights Dashboard</h1>
-  <p class="page-desc">Ежедневный поиск инсайтов по VK, Threads и Яндекс.Директ через DuckDuckGo. Обновляется автоматически каждый день в 09:00 UTC.</p>
+  <p class="page-desc">Ежедневный поиск инсайтов по VK, Threads и Яндекс.Директ через DuckDuckGo. Теперь материалы можно сортировать по дате публикации на источнике и по дате появления на нашем сайте.</p>
 </div>
 
-<div class="stats-row" id="statsRow">
+<div class="stats-row">
   <div class="stat-card">
     <div class="stat-label">Инсайтов найдено</div>
     <div class="stat-value" id="statTotal">—</div>
@@ -437,21 +501,30 @@
 </div>
 
 <div class="main">
-  <!-- Tab bar -->
   <div class="tab-bar">
     <div class="tab active" data-view="platforms">По платформам</div>
     <div class="tab" data-view="categories">По категориям</div>
     <div class="tab" data-view="table">Таблица</div>
   </div>
 
-  <!-- Platform view -->
+  <div class="sort-bar">
+    <span class="sort-label">Сортировка</span>
+    <select id="sortField" class="sort-select">
+      <option value="source_published_at">По дате публикации на источнике</option>
+      <option value="discovered_at">По дате появления на сайте</option>
+    </select>
+    <select id="sortDirection" class="sort-select">
+      <option value="desc">Сначала новые</option>
+      <option value="asc">Сначала старые</option>
+    </select>
+  </div>
+
   <div id="view-platforms">
     <div class="platform-grid" id="platformGrid">
       <div class="state-msg">Загрузка данных...</div>
     </div>
   </div>
 
-  <!-- Categories view -->
   <div id="view-categories" class="hidden">
     <div class="category-grid" id="categoryGrid">
       <div class="state-msg">Загрузка данных...</div>
@@ -465,7 +538,6 @@
     </div>
   </div>
 
-  <!-- Table view -->
   <div id="view-table" class="hidden">
     <div class="table-wrap">
       <table>
@@ -474,12 +546,14 @@
             <th>Платформа</th>
             <th>Инсайт</th>
             <th>Категория</th>
+            <th>Дата источника</th>
+            <th>Добавлено</th>
             <th>Уверенность</th>
             <th>Источник</th>
           </tr>
         </thead>
         <tbody id="tableBody">
-          <tr><td colspan="5" class="state-msg">Загрузка...</td></tr>
+          <tr><td colspan="7" class="state-msg">Загрузка...</td></tr>
         </tbody>
       </table>
     </div>
@@ -495,45 +569,80 @@
     'Threads': '#34D399',
     'Yandex Direct': '#F59E0B'
   };
+
+  let allInsights = [];
   let insightsByCategory = {};
+  let insightsByPlatform = {};
   let activeCategory = null;
+  let sortField = 'source_published_at';
+  let sortDirection = 'desc';
 
-  function esc(s) {
-    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  function esc(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[char]));
   }
 
-  async function load() {
-    try {
-      const res = await fetch('research/insights/index.json?_=' + Date.now());
-      const data = await res.json();
-      const insights = data.insights || [];
+  function fmtDate(value) {
+    if (!value) return '—';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '—';
+    return date.toLocaleString('ru-RU', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
 
-      // stats
-      document.getElementById('statTotal').textContent = insights.length;
-      const byPlatform = {}, byCategory = {};
-      insights.forEach(i => {
-        (byPlatform[i.platform] = byPlatform[i.platform] || []).push(i);
-        (byCategory[i.category] = byCategory[i.category] || []).push(i);
-      });
-      document.getElementById('statCategories').textContent = Object.keys(byCategory).length;
-      if (data.last_updated) {
-        const d = new Date(data.last_updated).toLocaleString('ru-RU', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-        document.getElementById('statUpdated').textContent = '↑ ' + d;
-        document.getElementById('footerUpdated').textContent = 'Последнее обновление: ' + d;
+  function getSortValue(insight) {
+    const raw = insight?.[sortField];
+    if (!raw) return null;
+    const date = new Date(raw);
+    return Number.isNaN(date.getTime()) ? null : date.getTime();
+  }
+
+  function sortInsights(items) {
+    const direction = sortDirection === 'asc' ? 1 : -1;
+    return [...items].sort((a, b) => {
+      const aValue = getSortValue(a);
+      const bValue = getSortValue(b);
+
+      if (aValue === null && bValue === null) {
+        return new Date(b.discovered_at || 0).getTime() - new Date(a.discovered_at || 0).getTime();
       }
-
-      renderPlatforms(byPlatform);
-      renderCategories(byCategory);
-      renderTable(insights);
-      renderCategoryResults();
-    } catch(e) {
-      document.getElementById('platformGrid').innerHTML = '<div class="state-msg">⚠️ Ошибка загрузки данных</div>';
-    }
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+      return (aValue - bValue) * direction;
+    });
   }
 
-  function renderPlatforms(byPlatform) {
+  function sortGroupedEntries(grouped) {
+    const direction = sortDirection === 'asc' ? 1 : -1;
+    return Object.entries(grouped).sort((a, b) => {
+      const aFirst = sortInsights(a[1])[0];
+      const bFirst = sortInsights(b[1])[0];
+      const aValue = aFirst ? (getSortValue(aFirst) ?? 0) : 0;
+      const bValue = bFirst ? (getSortValue(bFirst) ?? 0) : 0;
+      return (aValue - bValue) * direction;
+    });
+  }
+
+  function renderInsightItem(insight) {
+    return `
+      <div class="insight">
+        <div class="insight-title">${esc(insight.title)}</div>
+        <div class="insight-body">${esc(insight.content)}</div>
+        <div class="insight-meta">
+          <span class="date-chip">Источник: ${fmtDate(insight.source_published_at)}</span>
+          <span class="date-chip">Добавлено: ${fmtDate(insight.discovered_at)}</span>
+        </div>
+        <div class="insight-footer">
+          <span class="badge badge-category">${esc(insight.category)}</span>
+          <span class="badge badge-conf">${insight.confidence}/10</span>
+          <span class="badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);border:1px solid var(--border)">${PLATFORM_ICONS[insight.platform] || '📱'} ${esc(insight.platform)}</span>
+          ${insight.source_url ? `<a href="${esc(insight.source_url)}" target="_blank" rel="noopener" class="source-link">🔗 Источник</a>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPlatforms() {
     const grid = document.getElementById('platformGrid');
-    grid.innerHTML = Object.entries(byPlatform).map(([platform, items]) => `
+    grid.innerHTML = sortGroupedEntries(insightsByPlatform).map(([platform, items]) => `
       <div class="card">
         <div class="card-header" style="border-left: 3px solid ${PLATFORM_COLORS[platform] || '#818CF8'}; padding-left: 17px;">
           <span class="card-header-icon">${PLATFORM_ICONS[platform] || '📱'}</span>
@@ -541,59 +650,32 @@
           <span class="card-header-count">${items.length} инсайтов</span>
         </div>
         <div class="card-body">
-          ${items.map(ins => `
-            <div class="insight">
-              <div class="insight-title">${esc(ins.title)}</div>
-              <div class="insight-body">${esc(ins.content)}</div>
-              <div class="insight-footer">
-                <span class="badge badge-category">${esc(ins.category)}</span>
-                <span class="badge badge-conf">${ins.confidence}/10</span>
-                ${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" class="source-link">🔗 Источник</a>` : ''}
-              </div>
-            </div>
-          `).join('')}
+          ${sortInsights(items).map(renderInsightItem).join('')}
         </div>
       </div>
     `).join('');
   }
 
-  function renderCategories(byCategory) {
-    insightsByCategory = byCategory;
+  function renderCategories() {
     if (activeCategory && !insightsByCategory[activeCategory]) {
       activeCategory = null;
     }
-    document.getElementById('categoryGrid').innerHTML = Object.entries(byCategory)
-      .sort((a,b) => b[1].length - a[1].length)
-      .map(([cat, items]) => `
-        <button type="button" class="cat-card ${activeCategory === cat ? 'active' : ''}" data-category="${esc(cat)}" aria-pressed="${activeCategory === cat ? 'true' : 'false'}">
-          <div class="cat-num">${items.length}</div>
-          <div class="cat-name">${esc(cat)}</div>
-        </button>
-      `).join('');
+
+    document.getElementById('categoryGrid').innerHTML = sortGroupedEntries(insightsByCategory).map(([category, items]) => `
+      <button type="button" class="cat-card ${activeCategory === category ? 'active' : ''}" data-category="${esc(category)}" aria-pressed="${activeCategory === category ? 'true' : 'false'}">
+        <div class="cat-num">${items.length}</div>
+        <div class="cat-name">${esc(category)}</div>
+      </button>
+    `).join('');
 
     document.querySelectorAll('.cat-card').forEach(card => {
       card.addEventListener('click', () => {
         const nextCategory = card.dataset.category;
         activeCategory = activeCategory === nextCategory ? null : nextCategory;
-        renderCategories(insightsByCategory);
+        renderCategories();
         renderCategoryResults();
       });
     });
-  }
-
-  function renderInsightItem(ins) {
-    return `
-      <div class="insight">
-        <div class="insight-title">${esc(ins.title)}</div>
-        <div class="insight-body">${esc(ins.content)}</div>
-        <div class="insight-footer">
-          <span class="badge badge-category">${esc(ins.category)}</span>
-          <span class="badge badge-conf">${ins.confidence}/10</span>
-          <span class="badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);border:1px solid var(--border)">${PLATFORM_ICONS[ins.platform] || '📱'} ${esc(ins.platform)}</span>
-          ${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" class="source-link">🔗 Источник</a>` : ''}
-        </div>
-      </div>
-    `;
   }
 
   function renderCategoryResults() {
@@ -602,16 +684,16 @@
     const meta = document.getElementById('categoryResultsMeta');
     const list = document.getElementById('categoryResultsList');
 
+    wrap.classList.remove('hidden');
+
     if (!activeCategory) {
-      wrap.classList.remove('hidden');
       title.textContent = 'Выберите категорию';
       meta.textContent = `${Object.keys(insightsByCategory).length || 0} тегов доступно`;
-      list.innerHTML = '<div class="filter-hint">Нажмите на плашку категории, чтобы увидеть связанные инсайты.</div>';
+      list.innerHTML = '<div class="filter-hint">Нажмите на тег категории, чтобы увидеть связанные инсайты.</div>';
       return;
     }
 
-    const items = insightsByCategory[activeCategory] || [];
-    wrap.classList.remove('hidden');
+    const items = sortInsights(insightsByCategory[activeCategory] || []);
     title.textContent = activeCategory;
     meta.textContent = `${items.length} инсайтов`;
     list.innerHTML = items.length
@@ -619,28 +701,80 @@
       : '<div class="filter-hint">По этому тегу пока нет инсайтов.</div>';
   }
 
-  function renderTable(insights) {
-    document.getElementById('tableBody').innerHTML = insights.map(ins => `
+  function renderTable() {
+    document.getElementById('tableBody').innerHTML = sortInsights(allInsights).map(insight => `
       <tr>
-        <td><span style="color:${PLATFORM_COLORS[ins.platform]||'#818CF8'}">${PLATFORM_ICONS[ins.platform]||''} ${esc(ins.platform)}</span></td>
-        <td style="max-width:320px">${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener">${esc(ins.title)}</a>` : esc(ins.title)}</td>
-        <td><span class="badge badge-category">${esc(ins.category)}</span></td>
-        <td><span class="badge badge-conf">${ins.confidence}/10</span></td>
-        <td>${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--text-muted)">↗</a>` : '—'}</td>
+        <td><span style="color:${PLATFORM_COLORS[insight.platform] || '#818CF8'}">${PLATFORM_ICONS[insight.platform] || ''} ${esc(insight.platform)}</span></td>
+        <td style="max-width:320px">${insight.source_url ? `<a href="${esc(insight.source_url)}" target="_blank" rel="noopener">${esc(insight.title)}</a>` : esc(insight.title)}</td>
+        <td><span class="badge badge-category">${esc(insight.category)}</span></td>
+        <td>${fmtDate(insight.source_published_at)}</td>
+        <td>${fmtDate(insight.discovered_at)}</td>
+        <td><span class="badge badge-conf">${insight.confidence}/10</span></td>
+        <td>${insight.source_url ? `<a href="${esc(insight.source_url)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--text-muted)">↗</a>` : '—'}</td>
       </tr>
     `).join('');
   }
 
-  // Tab switching
+  function renderAll() {
+    renderPlatforms();
+    renderCategories();
+    renderCategoryResults();
+    renderTable();
+  }
+
+  async function load() {
+    try {
+      const response = await fetch('research/insights/index.json?_=' + Date.now());
+      const data = await response.json();
+      allInsights = data.insights || [];
+
+      document.getElementById('statTotal').textContent = allInsights.length;
+
+      insightsByPlatform = {};
+      insightsByCategory = {};
+      allInsights.forEach(insight => {
+        (insightsByPlatform[insight.platform] = insightsByPlatform[insight.platform] || []).push(insight);
+        (insightsByCategory[insight.category] = insightsByCategory[insight.category] || []).push(insight);
+      });
+
+      document.getElementById('statCategories').textContent = Object.keys(insightsByCategory).length;
+
+      if (data.last_updated) {
+        const updated = new Date(data.last_updated).toLocaleString('ru-RU', {
+          day: 'numeric',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        document.getElementById('statUpdated').textContent = '↑ ' + updated;
+        document.getElementById('footerUpdated').textContent = 'Последнее обновление: ' + updated;
+      }
+
+      renderAll();
+    } catch (error) {
+      document.getElementById('platformGrid').innerHTML = '<div class="state-msg">⚠️ Ошибка загрузки данных</div>';
+    }
+  }
+
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(item => item.classList.remove('active'));
       tab.classList.add('active');
       const view = tab.dataset.view;
-      ['platforms','categories','table'].forEach(v => {
-        document.getElementById('view-' + v).classList.toggle('hidden', v !== view);
+      ['platforms', 'categories', 'table'].forEach(name => {
+        document.getElementById('view-' + name).classList.toggle('hidden', name !== view);
       });
     });
+  });
+
+  document.getElementById('sortField').addEventListener('change', event => {
+    sortField = event.target.value;
+    renderAll();
+  });
+
+  document.getElementById('sortDirection').addEventListener('change', event => {
+    sortDirection = event.target.value;
+    renderAll();
   });
 
   load();
