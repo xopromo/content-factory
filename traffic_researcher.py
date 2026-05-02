@@ -107,6 +107,12 @@ def summarize_with_llm(title: str, article_text: str, platform: str) -> str:
     for p in LLM_PROVIDERS:
         api_key = os.getenv(p["key_env"], "")
         if not api_key:
+            key_file = os.path.expanduser(f"~/.{p['key_env'].lower().replace('_key','')}_key")
+            try:
+                api_key = open(key_file).read().strip()
+            except Exception:
+                pass
+        if not api_key:
             print(f"  [SKIP] {p['name']}: no key")
             continue
         try:
