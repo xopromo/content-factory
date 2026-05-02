@@ -46,22 +46,28 @@ def is_mostly_russian(text: str) -> bool:
     return letters > 0 and cyrillic / letters >= 0.4
 
 
-def fetch_article_text(url: str, max_chars: int = 3000) -> str:
-    """Скачивает и извлекает чистый текст статьи через requests + trafilatura"""
+def fetch_article(url: str, max_chars: int = 3000) -> Dict[str, str]:
+    """Скачивает статью, возвращает {'text': ..., 'date': ...}"""
     try:
         import requests as req
         import trafilatura
+        import htmldate
         headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"}
         r = req.get(url, headers=headers, timeout=10)
         if r.status_code != 200:
-            return ""
-        text = trafilatura.extract(r.text, include_comments=False, include_tables=False)
-        if not text:
-            return ""
-        return text[:max_chars]
+            return {}
+        html = r.text
+        text = trafilatura.extract(html, include_comments=False, include_tables=False) or ""
+        date = htmldate.find_date(html) or ""
+        return {"text": text[:max_chars], "date": date}
     except Exception as e:
         print(f"  [WARN] fetch_article failed for {url[:60]}: {e}")
-        return ""
+        return {}
+
+
+def fetch_article_text(url: str, max_chars: int = 3000) -> str:
+    """Обратная совместимость"""
+    return fetch_article(url, max_chars).get("text", "")
 
 
 def summarize_with_llm(title: str, article_text: str, platform: str) -> str:
@@ -209,20 +215,21 @@ def extract_insights_from_search(results: List[Dict[str, str]], platform: str, t
 
         snippet = body[:300]
 
-        # Пробуем получить полный текст статьи и сделать LLM-саммари
-        article_text = fetch_article_text(href) if href else ""
+        # Пробуем получить полный текст и дату публикации
+        article = fetch_article(href) if href else {}
+        article_text = article.get("text", "")
+        source_published_at = article.get("date", "")
+
         if article_text and is_mostly_russian(article_text):
             llm_summary = summarize_with_llm(title, article_text, platform)
-            # Если LLM сам говорит что статья нерелевантна — пропускаем
             if llm_summary and is_irrelevant_summary(llm_summary):
                 print(f"  [SKIP] LLM marked irrelevant: {title[:60]}")
                 continue
-            print(f"  [OK] Full article + LLM summary: {title[:50]}")
+            print(f"  [OK] Full article + LLM summary{' date:'+source_published_at if source_published_at else ''}: {title[:50]}")
         else:
             llm_summary = ""
             print(f"  [OK] Snippet fallback: {title[:50]}")
 
-        # content = саммари если есть, иначе сниппет
         content = llm_summary if llm_summary else snippet
 
         insights.append({
@@ -230,6 +237,7 @@ def extract_insights_from_search(results: List[Dict[str, str]], platform: str, t
             "content": content,
             "snippet": snippet,
             "summary": llm_summary,
+            "source_published_at": source_published_at,
             "source_url": href,
         })
     return insights
@@ -304,7 +312,8 @@ class TrafficResearchAgent:
     def add_insight(self, platform: str, title: str, content: str,
                     category: str, confidence: int = 7,
                     source_url: Optional[str] = None,
-                    snippet: str = "", summary: str = ""):
+                    snippet: str = "", summary: str = "",
+                    source_published_at: str = ""):
         insight = {
             "id": len(self.session_log["insights"]) + 1,
             "platform": platform,
@@ -312,6 +321,7 @@ class TrafficResearchAgent:
             "content": content,
             "snippet": snippet,
             "summary": summary,
+            "source_published_at": source_published_at,
             "category": category,
             "confidence": confidence,
             "discovered_at": datetime.now().isoformat(),
@@ -363,6 +373,7 @@ class TrafficResearchAgent:
                     source_url=url,
                     snippet=ins.get("snippet", ""),
                     summary=ins.get("summary", ""),
+                    source_published_at=ins.get("source_published_at", ""),
                 )
                 if url_key:
                     self.seen_urls.add(url_key)
