@@ -65,82 +65,80 @@ def fetch_article_text(url: str, max_chars: int = 3000) -> str:
 
 
 def summarize_with_llm(title: str, article_text: str, platform: str) -> str:
-    """Summarizes article text using a free cloud LLM (Gemini → Mistral → fallback)"""
+    """Summarizes article via free LLMs: Gemini → Groq → Mistral → Cerebras"""
     LLM_PROVIDERS = [
         {
-            "name": "gemini",
-            "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent",
-            "key_file": "~/.gemini_key",
-            "key_env": "GEMINI_API_KEY",
+            "name": "Gemini",
+            "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+            "key_env": "GEMINI_KEY",
             "is_gemini": True,
         },
         {
-            "name": "mistral",
-            "url": "https://api.mistral.ai/v1/chat/completions",
-            "model": "mistral-small-latest",
-            "key_file": "~/.mistral_key",
-            "key_env": "MISTRAL_API_KEY",
+            "name": "Groq",
+            "url": "https://api.groq.com/openai/v1/chat/completions",
+            "model": "llama-3.3-70b-versatile",
+            "key_env": "GROQ_KEY",
         },
         {
-            "name": "cerebras",
+            "name": "Mistral",
+            "url": "https://api.mistral.ai/v1/chat/completions",
+            "model": "mistral-small-latest",
+            "key_env": "MISTRAL_KEY",
+        },
+        {
+            "name": "Cerebras",
             "url": "https://api.cerebras.ai/v1/chat/completions",
-            "model": "llama-3.1-8b",
-            "key_file": "~/.cerebras_key",
-            "key_env": "CEREBRAS_API_KEY",
+            "model": "llama3.1-8b",
+            "key_env": "CEREBRAS_KEY",
         },
     ]
 
-    prompt = f"""Ты эксперт по digital-маркетингу. Прочитай статью и напиши краткое саммари на русском языке (3-5 предложений), выделяя конкретные инсайты, лайфхаки и практические советы по теме {platform}.
-
-Заголовок: {title}
-
-Текст статьи:
-{article_text}
-
-Саммари (только полезные факты, без воды):"""
+    prompt = (
+        f"Ты эксперт по digital-маркетингу. Прочитай статью и напиши саммари на русском языке "
+        f"(3-5 предложений) — только конкретные инсайты и практические советы по теме {platform}. "
+        f"Без воды.\n\nЗаголовок: {title}\n\nТекст:\n{article_text}"
+    )
 
     try:
         import requests as req
     except ImportError:
         return ""
 
-    for provider in LLM_PROVIDERS:
-        api_key = None
-        key_file = os.path.expanduser(provider.get("key_file", ""))
-        try:
-            api_key = open(key_file).read().strip()
-        except Exception:
-            pass
+    for p in LLM_PROVIDERS:
+        api_key = os.getenv(p["key_env"], "")
         if not api_key:
-            api_key = os.getenv(provider.get("key_env", ""))
-        if not api_key:
+            print(f"  [SKIP] {p['name']}: no key")
             continue
-
         try:
-            if provider.get("is_gemini"):
+            if p.get("is_gemini"):
                 resp = req.post(
-                    f"{provider['url']}?key={api_key}",
+                    f"{p['url']}?key={api_key}",
                     headers={"Content-Type": "application/json"},
                     json={"contents": [{"parts": [{"text": prompt}]}],
                           "generationConfig": {"maxOutputTokens": 400, "temperature": 0.4}},
                     timeout=20,
                 )
-                if resp.status_code == 200:
-                    return resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
             else:
                 resp = req.post(
-                    provider["url"],
+                    p["url"],
                     headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                    json={"model": provider["model"],
+                    json={"model": p["model"],
                           "messages": [{"role": "user", "content": prompt}],
                           "max_tokens": 400, "temperature": 0.4},
                     timeout=20,
                 )
-                if resp.status_code == 200:
-                    return resp.json()["choices"][0]["message"]["content"].strip()
+
+            if resp.status_code == 200:
+                if p.get("is_gemini"):
+                    result = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+                else:
+                    result = resp.json()["choices"][0]["message"]["content"].strip()
+                print(f"  [LLM] {p['name']} OK")
+                return result
+
+            print(f"  [WARN] {p['name']}: HTTP {resp.status_code}, trying next...")
         except Exception as e:
-            print(f"  [WARN] LLM {provider['name']} failed: {e}")
-            continue
+            print(f"  [WARN] {p['name']} failed: {e}, trying next...")
 
     return ""
 
