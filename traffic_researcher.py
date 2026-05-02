@@ -168,6 +168,26 @@ def clean_summary(text: str) -> str:
     return text.strip()
 
 
+PLATFORM_KEYWORDS = {
+    "VK": ["вконтакте", "вк", "vk", "таргет", "реклам", "продвижен", "аудитори", "vk ads", "таргетинг"],
+    "Threads": ["threads", "мета", "meta", "продвижен", "контент", "охват", "подписчик", "алгоритм"],
+    "Yandex Direct": ["яндекс", "директ", "direct", "контекстн", "ставк", "ключев", "wordstat", "объявлен"],
+}
+
+def is_relevant(text: str, platform: str) -> bool:
+    """Проверяет что текст относится к теме платформы"""
+    text_lower = text.lower()
+    keywords = PLATFORM_KEYWORDS.get(platform, [])
+    return any(kw in text_lower for kw in keywords)
+
+def is_irrelevant_summary(summary: str) -> bool:
+    """Проверяет, что LLM сам признал контент нерелевантным"""
+    markers = ["не имеет отношения", "не относится", "не связан", "не является темой",
+               "не про рекламу", "не по теме", "данная статья не"]
+    summary_lower = summary.lower()
+    return any(m in summary_lower for m in markers)
+
+
 def extract_insights_from_search(results: List[Dict[str, str]], platform: str, topic: str) -> List[Dict[str, str]]:
     """Извлекает структурированные инсайты из результатов поиска.
     Для каждого результата пытается скачать полный текст и сделать LLM-саммари."""
@@ -182,12 +202,21 @@ def extract_insights_from_search(results: List[Dict[str, str]], platform: str, t
             print(f"  [SKIP] Non-Russian content: {title[:60]}")
             continue
 
+        # Фильтр по релевантности — сниппет должен содержать ключевые слова платформы
+        if not is_relevant(title + " " + body, platform):
+            print(f"  [SKIP] Not relevant to {platform}: {title[:60]}")
+            continue
+
         snippet = body[:300]
 
         # Пробуем получить полный текст статьи и сделать LLM-саммари
         article_text = fetch_article_text(href) if href else ""
         if article_text and is_mostly_russian(article_text):
             llm_summary = summarize_with_llm(title, article_text, platform)
+            # Если LLM сам говорит что статья нерелевантна — пропускаем
+            if llm_summary and is_irrelevant_summary(llm_summary):
+                print(f"  [SKIP] LLM marked irrelevant: {title[:60]}")
+                continue
             print(f"  [OK] Full article + LLM summary: {title[:50]}")
         else:
             llm_summary = ""
