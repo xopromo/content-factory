@@ -16,12 +16,12 @@ from typing import Dict, List, Any, Optional
 import hashlib
 
 
-def search_web(query: str, max_results: int = 5) -> List[Dict[str, str]]:
+def search_web(query: str, max_results: int = 5, region: str = "ru-ru") -> List[Dict[str, str]]:
     """Поиск в DuckDuckGo через пакет ddgs"""
     try:
         from ddgs import DDGS
         with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=max_results))
+            results = list(ddgs.text(query, max_results=max_results, region=region))
         return results
     except Exception as e:
         print(f"  [WARN] DuckDuckGo search failed for '{query}': {e}")
@@ -37,6 +37,15 @@ def normalize_url(url: str) -> str:
     return url.rstrip("/")
 
 
+def is_mostly_russian(text: str) -> bool:
+    """Проверяет, что текст преимущественно на русском языке"""
+    if not text:
+        return False
+    cyrillic = sum(1 for c in text if 'Ѐ' <= c <= 'ӿ')
+    letters  = sum(1 for c in text if c.isalpha())
+    return letters > 0 and cyrillic / letters >= 0.4
+
+
 def extract_insights_from_search(results: List[Dict[str, str]], platform: str, topic: str) -> List[Dict[str, str]]:
     """Извлекает структурированные инсайты из результатов поиска"""
     insights = []
@@ -45,6 +54,10 @@ def extract_insights_from_search(results: List[Dict[str, str]], platform: str, t
         body = r.get("body", "").strip()
         href = r.get("href", "")
         if not body:
+            continue
+        # Пропускаем нерусскоязычный контент
+        if not is_mostly_russian(title + " " + body):
+            print(f"  [SKIP] Non-Russian content: {title[:60]}")
             continue
         content = body[:500]
         insights.append({
@@ -153,7 +166,7 @@ class TrafficResearchAgent:
         text_lower = text.lower()
         return [kw for kw in keywords if kw in text_lower]
 
-    def _search_and_add(self, platform: str, queries: List[Dict], default_confidence: int = 7):
+    def _search_and_add(self, platform: str, queries: List[Dict], default_confidence: int = 7, region: str = "ru-ru"):
         """Общий метод: поиск по запросам и добавление инсайтов"""
         total = 0
         for item in queries:
@@ -161,7 +174,7 @@ class TrafficResearchAgent:
             category = item["category"]
             self.log_action(f"Searching: {query}", {"platform": platform})
 
-            results = search_web(query, max_results=3)
+            results = search_web(query, max_results=3, region=region)
             self.session_log["statistics"]["sources_analyzed"] += len(results)
 
             raw_insights = extract_insights_from_search(results, platform, query)
@@ -203,10 +216,10 @@ class TrafficResearchAgent:
         self.log_action("Starting Threads research", {"platform": "Threads"})
 
         queries = [
-            {"query": "Threads продвижение стратегия 2026 охват", "category": "content_strategy"},
-            {"query": "Threads хэштеги discoverability алгоритм 2026", "category": "discovery"},
-            {"query": "Threads монетизация рост аудитории маркетинг", "category": "monetization"},
-            {"query": "Threads вирусный контент что работает", "category": "viral"},
+            {"query": "Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк", "category": "content_strategy"},
+            {"query": "Threads app хэштеги алгоритм охват 2026 -вконтакте", "category": "discovery"},
+            {"query": "Threads Instagram Meta монетизация рост аудитории маркетинг", "category": "monetization"},
+            {"query": "Threads соцсеть вирусный контент что работает -ВК -вконтакте", "category": "viral"},
         ]
 
         count = self._search_and_add("Threads", queries, default_confidence=7)

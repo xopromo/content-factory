@@ -275,36 +275,25 @@
     .insight-footer {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
       flex-wrap: wrap;
+      margin-top: 8px;
     }
-    .badge {
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 7px;
-      border-radius: var(--radius-sm);
+    .insight-meta-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      opacity: 0.7;
     }
-    .badge-category {
-      background: rgba(129,140,248,0.15);
-      color: var(--primary);
-      border: 1px solid rgba(129,140,248,0.2);
-    }
-    .badge-conf {
-      background: rgba(52,211,153,0.1);
-      color: var(--green);
-      border: 1px solid rgba(52,211,153,0.2);
-    }
+    .insight-meta-text .cat { color: var(--primary); opacity: 0.85; }
     .source-link {
       margin-left: auto;
       font-size: 11px;
       color: var(--text-muted);
       text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      transition: color 150ms;
+      opacity: 0.6;
+      transition: opacity 150ms, color 150ms;
     }
-    .source-link:hover { color: var(--primary); }
+    .source-link:hover { color: var(--primary); opacity: 1; }
 
     /* ── Table view ── */
     .table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); }
@@ -576,9 +565,8 @@
               <div class="insight-title">${esc(ins.title)}</div>
               <div class="insight-body">${esc(ins.content)}</div>
               <div class="insight-footer">
-                <span class="badge badge-category">${esc(catRu(ins.category))}</span>
-                <span class="badge badge-conf">${ins.confidence}/10</span>
-                ${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" class="source-link">🔗 Источник</a>` : ''}
+                <span class="insight-meta-text"><span class="cat">${esc(catRu(ins.category))}</span> · ${ins.confidence}/10</span>
+                ${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" class="source-link">↗ источник</a>` : ''}
               </div>
             </div>
           `).join('')}
