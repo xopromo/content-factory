@@ -1,6 +1,6 @@
 {
-  "total_insights": 120,
-  "last_updated": "2026-05-02T22:31:20.034903",
+  "total_insights": 118,
+  "last_updated": "2026-05-02T22:36:08.329104",
   "insights": [
     {
       "id": 1,
@@ -271,30 +271,6 @@
       "discovered_at": "2026-05-02T21:02:02.381736",
       "tags": [],
       "source_url": "https://elama.ru/blog/kak-zapustit-reklamu-vkontakte-s-telefona-v-2026-godu-polnoe-rukovodstvo/"
-    },
-    {
-      "id": 5,
-      "platform": "VK",
-      "title": "Оптимизация бюджета кампании новый инструмент... - YouTube",
-      "content": "© 2026 Google LLC.",
-      "category": "budget_optimization",
-      "confidence": 7,
-      "discovered_at": "2026-05-02T21:02:02.381896",
-      "tags": [],
-      "source_url": "https://www.youtube.com/watch?v=4WiEcvXnD1g"
-    },
-    {
-      "id": 6,
-      "platform": "VK",
-      "title": "Формула ROI в маркетинге: как рассчитать рентабельность...",
-      "content": "Значение ROI показывает, насколько успешными были инвестиции: ROI < 0% — вложения не окупились, компания понесла убытки. Следует пересмотреть маркетинговую стратегию. ROI = 0% — прибыли и убытков нет, компания вышла в ноль.",
-      "category": "budget_optimization",
-      "confidence": 7,
-      "discovered_at": "2026-05-02T21:02:02.382024",
-      "tags": [
-        "roi"
-      ],
-      "source_url": "https://blog.promopult.ru/ecommerce/formula-roi-chto-eto-kak-eyo-poschitat.html"
     },
     {
       "id": 7,
