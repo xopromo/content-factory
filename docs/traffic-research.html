@@ -58,7 +58,6 @@
     }
     .nav-logo svg { color: var(--primary); flex-shrink: 0; }
 
-    /* Inline stats in nav */
     .nav-stats {
       display: flex;
       align-items: center;
@@ -127,7 +126,7 @@
       padding: 24px 32px 48px;
     }
 
-    /* ── Tab + sort bar ── */
+    /* ── Tab + sort bar in one line ── */
     .controls-bar {
       display: flex;
       align-items: center;
@@ -150,7 +149,7 @@
     .tab:hover { color: var(--text); }
     .tab.active { color: var(--text); border-bottom-color: var(--primary); }
 
-    /* Sort controls - plain text on the right */
+    /* Sort controls — plain text on the right */
     .sort-group {
       margin-left: auto;
       display: flex;
@@ -178,42 +177,8 @@
     }
     .sort-btn:hover { color: var(--text); }
     .sort-btn.active { color: var(--primary); font-weight: 600; }
-    .sort-sep { color: var(--border); font-size: 12px; }
-
-    /* ── Tag filter row ── */
-    .tag-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-bottom: 20px;
-      align-items: center;
-    }
-    .tag-btn {
-      font-size: 12px;
-      color: var(--text-muted);
-      cursor: pointer;
-      padding: 3px 0;
-      background: none;
-      border: none;
-      font-family: inherit;
-      transition: color 150ms;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .tag-btn:hover { color: var(--text); }
-    .tag-btn.active { color: var(--primary); font-weight: 600; }
-    .tag-btn .tag-count {
-      font-size: 10px;
-      color: var(--text-muted);
-    }
-    .tag-btn.active .tag-count { color: var(--primary); opacity: 0.7; }
-    .tag-divider {
-      color: var(--border);
-      font-size: 12px;
-      user-select: none;
-    }
+    .sort-sep { color: var(--border); font-size: 12px; user-select: none; }
+    .sort-divider { width: 1px; height: 14px; background: var(--border); margin: 0 6px; }
 
     /* ── Platform grid ── */
     .platform-grid {
@@ -275,9 +240,9 @@
     .insight-footer {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
-      margin-top: 8px;
+      margin-top: 6px;
     }
     .insight-meta-text {
       font-size: 11px;
@@ -295,6 +260,80 @@
     }
     .source-link:hover { color: var(--primary); opacity: 1; }
 
+    /* ── Category view — minimal text-button style ── */
+    .category-grid {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+    .cat-card {
+      appearance: none;
+      background: transparent;
+      border: none;
+      padding: 0;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      cursor: pointer;
+      opacity: 0.9;
+    }
+    .cat-card:hover,
+    .cat-card.active { opacity: 1; }
+    .cat-num {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .cat-name {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-decoration: underline;
+      text-decoration-color: transparent;
+      text-underline-offset: 3px;
+      transition: color 180ms, text-decoration-color 180ms;
+    }
+    .cat-card:hover .cat-name,
+    .cat-card.active .cat-name {
+      color: var(--text);
+      text-decoration-color: rgba(129,140,248,0.55);
+    }
+
+    /* Category results panel */
+    .category-results {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .category-results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+    }
+    .category-results-title { font-size: 14px; font-weight: 600; }
+    .category-results-meta { font-size: 12px; color: var(--text-muted); }
+    .results-list { display: grid; gap: 10px; }
+    .filter-hint {
+      padding: 28px 18px;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-lg);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      background: rgba(255,255,255,0.02);
+    }
+
     /* ── Table view ── */
     .table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); }
     table { width: 100%; border-collapse: collapse; }
@@ -308,6 +347,7 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
       border-bottom: 1px solid var(--border);
+      white-space: nowrap;
     }
     td {
       padding: 11px 16px;
@@ -319,25 +359,6 @@
     tr:hover td { background: rgba(255,255,255,0.02); }
     td a { color: var(--primary); text-decoration: none; }
     td a:hover { text-decoration: underline; }
-
-    /* ── Category view ── */
-    .category-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 10px;
-    }
-    .cat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 18px;
-      text-align: center;
-      transition: border-color 300ms, transform 300ms;
-      cursor: default;
-    }
-    .cat-card:hover { border-color: rgba(129,140,248,0.3); transform: translateY(-2px); }
-    .cat-num { font-size: 28px; font-weight: 700; color: var(--primary); letter-spacing: -0.025em; }
-    .cat-name { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
 
     /* ── Footer ── */
     .footer {
@@ -412,17 +433,27 @@
     <div class="tab" data-view="table">Таблица</div>
     <div class="sort-group">
       <span class="sort-label-text">Сортировка:</span>
-      <button class="sort-btn active" data-sort="count">По количеству</button>
+      <button class="sort-btn active" data-sort-field="source_published_at">По дате источника</button>
       <span class="sort-sep">·</span>
-      <button class="sort-btn" data-sort="alpha">А–Я</button>
+      <button class="sort-btn" data-sort-field="discovered_at">По дате добавления</button>
+      <div class="sort-divider"></div>
+      <button class="sort-btn active" data-sort-dir="desc">Новые ↓</button>
+      <span class="sort-sep">·</span>
+      <button class="sort-btn" data-sort-dir="asc">Старые ↑</button>
     </div>
   </div>
 
-  <!-- Categories view (первая / активная по умолчанию) -->
+  <!-- Categories view (default) -->
   <div id="view-categories">
-    <div class="tag-row" id="tagRow"></div>
     <div class="category-grid" id="categoryGrid">
       <div class="state-msg">Загрузка данных...</div>
+    </div>
+    <div class="category-results hidden" id="categoryResults">
+      <div class="category-results-header">
+        <div class="category-results-title" id="categoryResultsTitle">Инсайты</div>
+        <div class="category-results-meta" id="categoryResultsMeta"></div>
+      </div>
+      <div class="results-list" id="categoryResultsList"></div>
     </div>
   </div>
 
@@ -461,31 +492,152 @@
   const PLATFORM_COLORS = { 'VK': '#818CF8', 'Threads': '#34D399', 'Yandex Direct': '#F59E0B' };
 
   const CAT_RU = {
-    targeting:          'Таргетинг',
-    budget_optimization:'Бюджет',
-    timing:             'Время публикации',
-    updates:            'Обновления',
-    mistakes:           'Ошибки',
-    content_strategy:   'Контент-стратегия',
-    discovery:          'Охват',
-    monetization:       'Монетизация',
-    viral:              'Вирусность',
-    keywords:           'Ключевые слова',
-    bidding:            'Управление ставками',
-    filtering:          'Минус-слова',
-    optimization:       'Оптимизация',
+    targeting:           'Таргетинг',
+    budget_optimization: 'Бюджет',
+    timing:              'Время публикации',
+    updates:             'Обновления',
+    mistakes:            'Ошибки',
+    content_strategy:    'Контент-стратегия',
+    discovery:           'Охват',
+    monetization:        'Монетизация',
+    viral:               'Вирусность',
+    keywords:            'Ключевые слова',
+    bidding:             'Управление ставками',
+    filtering:           'Минус-слова',
+    optimization:        'Оптимизация',
   };
   function catRu(key) { return CAT_RU[key] || key; }
 
   function esc(s) {
-    return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[c]));
   }
 
-  let allInsights = [];
-  let byPlatform  = {};
-  let byCategory  = {};
-  let sortMode    = 'count';
-  let activeTag   = null;
+  function fmtDate(value) {
+    if (!value) return null;
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? null : d.toLocaleString('ru-RU', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  let allInsights    = [];
+  let byPlatform     = {};
+  let byCategory     = {};
+  let activeCategory = null;
+  let sortField      = 'source_published_at';
+  let sortDirection  = 'desc';
+
+  function getSortValue(ins) {
+    const raw = ins?.[sortField];
+    if (!raw) return null;
+    const d = new Date(raw);
+    return Number.isNaN(d.getTime()) ? null : d.getTime();
+  }
+
+  function sortInsights(items) {
+    const dir = sortDirection === 'asc' ? 1 : -1;
+    return [...items].sort((a, b) => {
+      const av = getSortValue(a), bv = getSortValue(b);
+      if (av === null && bv === null) return new Date(b.discovered_at || 0) - new Date(a.discovered_at || 0);
+      if (av === null) return 1;
+      if (bv === null) return -1;
+      return (av - bv) * dir;
+    });
+  }
+
+  function sortGroupedEntries(grouped) {
+    const dir = sortDirection === 'asc' ? 1 : -1;
+    return Object.entries(grouped).sort((a, b) => {
+      const af = sortInsights(a[1])[0], bf = sortInsights(b[1])[0];
+      const av = af ? (getSortValue(af) ?? 0) : 0;
+      const bv = bf ? (getSortValue(bf) ?? 0) : 0;
+      return (av - bv) * dir;
+    });
+  }
+
+  function renderInsightItem(ins) {
+    const dateAdded = fmtDate(ins.discovered_at);
+    return `
+      <div class="insight">
+        <div class="insight-title">${esc(ins.title)}</div>
+        <div class="insight-body">${esc(ins.content)}</div>
+        <div class="insight-footer">
+          <span class="insight-meta-text"><span class="cat">${esc(catRu(ins.category))}</span> · ${ins.confidence}/10${dateAdded ? ' · ' + dateAdded : ''}</span>
+          ${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" class="source-link">↗ источник</a>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function renderCategories() {
+    if (activeCategory && !byCategory[activeCategory]) activeCategory = null;
+
+    document.getElementById('categoryGrid').innerHTML = sortGroupedEntries(byCategory).map(([cat, items]) => `
+      <button type="button" class="cat-card${activeCategory === cat ? ' active' : ''}" data-cat="${esc(cat)}">
+        <span class="cat-num">${items.length}</span>
+        <span class="cat-name">${esc(catRu(cat))}</span>
+      </button>`).join('') || '<div class="state-msg">Нет данных</div>';
+
+    document.querySelectorAll('.cat-card').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeCategory = activeCategory === btn.dataset.cat ? null : btn.dataset.cat;
+        renderCategories();
+        renderCategoryResults();
+      });
+    });
+  }
+
+  function renderCategoryResults() {
+    const wrap  = document.getElementById('categoryResults');
+    const title = document.getElementById('categoryResultsTitle');
+    const meta  = document.getElementById('categoryResultsMeta');
+    const list  = document.getElementById('categoryResultsList');
+
+    wrap.classList.remove('hidden');
+
+    if (!activeCategory) {
+      title.textContent = 'Выберите категорию';
+      meta.textContent  = `${Object.keys(byCategory).length} категорий доступно`;
+      list.innerHTML    = '<div class="filter-hint">Нажмите на категорию, чтобы увидеть связанные инсайты.</div>';
+      return;
+    }
+
+    const items = sortInsights(byCategory[activeCategory] || []);
+    title.textContent = catRu(activeCategory);
+    meta.textContent  = `${items.length} инсайтов`;
+    list.innerHTML    = items.length
+      ? items.map(renderInsightItem).join('')
+      : '<div class="filter-hint">По этой категории пока нет инсайтов.</div>';
+  }
+
+  function renderPlatforms() {
+    document.getElementById('platformGrid').innerHTML = sortGroupedEntries(byPlatform).map(([platform, items]) => `
+      <div class="card">
+        <div class="card-header" style="border-left:3px solid ${PLATFORM_COLORS[platform]||'#818CF8'};padding-left:15px;">
+          <span class="card-header-icon">${PLATFORM_ICONS[platform]||'📱'}</span>
+          <span class="card-header-title">${esc(platform)}</span>
+          <span class="card-header-count">${items.length} инсайтов</span>
+        </div>
+        <div class="card-body">
+          ${sortInsights(items).map(renderInsightItem).join('')}
+        </div>
+      </div>`).join('');
+  }
+
+  function renderTable() {
+    document.getElementById('tableBody').innerHTML = sortInsights(allInsights).map(ins => `
+      <tr>
+        <td><span style="color:${PLATFORM_COLORS[ins.platform]||'#818CF8'}">${PLATFORM_ICONS[ins.platform]||''} ${esc(ins.platform)}</span></td>
+        <td style="max-width:320px">${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener">${esc(ins.title)}</a>` : esc(ins.title)}</td>
+        <td style="font-size:12px;color:var(--text-muted)">${esc(catRu(ins.category))}</td>
+        <td style="font-size:12px;color:var(--text-muted)">${ins.confidence}/10</td>
+        <td>${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--text-muted)">↗</a>` : '—'}</td>
+      </tr>`).join('');
+  }
+
+  function renderAll() {
+    renderCategories();
+    renderCategoryResults();
+    renderPlatforms();
+    renderTable();
+  }
 
   async function load() {
     try {
@@ -496,95 +648,21 @@
       byPlatform = {}; byCategory = {};
       allInsights.forEach(i => {
         (byPlatform[i.platform]  = byPlatform[i.platform]  || []).push(i);
-        (byCategory[i.category] = byCategory[i.category] || []).push(i);
+        (byCategory[i.category]  = byCategory[i.category]  || []).push(i);
       });
 
       document.getElementById('statTotal').textContent      = allInsights.length;
       document.getElementById('statCategories').textContent = Object.keys(byCategory).length;
       if (data.last_updated) {
         const d = new Date(data.last_updated).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-        document.getElementById('statUpdated').textContent  = '↑ ' + d;
+        document.getElementById('statUpdated').textContent   = '↑ ' + d;
         document.getElementById('footerUpdated').textContent = 'Последнее обновление: ' + d;
       }
 
-      renderTagRow();
-      renderCategories();
-      renderPlatforms();
-      renderTable();
+      renderAll();
     } catch(e) {
       document.getElementById('categoryGrid').innerHTML = '<div class="state-msg">⚠️ Ошибка загрузки данных</div>';
     }
-  }
-
-  function sortedCategories() {
-    const entries = Object.entries(byCategory);
-    if (sortMode === 'alpha') return entries.sort((a,b) => catRu(a[0]).localeCompare(catRu(b[0]), 'ru'));
-    return entries.sort((a,b) => b[1].length - a[1].length);
-  }
-
-  function renderTagRow() {
-    const sorted = sortedCategories();
-    const parts  = sorted.map(([cat, items], i) => {
-      const isActive = cat === activeTag;
-      return `<button class="tag-btn${isActive?' active':''}" data-cat="${esc(cat)}">${esc(catRu(cat))} <span class="tag-count">${items.length}</span></button>`
-           + (i < sorted.length - 1 ? '<span class="tag-divider">·</span>' : '');
-    });
-    document.getElementById('tagRow').innerHTML = parts.join('');
-    document.querySelectorAll('.tag-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const cat = btn.dataset.cat;
-        activeTag = activeTag === cat ? null : cat;
-        renderTagRow();
-        renderCategories();
-      });
-    });
-  }
-
-  function renderCategories() {
-    const sorted = sortedCategories();
-    const filtered = activeTag ? sorted.filter(([cat]) => cat === activeTag) : sorted;
-    document.getElementById('categoryGrid').innerHTML = filtered.map(([cat, items]) => `
-      <div class="cat-card">
-        <div class="cat-num">${items.length}</div>
-        <div class="cat-name">${esc(catRu(cat))}</div>
-      </div>
-    `).join('') || '<div class="state-msg">Нет данных</div>';
-  }
-
-  function renderPlatforms() {
-    document.getElementById('platformGrid').innerHTML = Object.entries(byPlatform).map(([platform, items]) => `
-      <div class="card">
-        <div class="card-header" style="border-left:3px solid ${PLATFORM_COLORS[platform]||'#818CF8'};padding-left:15px;">
-          <span class="card-header-icon">${PLATFORM_ICONS[platform]||'📱'}</span>
-          <span class="card-header-title">${esc(platform)}</span>
-          <span class="card-header-count">${items.length} инсайтов</span>
-        </div>
-        <div class="card-body">
-          ${items.map(ins => `
-            <div class="insight">
-              <div class="insight-title">${esc(ins.title)}</div>
-              <div class="insight-body">${esc(ins.content)}</div>
-              <div class="insight-footer">
-                <span class="insight-meta-text"><span class="cat">${esc(catRu(ins.category))}</span> · ${ins.confidence}/10</span>
-                ${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" class="source-link">↗ источник</a>` : ''}
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `).join('');
-  }
-
-  function renderTable() {
-    document.getElementById('tableBody').innerHTML = allInsights.map(ins => `
-      <tr>
-        <td><span style="color:${PLATFORM_COLORS[ins.platform]||'#818CF8'}">${PLATFORM_ICONS[ins.platform]||''} ${esc(ins.platform)}</span></td>
-        <td style="max-width:320px">${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener">${esc(ins.title)}</a>` : esc(ins.title)}</td>
-        <td><span class="badge badge-category">${esc(catRu(ins.category))}</span></td>
-        <td><span class="badge badge-conf">${ins.confidence}/10</span></td>
-        <td>${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--text-muted)">↗</a>` : '—'}</td>
-      </tr>
-    `).join('');
   }
 
   // Tab switching
@@ -599,14 +677,23 @@
     });
   });
 
-  // Sort buttons
-  document.querySelectorAll('.sort-btn').forEach(btn => {
+  // Sort field buttons
+  document.querySelectorAll('[data-sort-field]').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('[data-sort-field]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      sortMode = btn.dataset.sort;
-      renderTagRow();
-      renderCategories();
+      sortField = btn.dataset.sortField;
+      renderAll();
+    });
+  });
+
+  // Sort direction buttons
+  document.querySelectorAll('[data-sort-dir]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-sort-dir]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sortDirection = btn.dataset.sortDir;
+      renderAll();
     });
   });
 
