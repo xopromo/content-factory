@@ -104,10 +104,10 @@ class FreelancerAgent(ae.BaseAgent):
     def _search_duckduckgo(self, query: str) -> str:
         """Search for information using DuckDuckGo (free)"""
         try:
-            from duckduckgo_search import DDGS
+            from ddgs import DDGS
 
             ddgs = DDGS()
-            results = ddgs.text(query, max_results=5)
+            results = list(ddgs.text(query, max_results=5))
 
             search_results = "## Search Results:\n\n"
             for i, result in enumerate(results, 1):

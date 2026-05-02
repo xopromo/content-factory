@@ -28,6 +28,9 @@ jobs:
           git config --global user.email "traffic-agent@content-factory.local"
           git config --global user.name "Traffic Research Agent"
 
+      - name: Install dependencies
+        run: pip install ddgs requests
+
       - name: Run traffic research
         run: python3 traffic_researcher.py
 
