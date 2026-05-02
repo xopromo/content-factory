@@ -279,17 +279,78 @@
       gap: 12px;
     }
     .cat-card {
+      appearance: none;
+      width: 100%;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 20px;
+      padding: 14px 16px;
       text-align: center;
-      transition: border-color 300ms, transform 300ms;
-      cursor: default;
+      font: inherit;
+      color: inherit;
+      transition: border-color 300ms, transform 300ms, background 300ms;
+      cursor: pointer;
     }
     .cat-card:hover { border-color: rgba(129,140,248,0.3); transform: translateY(-2px); }
-    .cat-num { font-size: 32px; font-weight: 700; color: var(--primary); letter-spacing: -0.025em; }
-    .cat-name { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+    .cat-card.active {
+      background: rgba(129,140,248,0.1);
+      border-color: rgba(129,140,248,0.45);
+    }
+    .cat-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      height: 24px;
+      padding: 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.01em;
+      border-radius: 9999px;
+      background: rgba(129,140,248,0.12);
+      border: 1px solid rgba(129,140,248,0.18);
+    }
+    .cat-name { font-size: 12px; color: var(--text-muted); margin-top: 10px; font-weight: 600; }
+    .category-results {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .category-results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+    }
+    .category-results-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .category-results-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .results-list {
+      display: grid;
+      gap: 10px;
+    }
+    .filter-hint {
+      padding: 28px 18px;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-lg);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      background: rgba(255,255,255,0.02);
+    }
 
     /* ── Footer ── */
     .footer {
@@ -377,6 +438,13 @@
     <div class="category-grid" id="categoryGrid">
       <div class="state-msg">Загрузка данных...</div>
     </div>
+    <div class="category-results hidden" id="categoryResults">
+      <div class="category-results-header">
+        <div class="category-results-title" id="categoryResultsTitle">Инсайты</div>
+        <div class="category-results-meta" id="categoryResultsMeta"></div>
+      </div>
+      <div class="results-list" id="categoryResultsList"></div>
+    </div>
   </div>
 
   <!-- Table view -->
@@ -409,6 +477,8 @@
     'Threads': '#34D399',
     'Yandex Direct': '#F59E0B'
   };
+  let insightsByCategory = {};
+  let activeCategory = null;
 
   function esc(s) {
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -437,6 +507,7 @@
       renderPlatforms(byPlatform);
       renderCategories(byCategory);
       renderTable(insights);
+      renderCategoryResults();
     } catch(e) {
       document.getElementById('platformGrid').innerHTML = '<div class="state-msg">⚠️ Ошибка загрузки данных</div>';
     }
@@ -469,14 +540,65 @@
   }
 
   function renderCategories(byCategory) {
+    insightsByCategory = byCategory;
+    if (activeCategory && !insightsByCategory[activeCategory]) {
+      activeCategory = null;
+    }
     document.getElementById('categoryGrid').innerHTML = Object.entries(byCategory)
       .sort((a,b) => b[1].length - a[1].length)
       .map(([cat, items]) => `
-        <div class="cat-card">
+        <button type="button" class="cat-card ${activeCategory === cat ? 'active' : ''}" data-category="${esc(cat)}" aria-pressed="${activeCategory === cat ? 'true' : 'false'}">
           <div class="cat-num">${items.length}</div>
           <div class="cat-name">${esc(cat)}</div>
-        </div>
+        </button>
       `).join('');
+
+    document.querySelectorAll('.cat-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const nextCategory = card.dataset.category;
+        activeCategory = activeCategory === nextCategory ? null : nextCategory;
+        renderCategories(insightsByCategory);
+        renderCategoryResults();
+      });
+    });
+  }
+
+  function renderInsightItem(ins) {
+    return `
+      <div class="insight">
+        <div class="insight-title">${esc(ins.title)}</div>
+        <div class="insight-body">${esc(ins.content)}</div>
+        <div class="insight-footer">
+          <span class="badge badge-category">${esc(ins.category)}</span>
+          <span class="badge badge-conf">${ins.confidence}/10</span>
+          <span class="badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);border:1px solid var(--border)">${PLATFORM_ICONS[ins.platform] || '📱'} ${esc(ins.platform)}</span>
+          ${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" class="source-link">🔗 Источник</a>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderCategoryResults() {
+    const wrap = document.getElementById('categoryResults');
+    const title = document.getElementById('categoryResultsTitle');
+    const meta = document.getElementById('categoryResultsMeta');
+    const list = document.getElementById('categoryResultsList');
+
+    if (!activeCategory) {
+      wrap.classList.remove('hidden');
+      title.textContent = 'Выберите категорию';
+      meta.textContent = `${Object.keys(insightsByCategory).length || 0} тегов доступно`;
+      list.innerHTML = '<div class="filter-hint">Нажмите на плашку категории, чтобы увидеть связанные инсайты.</div>';
+      return;
+    }
+
+    const items = insightsByCategory[activeCategory] || [];
+    wrap.classList.remove('hidden');
+    title.textContent = activeCategory;
+    meta.textContent = `${items.length} инсайтов`;
+    list.innerHTML = items.length
+      ? items.map(renderInsightItem).join('')
+      : '<div class="filter-hint">По этому тегу пока нет инсайтов.</div>';
   }
 
   function renderTable(insights) {
