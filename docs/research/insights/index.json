@@ -1,6 +1,6 @@
 {
-  "total_insights": 118,
-  "last_updated": "2026-05-02T22:36:08.329104",
+  "total_insights": 122,
+  "last_updated": "2026-05-02T22:38:41.728727",
   "insights": [
     {
       "id": 1,
@@ -271,6 +271,30 @@
       "discovered_at": "2026-05-02T21:02:02.381736",
       "tags": [],
       "source_url": "https://elama.ru/blog/kak-zapustit-reklamu-vkontakte-s-telefona-v-2026-godu-polnoe-rukovodstvo/"
+    },
+    {
+      "id": 5,
+      "platform": "VK",
+      "title": "Оптимизация бюджета кампании новый инструмент... - YouTube",
+      "content": "© 2026 Google LLC.",
+      "category": "budget_optimization",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:02:02.381896",
+      "tags": [],
+      "source_url": "https://www.youtube.com/watch?v=4WiEcvXnD1g"
+    },
+    {
+      "id": 6,
+      "platform": "VK",
+      "title": "Формула ROI в маркетинге: как рассчитать рентабельность...",
+      "content": "Значение ROI показывает, насколько успешными были инвестиции: ROI < 0% — вложения не окупились, компания понесла убытки. Следует пересмотреть маркетинговую стратегию. ROI = 0% — прибыли и убытков нет, компания вышла в ноль.",
+      "category": "budget_optimization",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T21:02:02.382024",
+      "tags": [
+        "roi"
+      ],
+      "source_url": "https://blog.promopult.ru/ecommerce/formula-roi-chto-eto-kak-eyo-poschitat.html"
     },
     {
       "id": 7,
@@ -1277,6 +1301,32 @@
       "discovered_at": "2026-05-02T22:10:09.390194",
       "tags": [],
       "source_url": "https://seotop.biz/blog/kak-nastroit-yandex-direct/"
+    },
+    {
+      "id": 1,
+      "platform": "VK",
+      "title": "Таргет ВКонтакте: что нужно знать перед запуском? | Дзен",
+      "content": "Таргетированная реклама во «ВКонтакте» – мощный инструмент для привлечения целевой аудитории, но её запуск требует чёткого планирования и понимания ключевых аспектов. В этой статье разберём, что нужно знать перед началом работы...",
+      "snippet": "Таргетированная реклама во «ВКонтакте» – мощный инструмент для привлечения целевой аудитории, но её запуск требует чёткого планирования и понимания ключевых аспектов. В этой статье разберём, что нужно знать перед началом работы...",
+      "summary": "",
+      "category": "targeting",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T22:36:14.856309",
+      "tags": [],
+      "source_url": "https://dzen.ru/a/afM6EbA5TGF1WchU"
+    },
+    {
+      "id": 2,
+      "platform": "VK",
+      "title": "ВКонтакте Вход | Добро пожаловать",
+      "content": "ВКонтакте – популярная социальная сеть для общения, поиска друзей и одноклассников, объединяющая миллионы пользователей ежедневно.",
+      "snippet": "ВКонтакте – популярная социальная сеть для общения, поиска друзей и одноклассников, объединяющая миллионы пользователей ежедневно.",
+      "summary": "",
+      "category": "mistakes",
+      "confidence": 7,
+      "discovered_at": "2026-05-02T22:36:47.651546",
+      "tags": [],
+      "source_url": "https://m.vk.com/"
     },
     {
       "id": 5,
