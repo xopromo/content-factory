@@ -1,11 +1,15 @@
-name: Traffic Research Agent
+name: Chelyabinsk News Agent
 
 on:
   schedule:
-    # Запускать каждый день в 09:00 UTC
-    - cron: '0 9 * * *'
+    # Каждые 6 часов (минимум — 1 час: '0 * * * *')
+    - cron: '0 */6 * * *'
   workflow_dispatch:
-    # Позволяет запускать вручную
+    inputs:
+      reason:
+        description: 'Причина ручного запуска (необязательно)'
+        required: false
+        default: 'manual trigger'
 
 permissions:
   contents: write
@@ -25,14 +29,14 @@ jobs:
 
       - name: Configure Git
         run: |
-          git config --global user.email "traffic-agent@content-factory.local"
-          git config --global user.name "Traffic Research Agent"
+          git config --global user.email "research-agent@content-factory.local"
+          git config --global user.name "Research Agent"
 
       - name: Install dependencies
         run: pip install ddgs requests trafilatura htmldate
 
-      - name: Run traffic research
-        run: python3 researcher.py --config research_configs/traffic.json
+      - name: Run Chelyabinsk research
+        run: python3 researcher.py --config research_configs/chelyabinsk.json
         env:
           GEMINI_KEY:   ${{ secrets.GEMINI_KEY }}
           GROQ_KEY:     ${{ secrets.GROQ_KEY }}
@@ -43,21 +47,19 @@ jobs:
         run: |
           git add -A
           git diff --quiet && git diff --staged --quiet || (
-            git commit -m "🔍 Traffic research update - $(date +'%Y-%m-%d %H:%M:%S')" && \
+            git commit -m "📰 Chelyabinsk research update - $(date +'%Y-%m-%d %H:%M:%S')" && \
             git push origin main || git push origin $(git rev-parse --abbrev-ref HEAD)
           )
         continue-on-error: true
 
-      - name: Create summary
+      - name: Summary
         run: |
-          echo "✅ Traffic research completed successfully"
-          echo "📊 Results:"
-          if [ -f docs/research/insights/index.json ]; then
+          if [ -f docs/chelyabinsk/insights/index.json ]; then
             python3 -c "
             import json
-            with open('docs/research/insights/index.json') as f:
+            with open('docs/chelyabinsk/insights/index.json') as f:
               data = json.load(f)
-              print(f\"Total insights: {data.get('total_insights', 0)}\")
-              print(f\"Last updated: {data.get('last_updated', 'N/A')}\")
+              print(f'Total insights: {data.get(\"total_insights\", 0)}')
+              print(f'Last updated: {data.get(\"last_updated\", \"N/A\")}')
             "
           fi

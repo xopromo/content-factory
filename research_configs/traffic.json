@@ -1,0 +1,41 @@
+{
+  "name": "Traffic Research",
+  "output_dir": "docs/research",
+  "platforms": [
+    {
+      "name": "VK",
+      "confidence": 7,
+      "relevance_keywords": ["вконтакте", "вк", "vk", "таргет", "реклам", "продвижен", "аудитори", "vk ads", "таргетинг"],
+      "queries": [
+        {"query": "ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории", "category": "targeting"},
+        {"query": "ВК реклама оптимизация бюджета ROI стратегия 2026", "category": "budget_optimization"},
+        {"query": "ВКонтакте реклама время публикации объявлений лучшее", "category": "timing"},
+        {"query": "VK Ads новые фишки обновления 2026", "category": "updates"},
+        {"query": "ВК таргет ошибки новичков как избежать", "category": "mistakes"}
+      ]
+    },
+    {
+      "name": "Threads",
+      "confidence": 7,
+      "relevance_keywords": ["threads", "мета", "meta", "продвижен", "контент", "охват", "подписчик", "алгоритм"],
+      "queries": [
+        {"query": "Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк", "category": "content_strategy"},
+        {"query": "Threads app хэштеги алгоритм охват 2026 -вконтакте", "category": "discovery"},
+        {"query": "Threads Instagram Meta монетизация рост аудитории маркетинг", "category": "monetization"},
+        {"query": "Threads соцсеть вирусный контент что работает -ВК -вконтакте", "category": "viral"}
+      ]
+    },
+    {
+      "name": "Yandex Direct",
+      "confidence": 8,
+      "relevance_keywords": ["яндекс", "директ", "direct", "контекстн", "ставк", "ключев", "wordstat", "объявлен"],
+      "queries": [
+        {"query": "Яндекс Директ ключевые слова Wordstat лайфхаки 2026", "category": "keywords"},
+        {"query": "Яндекс Директ стратегия ставок оптимизация CPC 2026", "category": "bidding"},
+        {"query": "Яндекс Директ минус-слова фильтрация примеры", "category": "filtering"},
+        {"query": "Яндекс Директ расширения объявлений CTR увеличение", "category": "optimization"},
+        {"query": "Яндекс Директ новинки обновления 2026", "category": "updates"}
+      ]
+    }
+  ]
+}

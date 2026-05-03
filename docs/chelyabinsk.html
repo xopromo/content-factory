@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Челябинск — Новости и события</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #1F2937;
+      --surface:   #263348;
+      --surface2:  #2d3a50;
+      --border:    rgba(255,255,255,0.08);
+      --primary:   #34D399;
+      --text:      #FFFFFF;
+      --text-muted:#9CA3AF;
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.5; }
+
+    .nav {
+      display: flex; align-items: center; gap: 24px;
+      padding: 0 32px; height: 52px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(31,41,55,0.95); backdrop-filter: blur(8px);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .nav-logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+    .nav-stats { display: flex; align-items: center; gap: 20px; margin-left: 8px; }
+    .nav-stat { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+    .nav-stat-value { font-size: 13px; font-weight: 600; color: var(--text); }
+    .nav-sep { width: 1px; height: 16px; background: var(--border); }
+    .nav-links { display: flex; gap: 4px; margin-left: auto; }
+    .nav-link { padding: 5px 10px; border-radius: var(--radius-sm); color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer; transition: color 150ms, background 150ms; text-decoration: none; }
+    .nav-link:hover { color: var(--text); background: var(--surface); }
+    .nav-link.active { color: var(--text); background: var(--surface2); }
+
+    .page-header { padding: 32px 32px 0; max-width: 1280px; margin: 0 auto; }
+    .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--primary); margin-bottom: 6px; }
+    .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; margin-bottom: 6px; }
+    .page-desc { color: var(--text-muted); font-size: 13px; max-width: 520px; margin-bottom: 20px; }
+
+    /* Run button */
+    .run-bar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 32px 28px; max-width: 1280px; margin: 0 auto;
+      flex-wrap: wrap;
+    }
+    .btn-run {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 18px; border-radius: var(--radius-md);
+      background: var(--primary); color: #0f2318;
+      font-size: 13px; font-weight: 600; text-decoration: none;
+      transition: opacity 150ms; cursor: pointer;
+    }
+    .btn-run:hover { opacity: 0.85; }
+    .schedule-info {
+      font-size: 12px; color: var(--text-muted);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 8px 14px;
+    }
+    .schedule-info strong { color: var(--text); }
+
+    .main { max-width: 1280px; margin: 0 auto; padding: 0 32px 48px; }
+
+    .controls-bar {
+      display: flex; align-items: center;
+      border-bottom: 1px solid var(--border); margin-bottom: 20px;
+    }
+    .tab { padding: 10px 14px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 150ms, border-color 150ms; user-select: none; white-space: nowrap; }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--text); border-bottom-color: var(--primary); }
+    .sort-group { margin-left: auto; display: flex; align-items: center; gap: 4px; padding-bottom: 2px; }
+    .sort-label-text { font-size: 12px; color: var(--text-muted); margin-right: 4px; }
+    .sort-btn { font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; padding: 4px 6px; border-radius: var(--radius-sm); transition: color 150ms; user-select: none; background: none; border: none; font-family: inherit; }
+    .sort-btn:hover { color: var(--text); }
+    .sort-btn.active { color: var(--primary); font-weight: 600; }
+    .sort-sep { color: var(--border); font-size: 12px; user-select: none; }
+
+    .platform-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; transition: border-color 300ms, transform 300ms; }
+    .card:hover { border-color: rgba(52,211,153,0.25); transform: translateY(-2px); }
+    .card-header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+    .card-header-title { font-size: 13px; font-weight: 600; }
+    .card-header-count { margin-left: auto; font-size: 11px; color: var(--text-muted); background: var(--surface2); padding: 2px 8px; border-radius: 9999px; }
+    .card-body { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+
+    .insight { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; transition: border-color 150ms; }
+    .insight:hover { border-color: rgba(52,211,153,0.3); }
+    .insight-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 5px; line-height: 1.4; }
+    .insight-tabs { display: flex; gap: 12px; margin-bottom: 8px; }
+    .itab { font-size: 11px; font-weight: 600; color: var(--text-muted); cursor: pointer; padding-bottom: 2px; border-bottom: 1px solid transparent; transition: color 150ms, border-color 150ms; user-select: none; }
+    .itab:hover { color: var(--text); }
+    .itab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .insight-body { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 8px; }
+    .insight-footer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .insight-meta-text { font-size: 11px; color: var(--text-muted); opacity: 0.7; }
+    .insight-meta-text .cat { color: var(--primary); opacity: 0.85; }
+    .source-link { margin-left: auto; font-size: 11px; color: var(--text-muted); text-decoration: none; opacity: 0.6; transition: opacity 150ms, color 150ms; }
+    .source-link:hover { color: var(--primary); opacity: 1; }
+
+    .category-grid { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+    .cat-card { appearance: none; background: transparent; border: none; padding: 0; text-align: left; font: inherit; color: inherit; display: inline-flex; align-items: baseline; gap: 6px; cursor: pointer; opacity: 0.9; }
+    .cat-card:hover, .cat-card.active { opacity: 1; }
+    .cat-num { font-size: 11px; font-weight: 600; color: var(--primary); }
+    .cat-name { font-size: 12px; color: var(--text-muted); font-weight: 600; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 3px; transition: color 180ms, text-decoration-color 180ms; }
+    .cat-card:hover .cat-name, .cat-card.active .cat-name { color: var(--text); text-decoration-color: rgba(52,211,153,0.55); }
+    .category-results { margin-top: 18px; display: flex; flex-direction: column; gap: 12px; }
+    .category-results-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); }
+    .category-results-title { font-size: 14px; font-weight: 600; }
+    .category-results-meta { font-size: 12px; color: var(--text-muted); }
+    .results-list { display: grid; gap: 10px; }
+    .filter-hint { padding: 28px 18px; border: 1px dashed var(--border); border-radius: var(--radius-lg); text-align: center; color: var(--text-muted); font-size: 13px; background: rgba(255,255,255,0.02); }
+
+    .table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--surface2); }
+    th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    td { padding: 11px 16px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    td a { color: var(--primary); text-decoration: none; }
+    td a:hover { text-decoration: underline; }
+
+    .footer { text-align: center; color: var(--text-muted); font-size: 12px; padding: 28px 32px; border-top: 1px solid var(--border); }
+    .state-msg { padding: 48px; text-align: center; color: var(--text-muted); font-size: 14px; }
+    .hidden { display: none !important; }
+
+    @media (max-width: 768px) {
+      .nav-stats { display: none; }
+      .nav, .page-header, .run-bar, .main { padding-left: 16px; padding-right: 16px; }
+      .platform-grid { grid-template-columns: 1fr; }
+      .sort-group { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    Челябинск
+  </div>
+  <div class="nav-stats">
+    <div class="nav-sep"></div>
+    <div class="nav-stat"><span class="nav-stat-value" id="statTotal">—</span><span>новостей</span></div>
+    <div class="nav-sep"></div>
+    <div class="nav-stat"><span class="nav-stat-value" id="statCategories">—</span><span>категорий</span></div>
+    <div class="nav-sep"></div>
+    <div class="nav-stat" id="statUpdated" style="color:var(--primary);font-size:11px;">загрузка...</div>
+  </div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Pipeline</a>
+    <a href="traffic-research.html" class="nav-link">Трафик</a>
+    <a href="chelyabinsk.html" class="nav-link active">Челябинск</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="eyebrow">Мониторинг города</div>
+  <h1 class="page-title">Челябинск — новости и события</h1>
+  <p class="page-desc">ЧП, ДТП, происшествия, громкие и яркие события Челябинска и Челябинской области.</p>
+</div>
+
+<div class="run-bar">
+  <a class="btn-run" href="https://github.com/xopromo/content-factory/actions/workflows/chelyabinsk.yml" target="_blank" rel="noopener">
+    ▶ Запустить поиск вручную
+  </a>
+  <div class="schedule-info">
+    Автозапуск: <strong>каждые 6 часов</strong> · чтобы изменить частоту — отредактируй <code>chelyabinsk.yml</code> (cron)
+  </div>
+</div>
+
+<div class="main">
+  <div class="controls-bar">
+    <div class="tab active" data-view="categories">По категориям</div>
+    <div class="tab" data-view="platforms">По потокам</div>
+    <div class="tab" data-view="table">Таблица</div>
+    <div class="sort-group">
+      <span class="sort-label-text">Сортировка:</span>
+      <button class="sort-btn active" data-sort-dir="desc">Сначала новые</button>
+      <span class="sort-sep">·</span>
+      <button class="sort-btn" data-sort-dir="asc">Сначала старые</button>
+    </div>
+  </div>
+
+  <div id="view-categories">
+    <div class="category-grid" id="categoryGrid"><div class="state-msg">Загрузка данных...</div></div>
+    <div class="category-results hidden" id="categoryResults">
+      <div class="category-results-header">
+        <div class="category-results-title" id="categoryResultsTitle">Новости</div>
+        <div class="category-results-meta" id="categoryResultsMeta"></div>
+      </div>
+      <div class="results-list" id="categoryResultsList"></div>
+    </div>
+  </div>
+
+  <div id="view-platforms" class="hidden">
+    <div class="platform-grid" id="platformGrid"><div class="state-msg">Загрузка данных...</div></div>
+  </div>
+
+  <div id="view-table" class="hidden">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Поток</th><th>Заголовок</th><th>Категория</th><th>Дата</th><th></th></tr></thead>
+        <tbody id="tableBody"><tr><td colspan="5" class="state-msg">Загрузка...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="footer" id="footerUpdated">Последнее обновление: —</div>
+
+<script>
+  const CAT_RU = {
+    incidents: 'Происшествия', accidents: 'ДТП', crime: 'Криминал',
+    emergency: 'Экстренные службы', news: 'Новости', highlights: 'Яркие события',
+    government: 'Власть', infrastructure: 'Инфраструктура',
+    society: 'Общество', regional: 'Регион', ecology: 'Экология',
+  };
+  function catRu(k) { return CAT_RU[k] || k; }
+
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  }
+  function fmtDate(v) {
+    if (!v) return null;
+    const d = new Date(v);
+    return Number.isNaN(d.getTime()) ? null : d.toLocaleString('ru-RU',{day:'2-digit',month:'short',year:'numeric'});
+  }
+
+  let allInsights = [], byPlatform = {}, byCategory = {};
+  let activeCategory = null, sortDirection = 'desc';
+  let insightIdCounter = 0;
+
+  function getTs(ins) { const d = new Date(ins.discovered_at||0); return isNaN(d)?0:d.getTime(); }
+  function sortInsights(items) {
+    const dir = sortDirection === 'asc' ? 1 : -1;
+    return [...items].sort((a,b) => (getTs(a)-getTs(b))*dir);
+  }
+  function sortGroupedEntries(grouped) {
+    const dir = sortDirection === 'asc' ? 1 : -1;
+    return Object.entries(grouped).sort((a,b) => {
+      const av = sortInsights(a[1])[0] ? getTs(sortInsights(a[1])[0]) : 0;
+      const bv = sortInsights(b[1])[0] ? getTs(sortInsights(b[1])[0]) : 0;
+      return (av-bv)*dir;
+    });
+  }
+
+  function renderInsightItem(ins) {
+    const dateAdded = fmtDate(ins.discovered_at);
+    const hasSummary = ins.summary && ins.summary.trim().length > 0;
+    const hasSnippet = ins.snippet && ins.snippet.trim().length > 0;
+    const showTabs = hasSummary && hasSnippet;
+    const uid = ++insightIdCounter;
+    const tabs = showTabs ? `<div class="insight-tabs">
+      <span class="itab active" data-uid="${uid}" data-tab="summary">Саммари</span>
+      <span class="itab" data-uid="${uid}" data-tab="snippet">Сниппет</span>
+    </div>` : '';
+    const bodyContent = hasSummary ? ins.summary : (ins.content || ins.snippet || '');
+    const snippetContent = hasSnippet ? ins.snippet : ins.content;
+    return `<div class="insight">
+      <div class="insight-title">${esc(ins.title)}</div>
+      ${tabs}
+      <div class="insight-body" id="ibody-${uid}-summary">${esc(bodyContent)}</div>
+      ${showTabs ? `<div class="insight-body hidden" id="ibody-${uid}-snippet">${esc(snippetContent)}</div>` : ''}
+      <div class="insight-footer">
+        <span class="insight-meta-text"><span class="cat">${esc(catRu(ins.category))}</span>${dateAdded ? ' · '+dateAdded : ''}</span>
+        ${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" class="source-link">↗ источник</a>` : ''}
+      </div>
+    </div>`;
+  }
+
+  function renderCategories() {
+    if (activeCategory && !byCategory[activeCategory]) activeCategory = null;
+    document.getElementById('categoryGrid').innerHTML = sortGroupedEntries(byCategory).map(([cat,items]) =>
+      `<button type="button" class="cat-card${activeCategory===cat?' active':''}" data-cat="${esc(cat)}">
+        <span class="cat-num">${items.length}</span><span class="cat-name">${esc(catRu(cat))}</span>
+      </button>`).join('') || '<div class="state-msg">Нет данных</div>';
+    document.querySelectorAll('.cat-card').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeCategory = activeCategory === btn.dataset.cat ? null : btn.dataset.cat;
+        renderCategories(); renderCategoryResults();
+      });
+    });
+  }
+
+  function renderCategoryResults() {
+    const wrap = document.getElementById('categoryResults');
+    const title = document.getElementById('categoryResultsTitle');
+    const meta  = document.getElementById('categoryResultsMeta');
+    const list  = document.getElementById('categoryResultsList');
+    wrap.classList.remove('hidden');
+    const items = activeCategory ? sortInsights(byCategory[activeCategory]||[]) : sortInsights(allInsights);
+    title.textContent = activeCategory ? catRu(activeCategory) : 'Все новости';
+    meta.textContent  = `${items.length} новостей`;
+    list.innerHTML = items.length ? items.map(renderInsightItem).join('') : '<div class="filter-hint">Нет новостей.</div>';
+  }
+
+  function renderPlatforms() {
+    document.getElementById('platformGrid').innerHTML = sortGroupedEntries(byPlatform).map(([platform,items]) =>
+      `<div class="card">
+        <div class="card-header" style="border-left:3px solid var(--primary);padding-left:15px;">
+          <span class="card-header-title">${esc(platform)}</span>
+          <span class="card-header-count">${items.length} новостей</span>
+        </div>
+        <div class="card-body">${sortInsights(items).map(renderInsightItem).join('')}</div>
+      </div>`).join('');
+  }
+
+  function renderTable() {
+    document.getElementById('tableBody').innerHTML = sortInsights(allInsights).map(ins =>
+      `<tr>
+        <td style="font-size:12px;color:var(--text-muted)">${esc(ins.platform)}</td>
+        <td style="max-width:320px">${ins.source_url?`<a href="${esc(ins.source_url)}" target="_blank" rel="noopener">${esc(ins.title)}</a>`:esc(ins.title)}</td>
+        <td style="font-size:12px;color:var(--text-muted)">${esc(catRu(ins.category))}</td>
+        <td style="font-size:12px;color:var(--text-muted)">${fmtDate(ins.discovered_at)||'—'}</td>
+        <td>${ins.source_url?`<a href="${esc(ins.source_url)}" target="_blank" style="font-size:11px;color:var(--text-muted)">↗</a>`:'—'}</td>
+      </tr>`).join('');
+  }
+
+  function renderAll() { renderCategories(); renderCategoryResults(); renderPlatforms(); renderTable(); }
+
+  async function load() {
+    try {
+      const res  = await fetch('chelyabinsk/insights/index.json?_='+Date.now());
+      const data = await res.json();
+      allInsights = data.insights || [];
+      byPlatform = {}; byCategory = {};
+      allInsights.forEach(i => {
+        (byPlatform[i.platform] = byPlatform[i.platform]||[]).push(i);
+        (byCategory[i.category] = byCategory[i.category]||[]).push(i);
+      });
+      document.getElementById('statTotal').textContent      = allInsights.length;
+      document.getElementById('statCategories').textContent = Object.keys(byCategory).length;
+      if (data.last_updated) {
+        const d = new Date(data.last_updated).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+        document.getElementById('statUpdated').textContent   = '↑ '+d;
+        document.getElementById('footerUpdated').textContent = 'Последнее обновление: '+d;
+      }
+      renderAll();
+    } catch(e) {
+      document.getElementById('categoryGrid').innerHTML = '<div class="state-msg">⚠️ Данных пока нет — запусти поиск вручную</div>';
+    }
+  }
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      ['categories','platforms','table'].forEach(v =>
+        document.getElementById('view-'+v).classList.toggle('hidden', v !== tab.dataset.view));
+    });
+  });
+
+  // Sort
+  document.querySelectorAll('[data-sort-dir]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-sort-dir]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sortDirection = btn.dataset.sortDir;
+      renderAll();
+    });
+  });
+
+  // Insight tabs
+  document.addEventListener('click', e => {
+    const itab = e.target.closest('.itab');
+    if (!itab) return;
+    const uid = itab.dataset.uid, tab = itab.dataset.tab;
+    document.querySelectorAll(`.itab[data-uid="${uid}"]`).forEach(t => t.classList.toggle('active', t===itab));
+    ['summary','snippet'].forEach(n => {
+      const el = document.getElementById(`ibody-${uid}-${n}`);
+      if (el) el.classList.toggle('hidden', n!==tab);
+    });
+  });
+
+  load();
+  setInterval(load, 5*60*1000);
+</script>
+</body>
+</html>
