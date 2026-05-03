@@ -63,11 +63,32 @@ def fetch_article(url: str, max_chars: int = 3000) -> Dict[str, str]:
         r.encoding = "utf-8"
         html = r.text
         text = trafilatura.extract(html, include_comments=False, include_tables=False) or ""
-        date = htmldate.find_date(html) or ""
-        return {"text": text[:max_chars], "date": date}
+        # Пробуем вытащить полный datetime (с временем) из meta-тегов
+        pub_datetime = _extract_pub_datetime(html)
+        if not pub_datetime:
+            pub_datetime = htmldate.find_date(html) or ""
+        return {"text": text[:max_chars], "date": pub_datetime}
     except Exception as e:
         print(f"  [WARN] fetch_article failed for {url[:60]}: {e}")
         return {}
+
+
+def _extract_pub_datetime(html: str) -> str:
+    """Извлекает дату+время публикации из meta-тегов статьи"""
+    patterns = [
+        r'<meta[^>]+property=["\']article:published_time["\'][^>]+content=["\']([^"\']+)["\']',
+        r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']article:published_time["\']',
+        r'"datePublished"\s*:\s*"([^"]+)"',
+        r'"publishedAt"\s*:\s*"([^"]+)"',
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, html, re.IGNORECASE)
+        if m:
+            val = m.group(1).strip()
+            # Нормализуем: убираем timezone suffix, оставляем до секунд
+            val = re.sub(r'([T ]\d{2}:\d{2})(:\d{2})?.*', lambda x: x.group(1), val)
+            return val
+    return ""
 
 
 def fetch_article_text(url: str, max_chars: int = 3000) -> str:

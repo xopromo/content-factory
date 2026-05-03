@@ -55,10 +55,14 @@
       display: inline-flex; align-items: center; gap: 8px;
       padding: 9px 18px; border-radius: var(--radius-md);
       background: var(--primary); color: #0f2318;
-      font-size: 13px; font-weight: 600; text-decoration: none;
-      transition: opacity 150ms; cursor: pointer;
+      font-size: 13px; font-weight: 600; border: none;
+      transition: opacity 150ms; cursor: pointer; font-family: inherit;
     }
     .btn-run:hover { opacity: 0.85; }
+    .btn-run:disabled { opacity: 0.5; cursor: not-allowed; }
+    .run-status { font-size: 12px; color: var(--text-muted); }
+    .run-status.ok { color: var(--primary); }
+    .run-status.err { color: #f87171; }
     .schedule-info {
       font-size: 12px; color: var(--text-muted);
       background: var(--surface); border: 1px solid var(--border);
@@ -168,9 +172,8 @@
 </div>
 
 <div class="run-bar">
-  <a class="btn-run" href="https://github.com/xopromo/content-factory/actions/workflows/chelyabinsk.yml" target="_blank" rel="noopener">
-    ▶ Запустить поиск вручную
-  </a>
+  <button class="btn-run" id="btnRun" onclick="runWorkflow()">▶ Запустить поиск</button>
+  <span class="run-status" id="runStatus"></span>
   <div class="schedule-info">
     Автозапуск: <strong>каждые 6 часов</strong> · чтобы изменить частоту — отредактируй <code>chelyabinsk.yml</code> (cron)
   </div>
@@ -231,7 +234,15 @@
   function fmtDate(v) {
     if (!v) return null;
     const d = new Date(v);
-    return Number.isNaN(d.getTime()) ? null : d.toLocaleString('ru-RU',{day:'2-digit',month:'short',year:'numeric'});
+    if (Number.isNaN(d.getTime())) return null;
+    const hasTime = v.includes('T') || (v.includes(' ') && v.match(/\d{2}:\d{2}/));
+    const opts = {day:'2-digit', month:'short', year:'numeric'};
+    if (hasTime) { opts.hour = '2-digit'; opts.minute = '2-digit'; }
+    return d.toLocaleString('ru-RU', opts);
+  }
+  function domainOf(url) {
+    try { return new URL(url).hostname.replace(/^www\./, ''); }
+    catch { return 'источник'; }
   }
 
   let allInsights = [], byPlatform = {}, byCategory = {};
@@ -271,7 +282,7 @@
       ${showTabs ? `<div class="insight-body hidden" id="ibody-${uid}-snippet">${esc(snippetContent)}</div>` : ''}
       <div class="insight-footer">
         <span class="insight-meta-text"><span class="cat">${esc(catRu(ins.category))}</span>${dateAdded ? ' · '+dateAdded : ''}</span>
-        ${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" class="source-link">↗ источник</a>` : ''}
+        ${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" class="source-link">↗ ${esc(domainOf(ins.source_url))}</a>` : ''}
       </div>
     </div>`;
   }
@@ -380,6 +391,44 @@
       if (el) el.classList.toggle('hidden', n!==tab);
     });
   });
+
+  async function runWorkflow() {
+    const btn = document.getElementById('btnRun');
+    const status = document.getElementById('runStatus');
+    let token = localStorage.getItem('gh_pat');
+    if (!token) {
+      token = prompt('Введи GitHub Personal Access Token (нужно право workflow):\nhttps://github.com/settings/tokens');
+      if (!token) return;
+      localStorage.setItem('gh_pat', token.trim());
+      token = token.trim();
+    }
+    btn.disabled = true;
+    status.className = 'run-status';
+    status.textContent = 'Запускаю...';
+    try {
+      const res = await fetch('https://api.github.com/repos/xopromo/content-factory/actions/workflows/chelyabinsk.yml/dispatches', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer '+token, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref: 'main' })
+      });
+      if (res.status === 204) {
+        status.className = 'run-status ok';
+        status.textContent = '✓ Поиск запущен — результаты появятся через ~3 минуты';
+        setTimeout(() => { status.textContent = ''; }, 15000);
+      } else if (res.status === 401) {
+        localStorage.removeItem('gh_pat');
+        status.className = 'run-status err';
+        status.textContent = '✗ Неверный токен — удалён, попробуй снова';
+      } else {
+        status.className = 'run-status err';
+        status.textContent = `✗ Ошибка ${res.status}`;
+      }
+    } catch(e) {
+      status.className = 'run-status err';
+      status.textContent = '✗ Нет соединения';
+    }
+    btn.disabled = false;
+  }
 
   load();
   setInterval(load, 5*60*1000);
