@@ -15,12 +15,16 @@ from typing import Dict, List, Any, Optional
 import hashlib
 
 
-def search_web(query: str, max_results: int = 5, region: str = "ru-ru") -> List[Dict[str, str]]:
-    """Поиск в DuckDuckGo через пакет ddgs"""
+def search_web(query: str, max_results: int = 5, region: str = "ru-ru",
+               timelimit: str = None) -> List[Dict[str, str]]:
+    """Поиск в DuckDuckGo через пакет ddgs. timelimit: 'h'=час, 'd'=день, 'w'=неделя"""
     try:
         from ddgs import DDGS
+        kwargs = {"max_results": max_results, "region": region}
+        if timelimit:
+            kwargs["timelimit"] = timelimit
         with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=max_results, region=region))
+            results = list(ddgs.text(query, **kwargs))
         return results
     except Exception as e:
         print(f"  [WARN] DuckDuckGo search failed for '{query}': {e}")
@@ -55,6 +59,8 @@ def fetch_article(url: str, max_chars: int = 3000) -> Dict[str, str]:
         r = req.get(url, headers=headers, timeout=10)
         if r.status_code != 200:
             return {}
+        # Многие ru-сайты объявляют ISO-8859-1 но реально отдают UTF-8
+        r.encoding = "utf-8"
         html = r.text
         text = trafilatura.extract(html, include_comments=False, include_tables=False) or ""
         date = htmldate.find_date(html) or ""
@@ -349,7 +355,8 @@ class ResearchAgent:
         return [kw for kw in keywords if kw in text_lower]
 
     def _search_and_add(self, platform: str, queries: List[Dict], default_confidence: int = 7,
-                        region: str = "ru-ru", platform_keywords: List[str] = None):
+                        region: str = "ru-ru", platform_keywords: List[str] = None,
+                        timelimit: str = None):
         """Общий метод: поиск по запросам и добавление инсайтов"""
         total = 0
         for item in queries:
@@ -357,7 +364,7 @@ class ResearchAgent:
             category = item["category"]
             self.log_action(f"Searching: {query}", {"platform": platform})
 
-            results = search_web(query, max_results=3, region=region)
+            results = search_web(query, max_results=3, region=region, timelimit=timelimit)
             self.session_log["statistics"]["sources_analyzed"] += len(results)
 
             raw_insights = extract_insights_from_search(
@@ -387,6 +394,7 @@ class ResearchAgent:
         return total
 
     def run_all_platforms(self):
+        timelimit = self.config.get("timelimit")  # 'h', 'd', 'w' или None
         for platform_cfg in self.config["platforms"]:
             name       = platform_cfg["name"]
             queries    = platform_cfg["queries"]
@@ -398,6 +406,7 @@ class ResearchAgent:
                 name, queries,
                 default_confidence=confidence,
                 platform_keywords=keywords,
+                timelimit=timelimit,
             )
             self.log_action(f"{name} research completed", {"insights_added": count}, status="success")
 
@@ -442,6 +451,7 @@ class ResearchAgent:
         self._update_insights_index()
 
     def _update_insights_index(self):
+        from datetime import timezone, timedelta
         all_insights = []
 
         for insight_file in sorted(self.insights_dir.glob("insights_*.json")):
@@ -454,6 +464,23 @@ class ResearchAgent:
                         all_insights.append(data)
             except Exception as e:
                 print(f"Error reading {insight_file}: {e}")
+
+        # Фильтр по свежести: если в конфиге есть schedule_hours — оставляем только свежие
+        schedule_hours = self.config.get("schedule_hours")
+        if schedule_hours:
+            cutoff = datetime.now() - timedelta(hours=schedule_hours * 2)
+            cutoff_str = cutoff.date().isoformat()
+            filtered = []
+            for ins in all_insights:
+                pub = ins.get("source_published_at", "")
+                disc = ins.get("discovered_at", "")[:10]
+                date_str = pub if pub else disc
+                if date_str >= cutoff_str:
+                    filtered.append(ins)
+                else:
+                    print(f"  [OLD] Skipping stale insight ({date_str}): {ins.get('title','')[:50]}")
+            print(f"  [FILTER] Freshness: {len(filtered)}/{len(all_insights)} kept (cutoff {cutoff_str})")
+            all_insights = filtered
 
         # Дедупликация + фильтры: язык, релевантность, LLM-маркер нерелевантности
         seen = set()

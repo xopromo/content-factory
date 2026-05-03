@@ -2,16 +2,19 @@
   "name": "Челябинск — новости и события",
   "output_dir": "docs/chelyabinsk",
   "schedule_hours": 6,
+  "timelimit": "d",
   "platforms": [
     {
       "name": "ЧП и происшествия",
       "confidence": 8,
       "relevance_keywords": ["челябинск", "челябинская", "чп", "дтп", "происшестви", "авари", "пожар", "криминал"],
       "queries": [
-        {"query": "Челябинск ЧП происшествия сегодня 2026", "category": "incidents"},
-        {"query": "Челябинск ДТП авария сегодня", "category": "accidents"},
-        {"query": "Челябинск пожар криминал происшествие", "category": "crime"},
-        {"query": "Челябинская область ЧП экстренные службы", "category": "emergency"}
+        {"query": "Челябинск ЧП происшествия сегодня site:74.ru", "category": "incidents"},
+        {"query": "Челябинск ДТП авария сегодня site:74.ru", "category": "accidents"},
+        {"query": "Челябинск пожар криминал происшествие site:74.ru", "category": "crime"},
+        {"query": "Челябинская область ЧП экстренные службы site:74.ru", "category": "emergency"},
+        {"query": "Челябинск происшествия сегодня 2026", "category": "incidents"},
+        {"query": "Челябинск ДТП авария 2026", "category": "accidents"}
       ]
     },
     {
@@ -19,10 +22,11 @@
       "confidence": 7,
       "relevance_keywords": ["челябинск", "челябинская", "городской", "мэрия", "администрация"],
       "queries": [
-        {"query": "Челябинск громкие события новости 2026", "category": "news"},
-        {"query": "Челябинск яркие события неделя месяц", "category": "highlights"},
-        {"query": "Челябинск мэрия администрация решения", "category": "government"},
-        {"query": "Челябинск стройки инфраструктура транспорт", "category": "infrastructure"}
+        {"query": "Челябинск новости сегодня site:74.ru", "category": "news"},
+        {"query": "Челябинск события громкие яркие site:74.ru", "category": "highlights"},
+        {"query": "Челябинск мэрия администрация решения site:74.ru", "category": "government"},
+        {"query": "Челябинск стройки инфраструктура транспорт site:74.ru", "category": "infrastructure"},
+        {"query": "Челябинск новости сегодня 2026", "category": "news"}
       ]
     },
     {
@@ -30,9 +34,10 @@
       "confidence": 7,
       "relevance_keywords": ["челябинск", "челябинская", "уральск", "южный урал"],
       "queries": [
-        {"query": "Челябинск скандал резонанс общество 2026", "category": "society"},
-        {"query": "Южный Урал интересные новости события", "category": "regional"},
-        {"query": "Челябинск экология промышленность проблемы", "category": "ecology"}
+        {"query": "Челябинск скандал резонанс общество site:74.ru", "category": "society"},
+        {"query": "Южный Урал новости события site:74.ru", "category": "regional"},
+        {"query": "Челябинск экология промышленность проблемы site:74.ru", "category": "ecology"},
+        {"query": "Южный Урал новости события 2026", "category": "regional"}
       ]
     }
   ]
