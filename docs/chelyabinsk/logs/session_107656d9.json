@@ -1,0 +1,380 @@
+{
+  "session_id": "107656d9",
+  "started_at": "2026-05-06T12:47:33.108225",
+  "config": "Челябинск — новости и события",
+  "research_targets": [
+    "ЧП и происшествия",
+    "Городские события",
+    "Общество и жизнь"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-05-06T12:47:33.108245",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "107656d9",
+        "config": "Челябинск — новости и события",
+        "platforms": [
+          "ЧП и происшествия",
+          "Городские события",
+          "Общество и жизнь"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:47:33.108291",
+      "action": "Starting ЧП и происшествия research",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:47:33.108308",
+      "action": "Searching: Челябинск ЧП происшествия сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:47:37.545618",
+      "action": "Searching: Челябинск ДТП авария сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:47:41.171715",
+      "action": "New insight discovered: ЧП и происшествия",
+      "status": "success",
+      "details": {
+        "title": "«Он меня ударил по лицу, я взял его за загривок»: версия второго участника драки",
+        "category": "accidents",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:47:41.171771",
+      "action": "New insight discovered: ЧП и происшествия",
+      "status": "success",
+      "details": {
+        "title": "Подрались из-за проезда во дворе водители в Челябинске - 6 мая 2026 | 74.ру",
+        "category": "accidents",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:47:41.171798",
+      "action": "New insight discovered: ЧП и происшествия",
+      "status": "success",
+      "details": {
+        "title": "Гонщики на низких машинах устроили тусовку возле гипермаркета в Челябинске, прие",
+        "category": "accidents",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:47:41.171814",
+      "action": "Searching: Челябинск пожар криминал происшествие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:47:43.055287",
+      "action": "Searching: Челябинская область ЧП экстренные службы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:47:46.094102",
+      "action": "Searching: Челябинск происшествия сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:47:59.200678",
+      "action": "Searching: Челябинск ДТП авария 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:03.858196",
+      "action": "New insight discovered: ЧП и происшествия",
+      "status": "success",
+      "details": {
+        "title": "ДТП и авария! Подборка на видеорегистратор за 6.05.26 Май 2026 - YouTube",
+        "category": "accidents",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:03.858231",
+      "action": "ЧП и происшествия research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 4
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:03.858247",
+      "action": "Starting Городские события research",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:03.858261",
+      "action": "Searching: Челябинск новости сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:05.686742",
+      "action": "Searching: Челябинск события громкие яркие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:07.435183",
+      "action": "Searching: Челябинск мэрия администрация решения site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:09.386328",
+      "action": "Searching: Челябинск стройки инфраструктура транспорт site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:11.205322",
+      "action": "Searching: Челябинск новости сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:12.818900",
+      "action": "Городские события research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:12.818945",
+      "action": "Starting Общество и жизнь research",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:12.818984",
+      "action": "Searching: Челябинск скандал резонанс общество site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:15.678702",
+      "action": "Searching: Южный Урал новости события site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:18.375607",
+      "action": "Searching: Челябинск экология промышленность проблемы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:21.097573",
+      "action": "Searching: Южный Урал новости события 2026",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:22.685965",
+      "action": "Общество и жизнь research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-05-06T12:48:22.686010",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-06T12:48:22.686027",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 4,
+        "insights_by_platform": {
+          "ЧП и происшествия": 4
+        },
+        "insights_by_category": {
+          "accidents": 4
+        },
+        "top_categories": [
+          [
+            "accidents",
+            [
+              {
+                "id": 1,
+                "platform": "ЧП и происшествия",
+                "title": "«Он меня ударил по лицу, я взял его за загривок»: версия второго участника драки",
+                "content": "2 hours ago - Происшествия Подробности «Он меня ударил по лицу, я взял его за загривок»: версия второго участника драки и ДТП в челябинском дворе",
+                "snippet": "2 hours ago - Происшествия Подробности «Он меня ударил по лицу, я взял его за загривок»: версия второго участника драки и ДТП в челябинском дворе",
+                "summary": "",
+                "source_published_at": "",
+                "category": "accidents",
+                "confidence": 8,
+                "discovered_at": "2026-05-06T12:47:41.171496",
+                "tags": [],
+                "source_url": "https://74.ru/text/incidents/2026/05/06/76404681/"
+              },
+              {
+                "id": 2,
+                "platform": "ЧП и происшествия",
+                "title": "Подрались из-за проезда во дворе водители в Челябинске - 6 мая 2026 | 74.ру",
+                "content": "12 hours ago - В Госавтоинспекции Челябинска сообщили, что разбираются в случившемся. «ДТП с пострадавшим зарегистрировано.",
+                "snippet": "12 hours ago - В Госавтоинспекции Челябинска сообщили, что разбираются в случившемся. «ДТП с пострадавшим зарегистрировано.",
+                "summary": "",
+                "source_published_at": "",
+                "category": "accidents",
+                "confidence": 8,
+                "discovered_at": "2026-05-06T12:47:41.171756",
+                "tags": [],
+                "source_url": "https://74.ru/text/incidents/2026/05/06/76400691/"
+              },
+              {
+                "id": 3,
+                "platform": "ЧП и происшествия",
+                "title": "Гонщики на низких машинах устроили тусовку возле гипермаркета в Челябинске, прие",
+                "content": "6 hours ago - «Выехал и уперся». В Челябинске водители не поделили проезд во дворе, подрались и оказались под колесами машины (видео)",
+                "snippet": "6 hours ago - «Выехал и уперся». В Челябинске водители не поделили проезд во дворе, подрались и оказались под колесами машины (видео)",
+                "summary": "",
+                "source_published_at": "",
+                "category": "accidents",
+                "confidence": 8,
+                "discovered_at": "2026-05-06T12:47:41.171790",
+                "tags": [],
+                "source_url": "https://74.ru/text/auto/2026/05/06/76404630/"
+              },
+              {
+                "id": 4,
+                "platform": "ЧП и происшествия",
+                "title": "ДТП и авария! Подборка на видеорегистратор за 6.05.26 Май 2026 - YouTube",
+                "content": "Подборка ДТП и аварий 2026 год. Не забывайте ставить лайки и выражать свое мнение в комментариях под видео. Будьте аккуратней на дороге!▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬... Published 10 hours ago",
+                "snippet": "Подборка ДТП и аварий 2026 год. Не забывайте ставить лайки и выражать свое мнение в комментариях под видео. Будьте аккуратней на дороге!▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬... Published 10 hours ago",
+                "summary": "",
+                "source_published_at": "2026-05-04",
+                "category": "accidents",
+                "confidence": 8,
+                "discovered_at": "2026-05-06T12:48:03.858160",
+                "tags": [],
+                "source_url": "https://www.youtube.com/watch?v=107V7nOlYfk"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "ЧП и происшествия",
+      "title": "«Он меня ударил по лицу, я взял его за загривок»: версия второго участника драки",
+      "content": "2 hours ago - Происшествия Подробности «Он меня ударил по лицу, я взял его за загривок»: версия второго участника драки и ДТП в челябинском дворе",
+      "snippet": "2 hours ago - Происшествия Подробности «Он меня ударил по лицу, я взял его за загривок»: версия второго участника драки и ДТП в челябинском дворе",
+      "summary": "",
+      "source_published_at": "",
+      "category": "accidents",
+      "confidence": 8,
+      "discovered_at": "2026-05-06T12:47:41.171496",
+      "tags": [],
+      "source_url": "https://74.ru/text/incidents/2026/05/06/76404681/"
+    },
+    {
+      "id": 2,
+      "platform": "ЧП и происшествия",
+      "title": "Подрались из-за проезда во дворе водители в Челябинске - 6 мая 2026 | 74.ру",
+      "content": "12 hours ago - В Госавтоинспекции Челябинска сообщили, что разбираются в случившемся. «ДТП с пострадавшим зарегистрировано.",
+      "snippet": "12 hours ago - В Госавтоинспекции Челябинска сообщили, что разбираются в случившемся. «ДТП с пострадавшим зарегистрировано.",
+      "summary": "",
+      "source_published_at": "",
+      "category": "accidents",
+      "confidence": 8,
+      "discovered_at": "2026-05-06T12:47:41.171756",
+      "tags": [],
+      "source_url": "https://74.ru/text/incidents/2026/05/06/76400691/"
+    },
+    {
+      "id": 3,
+      "platform": "ЧП и происшествия",
+      "title": "Гонщики на низких машинах устроили тусовку возле гипермаркета в Челябинске, прие",
+      "content": "6 hours ago - «Выехал и уперся». В Челябинске водители не поделили проезд во дворе, подрались и оказались под колесами машины (видео)",
+      "snippet": "6 hours ago - «Выехал и уперся». В Челябинске водители не поделили проезд во дворе, подрались и оказались под колесами машины (видео)",
+      "summary": "",
+      "source_published_at": "",
+      "category": "accidents",
+      "confidence": 8,
+      "discovered_at": "2026-05-06T12:47:41.171790",
+      "tags": [],
+      "source_url": "https://74.ru/text/auto/2026/05/06/76404630/"
+    },
+    {
+      "id": 4,
+      "platform": "ЧП и происшествия",
+      "title": "ДТП и авария! Подборка на видеорегистратор за 6.05.26 Май 2026 - YouTube",
+      "content": "Подборка ДТП и аварий 2026 год. Не забывайте ставить лайки и выражать свое мнение в комментариях под видео. Будьте аккуратней на дороге!▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬... Published 10 hours ago",
+      "snippet": "Подборка ДТП и аварий 2026 год. Не забывайте ставить лайки и выражать свое мнение в комментариях под видео. Будьте аккуратней на дороге!▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬... Published 10 hours ago",
+      "summary": "",
+      "source_published_at": "2026-05-04",
+      "category": "accidents",
+      "confidence": 8,
+      "discovered_at": "2026-05-06T12:48:03.858160",
+      "tags": [],
+      "source_url": "https://www.youtube.com/watch?v=107V7nOlYfk"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 11,
+    "insights_found": 4
+  },
+  "ended_at": "2026-05-06T12:48:22.686224"
+}
