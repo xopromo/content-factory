@@ -1,0 +1,342 @@
+{
+  "session_id": "16e19ce8",
+  "started_at": "2026-05-24T12:32:04.476567",
+  "config": "Челябинск — новости и события",
+  "research_targets": [
+    "ЧП и происшествия",
+    "Городские события",
+    "Общество и жизнь"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-05-24T12:32:04.476586",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "16e19ce8",
+        "config": "Челябинск — новости и события",
+        "platforms": [
+          "ЧП и происшествия",
+          "Городские события",
+          "Общество и жизнь"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:04.476628",
+      "action": "Starting ЧП и происшествия research",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:04.476649",
+      "action": "Searching: Челябинск ЧП происшествия сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:10.855064",
+      "action": "Searching: Челябинск ДТП авария сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:15.565446",
+      "action": "Searching: Челябинск пожар криминал происшествие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:22.222778",
+      "action": "Searching: Челябинская область ЧП экстренные службы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:27.000872",
+      "action": "Searching: Челябинск происшествия сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:36.802568",
+      "action": "Searching: Челябинск ДТП авария 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:43.003091",
+      "action": "New insight discovered: ЧП и происшествия",
+      "status": "success",
+      "details": {
+        "title": "ДТП и авария! Подборка на видеорегистратор за 24.05.26 Май 2026 - YouTube",
+        "category": "accidents",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:43.003131",
+      "action": "New insight discovered: ЧП и происшествия",
+      "status": "success",
+      "details": {
+        "title": "В Севастополе в ДТП пострадал 20-летний байкер - Лента новостей Крыма",
+        "category": "accidents",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:43.003157",
+      "action": "New insight discovered: ЧП и происшествия",
+      "status": "success",
+      "details": {
+        "title": "ДТП с туристическим автобусом в Турции: подробности происшествия с россиянами",
+        "category": "accidents",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:43.003173",
+      "action": "ЧП и происшествия research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 3
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:43.003186",
+      "action": "Starting Городские события research",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:43.003198",
+      "action": "Searching: Челябинск новости сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:46.595507",
+      "action": "Searching: Челябинск события громкие яркие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:50.908772",
+      "action": "Searching: Челябинск мэрия администрация решения site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:54.746370",
+      "action": "Searching: Челябинск стройки инфраструктура транспорт site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:32:59.031871",
+      "action": "Searching: Челябинск новости сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:33:00.508150",
+      "action": "Городские события research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:33:00.508188",
+      "action": "Starting Общество и жизнь research",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:33:00.508204",
+      "action": "Searching: Челябинск скандал резонанс общество site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:33:04.077379",
+      "action": "Searching: Южный Урал новости события site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:33:08.374231",
+      "action": "Searching: Челябинск экология промышленность проблемы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:33:12.273062",
+      "action": "Searching: Южный Урал новости события 2026",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:33:22.990523",
+      "action": "Общество и жизнь research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-05-24T12:33:22.990556",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-24T12:33:22.990569",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 3,
+        "insights_by_platform": {
+          "ЧП и происшествия": 3
+        },
+        "insights_by_category": {
+          "accidents": 3
+        },
+        "top_categories": [
+          [
+            "accidents",
+            [
+              {
+                "id": 1,
+                "platform": "ЧП и происшествия",
+                "title": "ДТП и авария! Подборка на видеорегистратор за 24.05.26 Май 2026 - YouTube",
+                "content": "Подборка ДТП и аварий 2026 год. Не забывайте ставить лайки и выражать свое мнение в комментариях под видео. Будьте аккуратней на дороге!▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬... Published 9 hours ago",
+                "snippet": "Подборка ДТП и аварий 2026 год. Не забывайте ставить лайки и выражать свое мнение в комментариях под видео. Будьте аккуратней на дороге!▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬... Published 9 hours ago",
+                "summary": "",
+                "source_published_at": "2026-05-23",
+                "category": "accidents",
+                "confidence": 8,
+                "discovered_at": "2026-05-24T12:32:43.003070",
+                "tags": [],
+                "source_url": "https://www.youtube.com/watch?v=DY3RUSCL4nA"
+              },
+              {
+                "id": 2,
+                "platform": "ЧП и происшествия",
+                "title": "В Севастополе в ДТП пострадал 20-летний байкер - Лента новостей Крыма",
+                "content": "18 hours ago - - В результате ДТП мотоциклист получил телесные повреждения и доставлен в больницу.",
+                "snippet": "18 hours ago - - В результате ДТП мотоциклист получил телесные повреждения и доставлен в больницу.",
+                "summary": "",
+                "source_published_at": "2026-05-23T21:22",
+                "category": "accidents",
+                "confidence": 8,
+                "discovered_at": "2026-05-24T12:32:43.003122",
+                "tags": [],
+                "source_url": "https://crimea-news.com/society/2026/05/23/1963226.html"
+              },
+              {
+                "id": 3,
+                "platform": "ЧП и происшествия",
+                "title": "ДТП с туристическим автобусом в Турции: подробности происшествия с россиянами",
+                "content": "**\n\nПострадавшие в ДТП с туристическим автобусом в Турции россияне (14 человек) не получили серьёзных травм. РСТ поддерживает контакт с пострадавшими. Инцидент произошёл по пути из Кемера в Памуккале.",
+                "snippet": "1 day ago - Представители туротрасли находятся в контакте с пострадавшими в ДТП туристами.",
+                "summary": "**\n\nПострадавшие в ДТП с туристическим автобусом в Турции россияне (14 человек) не получили серьёзных травм. РСТ поддерживает контакт с пострадавшими. Инцидент произошёл по пути из Кемера в Памуккале.",
+                "source_published_at": "2026-05-23",
+                "category": "accidents",
+                "confidence": 8,
+                "discovered_at": "2026-05-24T12:32:43.003149",
+                "tags": [],
+                "source_url": "https://www.gazetametro.ru/articles/stali-izvestny-podrobnosti-dtp-s-turisticheskim-avtobusom-s-rossijanami-v-turtsii-23-05-2026"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "ЧП и происшествия",
+      "title": "ДТП и авария! Подборка на видеорегистратор за 24.05.26 Май 2026 - YouTube",
+      "content": "Подборка ДТП и аварий 2026 год. Не забывайте ставить лайки и выражать свое мнение в комментариях под видео. Будьте аккуратней на дороге!▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬... Published 9 hours ago",
+      "snippet": "Подборка ДТП и аварий 2026 год. Не забывайте ставить лайки и выражать свое мнение в комментариях под видео. Будьте аккуратней на дороге!▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬... Published 9 hours ago",
+      "summary": "",
+      "source_published_at": "2026-05-23",
+      "category": "accidents",
+      "confidence": 8,
+      "discovered_at": "2026-05-24T12:32:43.003070",
+      "tags": [],
+      "source_url": "https://www.youtube.com/watch?v=DY3RUSCL4nA"
+    },
+    {
+      "id": 2,
+      "platform": "ЧП и происшествия",
+      "title": "В Севастополе в ДТП пострадал 20-летний байкер - Лента новостей Крыма",
+      "content": "18 hours ago - - В результате ДТП мотоциклист получил телесные повреждения и доставлен в больницу.",
+      "snippet": "18 hours ago - - В результате ДТП мотоциклист получил телесные повреждения и доставлен в больницу.",
+      "summary": "",
+      "source_published_at": "2026-05-23T21:22",
+      "category": "accidents",
+      "confidence": 8,
+      "discovered_at": "2026-05-24T12:32:43.003122",
+      "tags": [],
+      "source_url": "https://crimea-news.com/society/2026/05/23/1963226.html"
+    },
+    {
+      "id": 3,
+      "platform": "ЧП и происшествия",
+      "title": "ДТП с туристическим автобусом в Турции: подробности происшествия с россиянами",
+      "content": "**\n\nПострадавшие в ДТП с туристическим автобусом в Турции россияне (14 человек) не получили серьёзных травм. РСТ поддерживает контакт с пострадавшими. Инцидент произошёл по пути из Кемера в Памуккале.",
+      "snippet": "1 day ago - Представители туротрасли находятся в контакте с пострадавшими в ДТП туристами.",
+      "summary": "**\n\nПострадавшие в ДТП с туристическим автобусом в Турции россияне (14 человек) не получили серьёзных травм. РСТ поддерживает контакт с пострадавшими. Инцидент произошёл по пути из Кемера в Памуккале.",
+      "source_published_at": "2026-05-23",
+      "category": "accidents",
+      "confidence": 8,
+      "discovered_at": "2026-05-24T12:32:43.003149",
+      "tags": [],
+      "source_url": "https://www.gazetametro.ru/articles/stali-izvestny-podrobnosti-dtp-s-turisticheskim-avtobusom-s-rossijanami-v-turtsii-23-05-2026"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 45,
+    "insights_found": 3
+  },
+  "ended_at": "2026-05-24T12:33:22.990656"
+}
