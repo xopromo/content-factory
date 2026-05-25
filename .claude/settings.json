@@ -22,6 +22,17 @@
           }
         ]
       }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"\nimport json, sys\nfrom pathlib import Path\n\nproject_state = Path('/home/user/content-factory/PROJECT_STATE.md').read_text(encoding='utf-8')\n\nplans = sorted(Path('/home/user/content-factory/plans').glob('*_precompact.md'), reverse=True)\nlast_snapshot = plans[0].read_text(encoding='utf-8') if plans else ''\n\noutput = {\n    'hookSpecificOutput': {\n        'hookEventName': 'PostCompact',\n        'additionalContext': f'''=== КОНТЕКСТ ВОССТАНОВЛЕН ПОСЛЕ КОМПАКТИНГА ===\n\nПРОЧИТАЙ ОБЯЗАТЕЛЬНО — это критически важный контекст проекта:\n\n{project_state}\n\n--- ПОСЛЕДНИЙ СНИМОК ПЕРЕД СЖАТИЕМ ---\n{last_snapshot[:2000] if last_snapshot else \"Снимок недоступен\"}\n\n=== ПРОДОЛЖАЙ РАБОТУ С ТОГО МЕСТА ГДЕ ОСТАНОВИЛИСЬ ===\n'''\n    }\n}\nprint(json.dumps(output, ensure_ascii=False))\n\"",
+            "statusMessage": "Восстанавливаю контекст..."
+          }
+        ]
+      }
     ]
   }
 }
