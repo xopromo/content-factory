@@ -1,0 +1,19 @@
+services:
+  - type: worker
+    name: voice-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 scripts/voice_bot.py
+    envVars:
+      - key: TG_BOT_TOKEN
+        sync: false
+      - key: GROQ_KEY
+        sync: false
+      - key: TG_CHAT_ID
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_REPO
+        value: xopromo/content-factory
+      - key: GITHUB_BRANCH
+        value: claude/vigilant-einstein-hPa8u
