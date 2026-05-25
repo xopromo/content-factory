@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"\nimport sys, json, re\nfrom datetime import datetime, timezone\ndata = json.load(sys.stdin)\ncmd = data.get('tool_input', {}).get('command', '')\nif 'git commit' not in cmd:\n    sys.exit(0)\npath = '/home/user/content-factory/PROJECT_STATE.md'\ndate = datetime.now(timezone.utc).strftime('%Y-%m-%d')\ntry:\n    with open(path) as f:\n        content = f.read()\n    updated = re.sub(r'(Последнее обновление: )\\S+', rf'\\g<1>{date}', content)\n    with open(path, 'w') as f:\n        f.write(updated)\nexcept Exception:\n    pass\n\" 2>/dev/null || true",
+            "statusMessage": "Обновляю PROJECT_STATE.md..."
+          }
+        ]
+      }
+    ]
+  }
+}
