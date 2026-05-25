@@ -11,6 +11,17 @@
           }
         ]
       }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"\nimport sys, json, subprocess\nfrom datetime import datetime, timezone\nfrom pathlib import Path\n\ndata = json.load(sys.stdin)\nsummary = data.get('summary', '')\n\nnow = datetime.now(timezone.utc)\ndate_str = now.strftime('%Y-%m-%d %H:%M UTC')\nfilename = now.strftime('%Y-%m-%d_%H-%M') + '_precompact.md'\npath = Path('/home/user/content-factory/plans') / filename\n\ncontent = f'''# Снимок контекста перед компактингом — {date_str}\n\n## Что обсуждали (авто-саммари)\n{summary if summary else '_Саммари недоступно_'}\n\n## Незакоммиченные изменения\n'''\n\ntry:\n    diff = subprocess.check_output(['git', 'diff', '--stat'], cwd='/home/user/content-factory', text=True)\n    status = subprocess.check_output(['git', 'status', '--short'], cwd='/home/user/content-factory', text=True)\n    content += diff if diff.strip() else '_Нет незакоммиченных изменений_'\n    content += f'\\n```\\n{status}\\n```' if status.strip() else ''\nexcept Exception as e:\n    content += f'_Ошибка получения diff: {e}_'\n\ncontent += '''\n\n## Что делать после восстановления контекста\n1. Прочитать PROJECT_STATE.md\n2. Прочитать этот файл\n3. Продолжить с того места где остановились\n'''\n\npath.write_text(content, encoding='utf-8')\n\ntry:\n    subprocess.run(['git', 'add', str(path)], cwd='/home/user/content-factory')\n    subprocess.run(['git', 'commit', '-m', f'snapshot: контекст перед компактингом {now.strftime(\"%Y-%m-%d %H:%M\")}'], cwd='/home/user/content-factory')\n    subprocess.run(['git', 'push', 'origin', 'HEAD'], cwd='/home/user/content-factory')\nexcept Exception:\n    pass\n\" 2>/dev/null || true",
+            "statusMessage": "Сохраняю контекст перед сжатием..."
+          }
+        ]
+      }
     ]
   }
 }
