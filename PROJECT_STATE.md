@@ -126,9 +126,20 @@ python3 scripts/voice_bot.py
 ```
 
 **Где хостить:**
-- Решено: запускать локально когда нужно наговорить (бот не нужен 24/7)
-- Оркестратор — через GitHub Actions (workflow_dispatch), бесплатно
-- Платный хостинг (Railway ~$0.5/мес, Fly.io — нужна карта) — отложено
+- **Render.com** (бесплатно, без карты) — worker service, работает 24/7
+- Файлы сохраняются не на диск сервера, а прямо в GitHub репозиторий через GitHub API
+- Нужен дополнительный ключ: `GITHUB_TOKEN` (Personal Access Token, права `contents:write`)
+- Конфиг деплоя: `render.yaml` в корне репо
+
+**Как задеплоить на Render:**
+1. render.com → New → Blueprint → подключить репо xopromo/content-factory
+2. Render найдёт `render.yaml` автоматически
+3. В Environment Variables добавить: TG_BOT_TOKEN, GROQ_KEY, TG_CHAT_ID, GITHUB_TOKEN
+4. Deploy — бот онлайн
+
+**Как получить GITHUB_TOKEN:**
+GitHub → Settings → Developer settings → Personal access tokens → Fine-grained
+Права: Repository → xopromo/content-factory → Contents: Read and Write
 
 ---
 
