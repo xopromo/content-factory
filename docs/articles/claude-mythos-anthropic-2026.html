@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Claude Mythos: засекреченная модель Anthropic с SWE-bench 93.9%</title>
+  <title>Claude Mythos: что известно о новой модели Anthropic</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
@@ -45,9 +45,36 @@
     .article-wrap a:hover { text-decoration: underline; }
     .article-wrap hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
     .mermaid { background: var(--surface); border-radius: var(--radius-md); padding: 20px; margin: 20px 0; overflow-x: auto; }
+    .code-wrap { margin: 20px 0; }
+    .code-wrap pre { margin: 0; border-radius: var(--radius-md) var(--radius-md) 0 0; }
+    .code-wrap.collapsed pre { max-height: 104px; overflow: hidden; position: relative; }
+    .code-wrap.collapsed pre::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 48px;
+      background: linear-gradient(transparent, var(--surface)); pointer-events: none;
+    }
+    .code-toggle {
+      display: block; width: 100%; padding: 8px 16px;
+      background: var(--surface2); border: 1px solid var(--border); border-top: none;
+      color: var(--text-muted); cursor: pointer; font-size: 12px;
+      border-radius: 0 0 var(--radius-md) var(--radius-md); text-align: center;
+    }
+    .code-toggle:hover { color: var(--text); }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <script>mermaid.initialize({startOnLoad:true, theme:'dark'});</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.code-wrap').forEach(function(wrap) {
+        var btn = wrap.querySelector('.code-toggle');
+        if (!btn) return;
+        btn.addEventListener('click', function() {
+          wrap.classList.toggle('collapsed');
+          btn.textContent = wrap.classList.contains('collapsed')
+            ? btn.dataset.expand : btn.dataset.collapse;
+        });
+      });
+    });
+  </script>
 </head>
 <body>
   <nav class="nav">
@@ -57,7 +84,7 @@
   <div class="article-wrap">
     <h1 id="claude-mythos-anthropic-swe-bench-939">Claude Mythos: засекреченная модель Anthropic с SWE-bench 93.9% — что известно разработчикам</h1>
 <p>7 апреля 2026 года Anthropic запустила Claude Mythos в режиме Limited Preview — без пресс-релиза, без публичного анонса, без официального API. Модель раскрыла своё существование сама.</p>
-<pre><code class="language-json">&lt;script type=&quot;application/ld+json&quot;&gt;
+<div class="code-wrap collapsed"><pre><code class="language-json">&lt;script type=&quot;application/ld+json&quot;&gt;
 {
   &quot;@context&quot;: &quot;https://schema.org&quot;,
   &quot;@type&quot;: &quot;TechArticle&quot;,
@@ -68,7 +95,7 @@
   &quot;keywords&quot;: [&quot;Claude Mythos&quot;, &quot;SWE-bench&quot;, &quot;Anthropic&quot;, &quot;LLM&quot;, &quot;Project Glasswing&quot;, &quot;AI безопасность&quot;]
 }
 &lt;/script&gt;
-</code></pre>
+</code></pre><button class="code-toggle" data-expand="↓ показать все 11 строк" data-collapse="↑ свернуть">↓ показать все 11 строк</button></div>
 <hr />
 <h2 id="1-mythos">1. Как Mythos рассекретила себя сама</h2>
 <p>Идентификатор модели просочился через публичные версии Claude Code: пользователи обнаружили упоминания <code>claude-mythos</code> в ответах и метаданных инструмента ещё до каких-либо официальных коммуникаций от Anthropic. Это классический leak через SDK — Claude Code при определённых запросах возвращал model ID из своего внутреннего контекста, включая идентификаторы моделей, к которым у него был доступ на бэкенде.</p>
@@ -170,7 +197,7 @@
 <h2 id="5">5. Что это значит для разработчиков прямо сейчас</h2>
 <p>Практический ответ для большинства: публичного доступа к Mythos нет, рабочий стек — Opus 4.7 и Sonnet 4.6. Но архитектура использования меняется уже сейчас, и закладывать её нужно сегодня.</p>
 <p>Если вы строите агентные пайплайны — выносите model ID в конфигурацию. Когда Mythos выйдет в GA или выйдет промежуточная модель с частью её возможностей, смена одной строки не должна ломать пайплайн.</p>
-<pre><code class="language-python">import anthropic
+<div class="code-wrap collapsed"><pre><code class="language-python">import anthropic
 
 # Конфигурация модели вынесена отдельно —
 # при смене меняется только MODEL_CONFIG[&quot;active&quot;]
@@ -240,7 +267,7 @@ def audit_security(code_context: str) -&gt; dict:
         &quot;findings&quot;:     response.content[0].text,
         &quot;tokens_total&quot;: response.usage.input_tokens + response.usage.output_tokens,
     }
-</code></pre>
+</code></pre><button class="code-toggle" data-expand="↓ показать все 70 строк" data-collapse="↑ свернуть">↓ показать все 70 строк</button></div>
 <p>Два конкретных изменения в рабочем процессе, актуальных прямо сейчас:</p>
 <p><strong>Делегируйте Opus 4.7 полные задачи, а не фрагменты.</strong> 72.5% на SWE-bench означает, что модель закрывает большинство стандартных задач: рефакторинг с сохранением поведения, написание unit-тестов по спецификации, дебаггинг с полным стектрейсом. Давайте ей issue целиком с приёмочными критериями — не «помоги написать функцию», а «реши задачу и покрой тестами».</p>
 <p><strong>Начните собирать eval-сюиту под ваш домен.</strong> Синтетические бенчмарки говорят об общем качестве, но не о том, что именно изменится в вашем конкретном коде. Когда Mythos или следующая публичная модель появится в GA, готовый набор evaluation-кейсов позволит измерить реальный прирост за часы, а не недели.</p>

@@ -28,6 +28,13 @@ except ImportError:
     _groq_client = None
 
 try:
+    from google import genai as _genai
+    _gemini_key = os.environ.get("GEMINI_KEY", "")
+    _gemini_client = _genai.Client(api_key=_gemini_key) if _gemini_key else None
+except ImportError:
+    _gemini_client = None
+
+try:
     from ddgs import DDGS as _DDGS
 except ImportError:
     _DDGS = None
@@ -115,6 +122,27 @@ def update_step(plan_path: Path, step_num: int, status: str = "done") -> None:
 
 # ── HTML generator ────────────────────────────────────────────────────────────
 
+def _make_code_collapsible(html: str, min_lines: int = 5) -> str:
+    """Оборачивает большие блоки кода в схлопываемый виджет."""
+    import re
+
+    def replace_pre(m: re.Match) -> str:
+        pre_tag = m.group(0)
+        line_count = pre_tag.count("\n")
+        if line_count <= min_lines:
+            return pre_tag
+        label = f"↓ показать все {line_count} строк"
+        return (
+            f'<div class="code-wrap collapsed">'
+            f"{pre_tag}"
+            f'<button class="code-toggle" data-expand="{label}" '
+            f'data-collapse="↑ свернуть">{label}</button>'
+            f"</div>"
+        )
+
+    return re.sub(r"<pre[^>]*>.*?</pre>", replace_pre, html, flags=re.DOTALL)
+
+
 def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
     """Конвертирует Markdown-статью в автономный HTML с дизайном проекта."""
     import markdown as _md
@@ -138,6 +166,7 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
         md_text,
         extensions=["tables", "fenced_code", "toc", "nl2br"],
     )
+    body_html = _make_code_collapsible(body_html)
 
     html = f"""<!DOCTYPE html>
 <html lang="ru">
@@ -186,9 +215,36 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
     .article-wrap a:hover {{ text-decoration: underline; }}
     .article-wrap hr {{ border: none; border-top: 1px solid var(--border); margin: 32px 0; }}
     .mermaid {{ background: var(--surface); border-radius: var(--radius-md); padding: 20px; margin: 20px 0; overflow-x: auto; }}
+    .code-wrap {{ margin: 20px 0; }}
+    .code-wrap pre {{ margin: 0; border-radius: var(--radius-md) var(--radius-md) 0 0; }}
+    .code-wrap.collapsed pre {{ max-height: 104px; overflow: hidden; position: relative; }}
+    .code-wrap.collapsed pre::after {{
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 48px;
+      background: linear-gradient(transparent, var(--surface)); pointer-events: none;
+    }}
+    .code-toggle {{
+      display: block; width: 100%; padding: 8px 16px;
+      background: var(--surface2); border: 1px solid var(--border); border-top: none;
+      color: var(--text-muted); cursor: pointer; font-size: 12px;
+      border-radius: 0 0 var(--radius-md) var(--radius-md); text-align: center;
+    }}
+    .code-toggle:hover {{ color: var(--text); }}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <script>mermaid.initialize({{startOnLoad:true, theme:'dark'}});</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {{
+      document.querySelectorAll('.code-wrap').forEach(function(wrap) {{
+        var btn = wrap.querySelector('.code-toggle');
+        if (!btn) return;
+        btn.addEventListener('click', function() {{
+          wrap.classList.toggle('collapsed');
+          btn.textContent = wrap.classList.contains('collapsed')
+            ? btn.dataset.expand : btn.dataset.collapse;
+        }});
+      }});
+    }});
+  </script>
 </head>
 <body>
   <nav class="nav">
@@ -430,7 +486,17 @@ def run_claude(prompt: str, context_files: list[Path] = None) -> tuple[str, int]
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
-            print(f"[GROQ ERROR] {e} — пробую claude CLI")
+            print(f"[GROQ ERROR] {e} — пробую Gemini")
+
+    if _gemini_client:
+        try:
+            resp = _gemini_client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=full_prompt,
+            )
+            return resp.text.strip(), tokens
+        except Exception as e:
+            print(f"[GEMINI ERROR] {e} — пробую claude CLI")
 
     # Fallback: claude CLI (без хуков проекта — запуск из /tmp)
     result = subprocess.run(

@@ -188,9 +188,36 @@
     .article-wrap a:hover { text-decoration: underline; }
     .article-wrap hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
     .mermaid { background: var(--surface); border-radius: var(--radius-md); padding: 20px; margin: 20px 0; overflow-x: auto; }
+    .code-wrap { margin: 20px 0; }
+    .code-wrap pre { margin: 0; border-radius: var(--radius-md) var(--radius-md) 0 0; }
+    .code-wrap.collapsed pre { max-height: 104px; overflow: hidden; position: relative; }
+    .code-wrap.collapsed pre::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 48px;
+      background: linear-gradient(transparent, var(--surface)); pointer-events: none;
+    }
+    .code-toggle {
+      display: block; width: 100%; padding: 8px 16px;
+      background: var(--surface2); border: 1px solid var(--border); border-top: none;
+      color: var(--text-muted); cursor: pointer; font-size: 12px;
+      border-radius: 0 0 var(--radius-md) var(--radius-md); text-align: center;
+    }
+    .code-toggle:hover { color: var(--text); }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <script>mermaid.initialize({startOnLoad:true, theme:'dark'});</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.code-wrap').forEach(function(wrap) {
+        var btn = wrap.querySelector('.code-toggle');
+        if (!btn) return;
+        btn.addEventListener('click', function() {
+          wrap.classList.toggle('collapsed');
+          btn.textContent = wrap.classList.contains('collapsed')
+            ? btn.dataset.expand : btn.dataset.collapse;
+        });
+      });
+    });
+  </script>
 </head>
 <body>
   <nav class="nav">
@@ -203,7 +230,7 @@
 <p><strong>AEO-правки</strong> — H2 #1 и #6 переписаны: исходные версии отвечали косвенно. Остальные четыре H2 уже содержали самодостаточные ответы, изменены минимально.</p>
 <hr />
 <h2 id="_2">Оптимизированный текст</h2>
-<pre><code class="language-markdown"># Нейросети для бизнеса в 2026: технический стек, ROI и реальные кейсы
+<div class="code-wrap collapsed"><pre><code class="language-markdown"># Нейросети для бизнеса в 2026: технический стек, ROI и реальные кейсы
 
 ---
 
@@ -297,7 +324,7 @@ qa_chain = RetrievalQA.from_chain_type(
     llm=ChatOpenAI(model=&quot;gpt-4o-mini&quot;),
     retriever=vectorstore.as_retriever(search_kwargs={&quot;k&quot;: 5})
 )
-</code></pre>
+</code></pre><button class="code-toggle" data-expand="↓ показать все 94 строк" data-collapse="↑ свернуть">↓ показать все 94 строк</button></div>
 <p>LangChain (&gt;90k звёзд на GitHub) и LlamaIndex покрывают 80%+<br />
 production-пайплайнов. Для векторного хранилища на старте — Qdrant или<br />
 pgvector (если уже используете PostgreSQL).</p>
@@ -363,7 +390,7 @@ enterprise. LangGraph подходит, если нужен контроль н�
 - Нужна интеграция с внешними инструментами (API, БД, браузер)<br />
 - Требуется параллельная обработка подзадач</p>
 <p><strong>Минимальный пример с LangGraph:</strong></p>
-<pre><code class="language-python">from langgraph.graph import StateGraph, END
+<div class="code-wrap collapsed"><pre><code class="language-python">from langgraph.graph import StateGraph, END
 from typing import TypedDict
 
 class AgentState(TypedDict):
@@ -379,7 +406,7 @@ workflow.add_conditional_edges(
     route_by_intent,
     {&quot;billing&quot;: &quot;resolver&quot;, &quot;technical&quot;: &quot;resolver&quot;, &quot;escalate&quot;: END}
 )
-</code></pre>
+</code></pre><button class="code-toggle" data-expand="↓ показать все 16 строк" data-collapse="↑ свернуть">↓ показать все 16 строк</button></div>
 <p>Важное ограничение: агентные системы умножают стоимость инференса на<br />
 количество шагов. Задача с 5 агентами и 3 итерациями — это 15<br />
 LLM-вызовов. Считайте TCO заранее.</p>
@@ -446,7 +473,7 @@ LLM-вызовов. Считайте TCO заранее.</p>
 30% времени на подготовку регулярных отчётов. Модель переводит вопрос на<br />
 естественном языке в SQL-запрос, выполняет его, интерпретирует результат.</p>
 <p><strong>Стек:</strong></p>
-<pre><code class="language-python"># Text-to-SQL через LangChain SQLDatabaseChain
+<div class="code-wrap collapsed"><pre><code class="language-python"># Text-to-SQL через LangChain SQLDatabaseChain
 from langchain_community.utilities import SQLDatabase
 from langchain_openai import ChatOpenAI
 from langchain_experimental.sql import SQLDatabaseChain
@@ -456,7 +483,7 @@ llm = ChatOpenAI(model=&quot;gpt-4o&quot;, temperature=0)
 
 chain = SQLDatabaseChain.from_llm(llm, db, verbose=True)
 result = chain.invoke(&quot;Покажи топ-10 клиентов по выручке за Q1 2026&quot;)
-</code></pre>
+</code></pre><button class="code-toggle" data-expand="↓ показать все 10 строк" data-collapse="↑ свернуть">↓ показать все 10 строк</button></div>
 <p>Критическое ограничение: Text-to-SQL работает стабильно на схемах до<br />
 50–100 таблиц. На больших схемах — добавляйте semantic layer (dbt<br />
 semantic layer, Cube) или передавайте модели только релевантное<br />
@@ -482,7 +509,7 @@ semantic layer, Cube) или передавайте модели только р
 <p><strong>Чанкинг — критический параметр качества.</strong> Стандартный размер чанка —<br />
 512–1024 токена с перекрытием 10–15%. Для структурированных документов<br />
 (регламенты, договоры) — чанкинг по смысловым блокам, не по размеру.</p>
-<pre><code class="language-python">from langchain.text_splitter import RecursiveCharacterTextSplitter
+<div class="code-wrap collapsed"><pre><code class="language-python">from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=800,
@@ -490,7 +517,7 @@ splitter = RecursiveCharacterTextSplitter(
     separators=[&quot;\n\n&quot;, &quot;\n&quot;, &quot;. &quot;, &quot; &quot;]
 )
 chunks = splitter.split_documents(documents)
-</code></pre>
+</code></pre><button class="code-toggle" data-expand="↓ показать все 8 строк" data-collapse="↑ свернуть">↓ показать все 8 строк</button></div>
 <p>Качество поиска измеряйте через Hit Rate@5 (доля запросов, где правильный<br />
 документ вошёл в топ-5 результатов). Цель для production — выше 0.85.<br />
 Ниже — пересматривайте стратегию чанкинга или embedding-модель.</p>
@@ -538,7 +565,7 @@ MLOps-зрелости: большинство команд внедряют к�
 <p>Evaluation — это не опция, а инфраструктура. Внедряйте её до первого<br />
 деплоя, не после.</p>
 <p><strong>Минимальный стек:</strong></p>
-<pre><code class="language-bash"># 1. Создайте golden dataset: 100–200 пар (вопрос → эталонный ответ)
+<div class="code-wrap collapsed"><pre><code class="language-bash"># 1. Создайте golden dataset: 100–200 пар (вопрос → эталонный ответ)
 # 2. Подключите RAGAS для RAG-пайплайнов
 pip install ragas
 
@@ -552,7 +579,7 @@ results = evaluate(
 )
 # faithfulness &lt; 0.85 → модель придумывает факты вне контекста
 # context_recall &lt; 0.80 → retrieval не находит нужные чанки
-</code></pre>
+</code></pre><button class="code-toggle" data-expand="↓ показать все 14 строк" data-collapse="↑ свернуть">↓ показать все 14 строк</button></div>
 <p>Для не-RAG задач — <code>openai/evals</code> или <code>EleutherAI/lm-evaluation-harness</code>.<br />
 Оба работают с любыми моделями через OpenAI-совместимый API.</p>
 <p><strong>Четыре метрики, без которых нельзя идти в production:</strong></p>
@@ -648,7 +675,7 @@ RAG-пайплайнов. Выбор между ними зависит от з�
 </tbody>
 </table>
 <p><strong>Минимальный RAG за 15 строк (LangChain):</strong></p>
-<pre><code class="language-python">from langchain_community.vectorstores import Qdrant
+<div class="code-wrap collapsed"><pre><code class="language-python">from langchain_community.vectorstores import Qdrant
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain.chains import RetrievalQA
 
@@ -661,7 +688,7 @@ qa = RetrievalQA.from_chain_type(
 )
 
 answer = qa.invoke(&quot;Какова политика возврата товара?&quot;)
-</code></pre>
+</code></pre><button class="code-toggle" data-expand="↓ показать все 13 строк" data-collapse="↑ свернуть">↓ показать все 13 строк</button></div>
 <p>Для production — используйте LangGraph вместо устаревшего AgentExecutor:<br />
 он даёт явный контроль над состоянием агента и поддерживает<br />
 human-in-the-loop.</p>
@@ -706,7 +733,7 @@ human-in-the-loop.</p>
 </table>
 <p>Для старта с объёмом до 500k документов — <code>pgvector</code> с индексом <code>ivfflat</code><br />
 закрывает задачу без новой инфраструктуры:</p>
-<pre><code class="language-sql">-- Создание колонки и индекса
+<div class="code-wrap collapsed"><pre><code class="language-sql">-- Создание колонки и индекса
 ALTER TABLE documents ADD COLUMN embedding vector(1536);
 CREATE INDEX ON documents USING ivfflat (embedding vector_cosine_ops)
   WITH (lists = 100);
@@ -716,7 +743,7 @@ SELECT content, 1 - (embedding &lt;=&gt; $1) AS similarity
 FROM documents
 ORDER BY embedding &lt;=&gt; $1
 LIMIT 5;
-</code></pre>
+</code></pre><button class="code-toggle" data-expand="↓ показать все 10 строк" data-collapse="↑ свернуть">↓ показать все 10 строк</button></div>
 <p>При росте свыше 1M векторов или при необходимости фильтрации по<br />
 метаданным — мигрируйте на Qdrant. Миграция занимает один скрипт<br />
 переиндексации.</p>
