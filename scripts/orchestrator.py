@@ -105,60 +105,104 @@ def update_step(plan_path: Path, step_num: int, status: str = "done") -> None:
 
 # ── Web search ────────────────────────────────────────────────────────────────
 
-def web_search(query: str, max_results: int = 8) -> str:
-    """
-    Ищет актуальные материалы через DuckDuckGo.
-    Опционально вытаскивает текст страниц через trafilatura.
-    Возвращает форматированный блок для передачи в LLM.
-    """
-    if not _DDGS:
-        return "(ddgs не установлен — поиск недоступен)"
-
-    results = []
-    try:
-        items = list(_DDGS().text(query, max_results=max_results, region="ru-ru"))
-        if not items:
-            items = list(_DDGS().text(query, max_results=max_results))
-    except Exception as e:
-        return f"(ошибка поиска: {e})"
-
-    for item in items:
-        title = item.get("title", "")
-        url = item.get("href", "")
-        snippet = item.get("body", "")
-
-        # Пробуем вытащить полный текст страницы
-        full_text = ""
-        if _trafilatura and url:
-            try:
-                downloaded = _trafilatura.fetch_url(url)
-                if downloaded:
-                    full_text = _trafilatura.extract(downloaded, include_comments=False) or ""
-                    full_text = full_text[:1500]
-            except Exception:
-                pass
-
-        content = full_text if full_text else snippet
-        results.append(f"### {title}\nURL: {url}\n{content}")
-
-    return "\n\n---\n\n".join(results) if results else "(результаты не найдены)"
-
-
-def web_search_news(query: str, max_results: int = 5) -> str:
-    """Ищет свежие новости через DuckDuckGo News."""
-    if not _DDGS:
+def _fetch_full_text(url: str, max_chars: int = 3000) -> str:
+    """Вытаскивает полный текст страницы через trafilatura (без рекламы и мусора)."""
+    if not _trafilatura or not url:
         return ""
     try:
-        items = list(_DDGS().news(query, max_results=max_results))
-        if not items:
+        downloaded = _trafilatura.fetch_url(url)
+        if not downloaded:
             return ""
-        lines = []
-        for item in items:
-            date = item.get("date", "")[:10]
-            lines.append(f"- [{date}] {item.get('title', '')} — {item.get('source', '')}\n  {item.get('body', '')[:200]}")
-        return "\n".join(lines)
+        text = _trafilatura.extract(
+            downloaded,
+            include_comments=False,
+            include_tables=True,
+            favor_recall=True,
+            no_fallback=False,
+        )
+        return (text or "")[:max_chars]
     except Exception:
         return ""
+
+
+def web_search_fresh(query: str, max_results: int = 3) -> list[dict]:
+    """
+    Слой 1: свежие новости за последнюю неделю.
+    Возвращает список {title, url, date, source, text}.
+    """
+    if not _DDGS:
+        return []
+    for timelimit in ("w", "m"):  # неделя → если пусто, месяц
+        try:
+            items = list(_DDGS().news(query, max_results=max_results, timelimit=timelimit))
+            if not items:
+                continue
+            results = []
+            for item in items:
+                url = item.get("url", "")
+                full_text = _fetch_full_text(url)
+                results.append({
+                    "title": item.get("title", ""),
+                    "url": url,
+                    "date": item.get("date", "")[:10],
+                    "source": item.get("source", ""),
+                    "text": full_text or item.get("body", ""),
+                    "fresh": timelimit == "w",
+                })
+            return results
+        except Exception as e:
+            print(f"  [SEARCH] news/{timelimit} ошибка: {e}")
+    return []
+
+
+def web_search_deep(query: str, max_results: int = 5) -> list[dict]:
+    """
+    Слой 2: глубинные источники без ограничения по дате.
+    Возвращает список {title, url, text}.
+    """
+    if not _DDGS:
+        return []
+    try:
+        items = list(_DDGS().text(query, max_results=max_results))
+        results = []
+        for item in items:
+            url = item.get("href", "")
+            full_text = _fetch_full_text(url)
+            results.append({
+                "title": item.get("title", ""),
+                "url": url,
+                "text": full_text or item.get("body", ""),
+            })
+        return results
+    except Exception as e:
+        print(f"  [SEARCH] text ошибка: {e}")
+        return []
+
+
+def format_search_for_llm(fresh: list[dict], deep: list[dict]) -> str:
+    """Форматирует результаты поиска для передачи в LLM."""
+    parts = []
+
+    if fresh:
+        parts.append("## СВЕЖИЕ НОВОСТИ (последняя неделя)\n")
+        for i, item in enumerate(fresh, 1):
+            flag = "🔴 ГОРЯЧАЯ НОВОСТЬ" if item.get("fresh") else "🟡 Свежая"
+            parts.append(
+                f"### {flag} [{item['date']}] {item['title']}\n"
+                f"Источник: {item['source']} | URL: {item['url']}\n\n"
+                f"{item['text']}\n"
+            )
+    else:
+        parts.append("## СВЕЖИЕ НОВОСТИ\n⚠️ Новостей за последнюю неделю не найдено.\n")
+
+    if deep:
+        parts.append("\n## ГЛУБИННЫЕ ИСТОЧНИКИ (любой период)\n")
+        for item in deep:
+            parts.append(
+                f"### {item['title']}\nURL: {item['url']}\n\n{item['text']}\n"
+            )
+
+    return "\n---\n".join(parts)
 
 
 # ── Step runner ────────────────────────────────────────────────────────────────
@@ -417,36 +461,58 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
     update_step(plan_path, 2)
     r.finish(output, tokens=tokens)
 
-    # Шаг 3: web-researcher — реальный поиск через ddgs
+    # Шаг 3: web-researcher — двухслойный поиск через ddgs + full-text trafilatura
     r = StepResult(3, "web-researcher")
-    print("  Ищу актуальные материалы через DuckDuckGo...")
-    tg_notify(f"🔍 <b>Шаг 03</b> — web-researcher\nИщу: {topic}")
+    print("  [Слой 1] Ищу свежие новости за неделю...")
+    tg_notify(f"🔍 <b>Шаг 03</b> — web-researcher\n⏳ Ищу актуальные источники...")
 
-    search_results = web_search(f"{topic} 2025 2026", max_results=6)
-    news_results = web_search_news(f"{topic}", max_results=4)
+    fresh = web_search_fresh(topic, max_results=3)
+    print(f"  Найдено свежих: {len(fresh)}")
+
+    print("  [Слой 2] Ищу глубинные источники...")
+    deep = web_search_deep(f"{topic} руководство практика кейсы", max_results=5)
+    print(f"  Найдено глубинных: {len(deep)}")
+
+    search_block = format_search_for_llm(fresh, deep)
+
+    has_fresh = any(s.get("fresh") for s in fresh)
+    freshness_warning = "" if has_fresh else (
+        "\n\n⚠️ ВНИМАНИЕ: горячих новостей за последнюю неделю не найдено. "
+        "На шаге 4 автор должен решить: использовать имеющееся или выбрать другую тему."
+    )
 
     synthesis_prompt = (
-        f"Ты аналитик. Тема статьи: «{topic}».\n\n"
-        f"Вот результаты поиска по теме (свежие материалы 2025-2026):\n\n"
-        f"{search_results}\n\n"
-        f"Свежие новости:\n{news_results}\n\n"
-        f"На основе ТОЛЬКО этих материалов (не используй данные из тренировки старше 2024 года):\n"
-        f"1. Выдели топ-5 актуальных фактов с источниками (URL)\n"
-        f"2. Предложи структуру статьи H2-H3\n"
-        f"3. Составь список из 15 LSI-ключей по теме\n"
-        f"4. Укажи главный тезис статьи одним предложением"
+        f"Ты аналитик контента. Тема: «{topic}».\n\n"
+        f"Ниже — реальные найденные материалы. Работай ТОЛЬКО с ними, "
+        f"не добавляй факты из своих тренировочных данных.\n\n"
+        f"{search_block}\n\n"
+        f"Задача:\n"
+        f"1. Определи главный информационный повод (самая свежая и значимая новость)\n"
+        f"2. Выдели 5 ключевых фактов с URL-источниками\n"
+        f"3. Предложи структуру статьи H2–H3 (6–8 разделов)\n"
+        f"4. Составь 15 LSI-ключей\n"
+        f"5. Сформулируй главный тезис одним предложением"
+        f"{freshness_warning}"
     )
     output, tokens = run_claude(synthesis_prompt)
     context["web_pack"] = output
-    context["raw_search"] = search_results[:3000]
+    context["fresh_news"] = fresh
+    context["has_fresh_news"] = has_fresh
     update_step(plan_path, 3)
     r.finish(output, tokens=tokens)
 
+    fresh_summary = "\n".join(
+        f"🔴 [{s['date']}] {s['title']}" for s in fresh
+    ) if fresh else "⚠️ Свежих новостей нет"
+
     # Шаг 4: HUMAN REVIEW структуры
+    no_fresh_alert = "\n\n⚠️ Горячих новостей за неделю НЕТ — возможно стоит сменить тему!" if not has_fresh else ""
     approved, corrections = human_review(
         "Утвердите структуру и данные из исследования",
-        f"📌 Главный тезис и структура:\n{output[:800]}\n\n"
-        f"📚 Контекст из базы знаний:\n{context['knowledge_pack'][:300]}",
+        f"📰 Информационные поводы:\n{fresh_summary}\n\n"
+        f"📌 Тезис и структура:\n{output[:700]}\n\n"
+        f"📚 База знаний:\n{context['knowledge_pack'][:200]}"
+        f"{no_fresh_alert}",
         step=4,
         auto=auto_approve,
     )
