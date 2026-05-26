@@ -103,9 +103,91 @@ def update_step(plan_path: Path, step_num: int, status: str = "done") -> None:
     plan_path.write_text(content, encoding="utf-8")
 
 
-# ── Web search ────────────────────────────────────────────────────────────────
+# ── HTML generator ────────────────────────────────────────────────────────────
 
-def _fetch_full_text(url: str, max_chars: int = 3000) -> str:
+def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
+    """Конвертирует Markdown-статью в автономный HTML с дизайном проекта."""
+    import markdown as _md
+    md_text = md_path.read_text(encoding="utf-8")
+
+    # Отделяем JSON-LD блок (если есть) от основного текста
+    jsonld_block = ""
+    if "```json" in md_text and "@context" in md_text:
+        import re
+        m = re.search(r"```json\s*(\{[\s\S]*?\})\s*```", md_text)
+        if m:
+            jsonld_block = f'<script type="application/ld+json">{m.group(1)}</script>'
+            md_text = md_text[:m.start()] + md_text[m.end():]
+
+    body_html = _md.markdown(
+        md_text,
+        extensions=["tables", "fenced_code", "toc", "nl2br"],
+    )
+
+    html = f"""<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  {jsonld_block}
+  <style>
+    *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    :root {{
+      --bg: #1F2937; --surface: #263348; --surface2: #2d3a50;
+      --border: rgba(255,255,255,0.08); --primary: #818CF8;
+      --text: #F9FAFB; --text-muted: #9CA3AF;
+      --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px;
+    }}
+    body {{ font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }}
+    .nav {{
+      display: flex; align-items: center; gap: 24px; padding: 0 32px; height: 52px;
+      border-bottom: 1px solid var(--border); background: rgba(31,41,55,0.95);
+      backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 100;
+    }}
+    .nav-logo {{ font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }}
+    .nav-logo-dot {{ width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }}
+    .nav-back {{ margin-left: auto; font-size: 13px; color: var(--text-muted); text-decoration: none; }}
+    .nav-back:hover {{ color: var(--text); }}
+    .article-wrap {{ max-width: 780px; margin: 48px auto; padding: 0 24px 80px; }}
+    .article-wrap h1 {{ font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; margin-bottom: 24px; }}
+    .article-wrap h2 {{ font-size: 22px; font-weight: 600; margin: 40px 0 12px; letter-spacing: -0.01em; }}
+    .article-wrap h3 {{ font-size: 17px; font-weight: 600; margin: 28px 0 10px; }}
+    .article-wrap h4 {{ font-size: 15px; font-weight: 600; margin: 20px 0 8px; color: var(--text-muted); }}
+    .article-wrap p {{ margin-bottom: 16px; }}
+    .article-wrap ul, .article-wrap ol {{ margin: 0 0 16px 24px; }}
+    .article-wrap li {{ margin-bottom: 6px; }}
+    .article-wrap table {{ width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; }}
+    .article-wrap th {{ background: var(--surface2); padding: 10px 14px; text-align: left; font-weight: 600; border: 1px solid var(--border); }}
+    .article-wrap td {{ padding: 9px 14px; border: 1px solid var(--border); }}
+    .article-wrap tr:nth-child(even) td {{ background: rgba(255,255,255,0.02); }}
+    .article-wrap code {{ font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: 4px; }}
+    .article-wrap pre {{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; overflow-x: auto; margin: 20px 0; }}
+    .article-wrap pre code {{ background: none; padding: 0; }}
+    .article-wrap blockquote {{ border-left: 3px solid var(--primary); padding: 12px 20px; margin: 20px 0; background: var(--surface); border-radius: 0 var(--radius-md) var(--radius-md) 0; color: var(--text-muted); }}
+    .article-wrap a {{ color: var(--primary); text-decoration: none; }}
+    .article-wrap a:hover {{ text-decoration: underline; }}
+    .article-wrap hr {{ border: none; border-top: 1px solid var(--border); margin: 32px 0; }}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-logo"><div class="nav-logo-dot"></div>Content Factory</div>
+    <a class="nav-back" href="/content-factory/">← Все статьи</a>
+  </nav>
+  <div class="article-wrap">
+    {body_html}
+  </div>
+</body>
+</html>"""
+
+    html_path.write_text(html, encoding="utf-8")
+    return html_path
+
+
+# ── Web search ────────────────────────────────────────────────────────────────
     """Вытаскивает полный текст страницы через trafilatura (без рекламы и мусора)."""
     if not _trafilatura or not url:
         return ""
@@ -600,27 +682,47 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
 
     # Шаг 14: deployer-publisher
     r = StepResult(14, "deployer-publisher")
-    article_path = ROOT / "docs" / "articles" / f"{slug}.md"
-    article_path.parent.mkdir(parents=True, exist_ok=True)
-    # Если оптимизатор вернул меньше текста чем черновик — берём черновик
+    articles_dir = ROOT / "docs" / "articles"
+    articles_dir.mkdir(parents=True, exist_ok=True)
+
+    # Сохраняем MD
+    article_path = articles_dir / f"{slug}.md"
     final_text = context["optimized_draft"]
     if len(final_text) < len(full_draft) * 0.5:
         final_text = full_draft
     article_path.write_text(final_text, encoding="utf-8")
 
-    result = subprocess.run(
-        ["git", "add", str(article_path), str(plan_path)],
-        cwd=ROOT, capture_output=True
-    )
-    result = subprocess.run(
+    # Генерируем HTML
+    html_path = articles_dir / f"{slug}.html"
+    try:
+        md_to_html(article_path, html_path, title)
+        print(f"  HTML сгенерирован: {html_path.name}")
+    except Exception as e:
+        print(f"  [WARN] HTML не сгенерирован: {e}")
+        html_path = None
+
+    # git add + commit
+    files_to_add = [str(article_path), str(plan_path)]
+    if html_path and html_path.exists():
+        files_to_add.append(str(html_path))
+    subprocess.run(["git", "add"] + files_to_add, cwd=ROOT, capture_output=True)
+    subprocess.run(
         ["git", "commit", "-m", f"feat: article '{title}' [{slug}]"],
         cwd=ROOT, capture_output=True, text=True
     )
     update_step(plan_path, 14)
-    r.finish(result.stdout, tokens=50)
 
-    tg_notify(f"🎉 <b>Статья опубликована!</b>\n📝 {title}\n📁 docs/articles/{slug}.md")
-    print(f"\n✅ Готово: {article_path}")
+    pages_url = f"https://xopromo.github.io/content-factory/articles/{slug}.html"
+    r.finish(f"{article_path.name} + {slug}.html", tokens=50)
+    tg_notify(
+        f"🎉 <b>Статья опубликована!</b>\n"
+        f"📝 {title}\n"
+        f"📄 <a href='{pages_url}'>{pages_url}</a>"
+    )
+    print(f"\n✅ MD:   {article_path}")
+    if html_path:
+        print(f"✅ HTML: {html_path}")
+        print(f"🌐 URL:  {pages_url}")
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────────
