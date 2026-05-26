@@ -237,6 +237,17 @@ def format_voice_note(text: str, category: str, duration: int = 0) -> tuple[str,
     )
     return filename, content
 
+async def send_transcript(update: Update, text: str) -> None:
+    """Отправляет полный транскрипт, разбивая на части если > 4000 символов."""
+    LIMIT = 4000
+    if len(text) <= LIMIT:
+        await update.message.reply_text(f"📝 *Транскрипт:*\n\n{text}", parse_mode="Markdown")
+        return
+    chunks = [text[i:i + LIMIT] for i in range(0, len(text), LIMIT)]
+    for idx, chunk in enumerate(chunks, 1):
+        header = f"📝 *Транскрипт ({idx}/{len(chunks)}):*\n\n" if idx == 1 else f"📝 *Транскрипт (часть {idx}/{len(chunks)}):*\n\n"
+        await update.message.reply_text(header + chunk, parse_mode="Markdown")
+
 def questions_keyboard(questions: list[str]) -> ReplyKeyboardMarkup:
     """Показывает вопросы в сообщении, кнопки — номера + навигация."""
     return ReplyKeyboardMarkup(
@@ -299,8 +310,7 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     ctx.user_data["text"] = text
     ctx.user_data["duration"] = getattr(update.message.voice or update.message.audio, "duration", 0)
 
-    preview = text[:1000] + (f"\n\n_[показано 1000 из {len(text)} симв. — полный текст сохранится в файл]_" if len(text) > 1000 else "")
-    await update.message.reply_text(f"📝 *Транскрипт:*\n\n{preview}", parse_mode="Markdown")
+    await send_transcript(update, text)
 
     keyboard = [[cat] for cat in CATEGORIES] + [["🏠 Главное меню"]]
     await update.message.reply_text(
@@ -374,8 +384,7 @@ async def expert_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     ctx.user_data["text"] = full_text
     ctx.user_data["duration"] = getattr(update.message.voice or update.message.audio, "duration", 0)
 
-    preview = text[:1000] + (f"\n\n_[показано 1000 из {len(text)} симв. — полный текст сохранится в файл]_" if len(text) > 1000 else "")
-    await update.message.reply_text(f"📝 *Транскрипт:*\n\n{preview}", parse_mode="Markdown")
+    await send_transcript(update, text)
 
     keyboard = [[cat] for cat in CATEGORIES] + [["🏠 Главное меню"]]
     await update.message.reply_text(
@@ -604,8 +613,7 @@ async def news_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     url = item.get("url", "")
     now = datetime.now(timezone.utc)
 
-    preview = text[:1000] + (f"\n\n_[показано 1000 из {len(text)} симв. — полный текст сохранится в файл]_" if len(text) > 1000 else "")
-    await update.message.reply_text(f"📝 *Транскрипт:*\n\n{preview}", parse_mode="Markdown")
+    await send_transcript(update, text)
 
     filename = f"{now.strftime('%Y-%m-%d_%H-%M')}_новость.md"
     content = (
