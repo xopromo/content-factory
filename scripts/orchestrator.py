@@ -136,7 +136,7 @@ def run_claude(prompt: str, context_files: list[Path] = None) -> tuple[str, int]
             resp = _groq_client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[{"role": "user", "content": full_prompt}],
-                max_tokens=4096,
+                max_tokens=8192,
                 temperature=0.7,
             )
             return resp.choices[0].message.content.strip(), tokens
@@ -350,7 +350,11 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
     r = StepResult(14, "deployer-publisher")
     article_path = ROOT / "docs" / "articles" / f"{slug}.md"
     article_path.parent.mkdir(parents=True, exist_ok=True)
-    article_path.write_text(context["optimized_draft"], encoding="utf-8")
+    # Если оптимизатор вернул меньше текста чем черновик — берём черновик
+    final_text = context["optimized_draft"]
+    if len(final_text) < len(full_draft) * 0.5:
+        final_text = full_draft
+    article_path.write_text(final_text, encoding="utf-8")
 
     result = subprocess.run(
         ["git", "add", str(article_path), str(plan_path)],
