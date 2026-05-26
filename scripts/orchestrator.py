@@ -50,6 +50,7 @@ RETRO_DIR = ROOT / "retrospectives"
 FEEDBACK_DIR = ROOT / "ai-clone" / "feedback"
 KNOWLEDGE_DIR = ROOT / "knowledge"
 RULES_FILE = ROOT / "ai-clone" / "rules.md"
+STATE_DIR = ROOT / "plans" / ".state"   # Material Passport — состояние пайплайна
 
 # Минимальные требования к исследовательской базе перед запуском content-writer
 RESEARCH_MIN_CHARS = 2000     # символов реального текста из источников
@@ -809,6 +810,44 @@ def run_fast(prompt: str) -> tuple[str, int]:
     return "", tokens
 
 
+# ── Material Passport ─────────────────────────────────────────────────────────
+
+def save_state(slug: str, context: dict, completed_step: int) -> None:
+    """Сохраняет текущее состояние пайплайна в JSON (append-only обновление)."""
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    state_path = STATE_DIR / f"{slug}.json"
+    state = {
+        "slug": slug,
+        "completed_step": completed_step,
+        "saved_at": datetime.now(timezone.utc).isoformat(),
+        # Сохраняем только сериализуемые строковые поля контекста
+        "context": {
+            k: v for k, v in context.items()
+            if isinstance(v, (str, int, float, bool)) or v is None
+        },
+    }
+    state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def load_state(slug: str) -> tuple[int, dict]:
+    """
+    Загружает сохранённое состояние пайплайна.
+    Возвращает (последний_завершённый_шаг, контекст) или (0, {}) если нет состояния.
+    """
+    state_path = STATE_DIR / f"{slug}.json"
+    if not state_path.exists():
+        return 0, {}
+    try:
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        step = state.get("completed_step", 0)
+        ctx = state.get("context", {})
+        print(f"  [passport] Загружено состояние: шаг {step} завершён ({state.get('saved_at', '')[:19]})")
+        return step, ctx
+    except Exception as e:
+        print(f"  [passport] Ошибка загрузки: {e}")
+        return 0, {}
+
+
 def run_fact_checker(draft: str, raw_sources: str, step_label: str) -> tuple[bool, str]:
     """
     Запускает агент проверки фактов после content-writer.
@@ -833,70 +872,95 @@ def run_fact_checker(draft: str, raw_sources: str, step_label: str) -> tuple[boo
     return passed, output
 
 
-def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_approve: bool = False) -> None:
-    print(f"\n🚀 Content Factory — запуск генерации: {title}")
-    tg_notify(f"🚀 <b>Запуск генерации</b>\n📝 {title}\n🔍 {topic}")
+def run_pipeline(
+    topic: str, title: str, slug: str, search_query: str,
+    auto_approve: bool = False, resume: bool = False,
+) -> None:
+    # ── Resume: загружаем сохранённое состояние ──────────────────────────────
+    last_step, saved_ctx = load_state(slug) if resume else (0, {})
+    if resume and last_step > 0:
+        print(f"\n▶️  Возобновляем с шага {last_step + 1} (slug: {slug})")
+        tg_notify(f"▶️ <b>Возобновление пайплайна</b>\nСлуг: {slug}\nПродолжаем с шага {last_step + 1}")
+    else:
+        print(f"\n🚀 Content Factory — запуск генерации: {title}")
+        tg_notify(f"🚀 <b>Запуск генерации</b>\n📝 {title}\n🔍 {topic}")
 
-    plan_path = create_plan(title, slug)
+    plan_path = create_plan(title, slug) if last_step == 0 else (PLANS_DIR / f"*_{slug}.md")
+    # Если resume и план уже существует — найти его
+    if resume and last_step > 0:
+        matches = list(PLANS_DIR.glob(f"*_{slug}.md"))
+        plan_path = matches[0] if matches else create_plan(title, slug)
+
     context: dict = {"topic": topic, "title": title, "search_query": search_query}
+    context.update(saved_ctx)  # восстанавливаем сохранённые данные
 
     # Шаг 1: Оркестратор читает feedback
-    r = StepResult(1, "lead-orchestrator")
-    feedback = aggregate_feedback()
-    context["feedback"] = feedback
-    update_step(plan_path, 1)
-    r.finish(feedback or "(нет feedback)", tokens=len(feedback.split()))
+    if last_step >= 1:
+        print("  [passport] Шаг 1 пропущен (уже выполнен)")
+    else:
+        r = StepResult(1, "lead-orchestrator")
+        feedback = aggregate_feedback()
+        context["feedback"] = feedback
+        update_step(plan_path, 1)
+        r.finish(feedback or "(нет feedback)", tokens=len(feedback.split()))
+        save_state(slug, context, 1)
 
     # Шаг 2: knowledge-retriever
-    r = StepResult(2, "knowledge-retriever")
-    prompt = AGENT_PROMPTS["knowledge-retriever"].format(topic=topic)
-    output, tokens = run_claude(prompt)
-    context["knowledge_pack"] = output
-    update_step(plan_path, 2)
-    r.finish(output, tokens=tokens)
+    if last_step >= 2:
+        print("  [passport] Шаг 2 пропущен (уже выполнен)")
+    else:
+        r = StepResult(2, "knowledge-retriever")
+        prompt = AGENT_PROMPTS["knowledge-retriever"].format(topic=topic)
+        output, tokens = run_claude(prompt)
+        context["knowledge_pack"] = output
+        update_step(plan_path, 2)
+        r.finish(output, tokens=tokens)
+        save_state(slug, context, 2)
 
     # Шаг 3: web-researcher — двухслойный поиск через ddgs + full-text trafilatura
-    r = StepResult(3, "web-researcher")
-    print("  [Слой 1] Ищу свежие новости за неделю...")
-    tg_notify(f"🔍 <b>Шаг 03</b> — web-researcher\n⏳ Ищу актуальные источники...")
+    if last_step >= 3 and context.get("web_pack"):
+        print("  [passport] Шаг 3 пропущен (уже выполнен)")
+        fresh, deep = [], []  # списки не сериализуются в passport; FINER пропустится мягко
+        has_fresh = context.get("has_fresh_news", False)
+    else:
+        r = StepResult(3, "web-researcher")
+        print("  [Слой 1] Ищу свежие новости за неделю...")
+        tg_notify(f"🔍 <b>Шаг 03</b> — web-researcher\n⏳ Ищу актуальные источники...")
 
-    fresh = web_search_fresh(topic, max_results=3)
-    print(f"  Найдено свежих: {len(fresh)}")
+        fresh = web_search_fresh(topic, max_results=3)
+        print(f"  Найдено свежих: {len(fresh)}")
 
-    print("  [Слой 2] Ищу глубинные источники...")
-    deep = web_search_deep(f"{topic} руководство практика кейсы", max_results=5)
-    print(f"  Найдено глубинных: {len(deep)}")
+        print("  [Слой 2] Ищу глубинные источники...")
+        deep = web_search_deep(f"{topic} руководство практика кейсы", max_results=5)
+        print(f"  Найдено глубинных: {len(deep)}")
 
-    # Сохраняем сырые источники с номерами — понадобятся content-writer и fact-checker
-    context["raw_sources"] = format_raw_sources(fresh, deep)
+        context["raw_sources"] = format_raw_sources(fresh, deep)
+        search_block = format_search_for_llm(fresh, deep)
+        has_fresh = any(s.get("fresh") for s in fresh)
 
-    search_block = format_search_for_llm(fresh, deep)
-
-    has_fresh = any(s.get("fresh") for s in fresh)
-    freshness_warning = "" if has_fresh else (
-        "\n\n⚠️ ВНИМАНИЕ: горячих новостей за последнюю неделю не найдено. "
-        "На шаге 4 автор должен решить: использовать имеющееся или выбрать другую тему."
-    )
-
-    synthesis_prompt = (
-        f"Ты аналитик контента. Тема: «{topic}».\n\n"
-        f"Ниже — реальные найденные материалы. Работай ТОЛЬКО с ними, "
-        f"не добавляй факты из своих тренировочных данных.\n\n"
-        f"{search_block}\n\n"
-        f"Задача:\n"
-        f"1. Определи главный информационный повод (самая свежая и значимая новость)\n"
-        f"2. Выдели 5 ключевых фактов с URL-источниками\n"
-        f"3. Предложи структуру статьи H2–H3 (6–8 разделов)\n"
-        f"4. Составь 15 LSI-ключей\n"
-        f"5. Сформулируй главный тезис одним предложением"
-        f"{freshness_warning}"
-    )
-    output, tokens = run_claude(synthesis_prompt)
-    context["web_pack"] = output
-    context["fresh_news"] = fresh
-    context["has_fresh_news"] = has_fresh
-    update_step(plan_path, 3)
-    r.finish(output, tokens=tokens)
+        freshness_warning = "" if has_fresh else (
+            "\n\n⚠️ ВНИМАНИЕ: горячих новостей за последнюю неделю не найдено. "
+            "На шаге 4 автор должен решить: использовать имеющееся или выбрать другую тему."
+        )
+        synthesis_prompt = (
+            f"Ты аналитик контента. Тема: «{topic}».\n\n"
+            f"Ниже — реальные найденные материалы. Работай ТОЛЬКО с ними, "
+            f"не добавляй факты из своих тренировочных данных.\n\n"
+            f"{search_block}\n\n"
+            f"Задача:\n"
+            f"1. Определи главный информационный повод (самая свежая и значимая новость)\n"
+            f"2. Выдели 5 ключевых фактов с URL-источниками\n"
+            f"3. Предложи структуру статьи H2–H3 (6–8 разделов)\n"
+            f"4. Составь 15 LSI-ключей\n"
+            f"5. Сформулируй главный тезис одним предложением"
+            f"{freshness_warning}"
+        )
+        output, tokens = run_claude(synthesis_prompt)
+        context["web_pack"] = output
+        context["has_fresh_news"] = has_fresh
+        update_step(plan_path, 3)
+        r.finish(output, tokens=tokens)
+        save_state(slug, context, 3)
 
     # Шаг 3.5: FINER gate — оцениваем тему, блокируем при F=0
     finer_ok, finer_report = finer_gate(topic, fresh, deep)
@@ -933,20 +997,24 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
         context["corrections"] = corrections
         tg_notify(f"📝 Правки учтены:\n{corrections[:300]}")
     update_step(plan_path, 4)
+    save_state(slug, context, 4)
 
     # Шаги 5-6: content-writer (с обязательным grounding по верифицированным источникам)
     rules_excerpt = RULES_FILE.read_text(encoding="utf-8")[:800] if RULES_FILE.exists() else ""
     corrections_block = f"\n\n## ПРАВКИ И УТОЧНЕНИЯ ОТ АВТОРА:\n{context['corrections']}" if context.get("corrections") else ""
     for step in (5, 6):
-        r = StepResult(step, "content-writer")
         block = "1-3" if step == 5 else "4-6"
+        if last_step >= step and context.get(f"draft_{block}"):
+            print(f"  [passport] Шаг {step} пропущен (уже выполнен)")
+            continue
+        r = StepResult(step, "content-writer")
         prompt = (
             AGENT_PROMPTS["content-writer"].format(
                 title=title,
                 rules_excerpt=rules_excerpt,
-                knowledge_pack=context["knowledge_pack"],
-                web_pack=context["web_pack"],
-                raw_sources=context["raw_sources"],
+                knowledge_pack=context.get("knowledge_pack", ""),
+                web_pack=context.get("web_pack", ""),
+                raw_sources=context.get("raw_sources", ""),
             )
             + corrections_block
             + f"\n\nНапиши блоки {block} статьи."
@@ -955,6 +1023,7 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
         context[f"draft_{block}"] = output
         update_step(plan_path, step)
         r.finish(output, tokens=tokens)
+        save_state(slug, context, step)
 
     full_draft = context.get("draft_1-3", "") + "\n\n" + context.get("draft_4-6", "")
 
@@ -963,7 +1032,6 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
     context["fact_check_report"] = fact_report
 
     if not fact_ok:
-        # Показываем отчёт пользователю и останавливаемся
         tg_notify(
             f"🚫 <b>fact-checker: СТОП</b>\n\n"
             f"В черновике обнаружены непроверенные или противоречивые утверждения.\n\n"
@@ -974,6 +1042,7 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
         sys.exit(1)
 
     print("  [fact-checker] ✅ FACT_CHECK_PASSED")
+    save_state(slug, context, 6)
 
     # Шаг 7: diagram-illustrator
     r = StepResult(7, "diagram-illustrator")
@@ -988,13 +1057,17 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
     r.finish(output, tokens=tokens)
 
     # Шаг 8-9: seo-geo-optimizer
-    r = StepResult(8, "seo-geo-optimizer")
-    prompt = AGENT_PROMPTS["seo-geo-optimizer"] + f"\n\nЧерновик:\n{full_draft}"
-    output, tokens = run_claude(prompt)
-    context["optimized_draft"] = output
-    update_step(plan_path, 8)
-    update_step(plan_path, 9)
-    r.finish(output, tokens=tokens)
+    if last_step >= 8 and context.get("optimized_draft"):
+        print("  [passport] Шаги 8-9 пропущены (уже выполнены)")
+    else:
+        r = StepResult(8, "seo-geo-optimizer")
+        prompt = AGENT_PROMPTS["seo-geo-optimizer"] + f"\n\nЧерновик:\n{full_draft}"
+        output, tokens = run_claude(prompt)
+        context["optimized_draft"] = output
+        update_step(plan_path, 8)
+        update_step(plan_path, 9)
+        r.finish(output, tokens=tokens)
+        save_state(slug, context, 8)
 
     # Шаг 10: geo-emulator
     r = StepResult(10, "geo-emulator")
@@ -1007,15 +1080,19 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
     r.finish(output, tokens=tokens)
 
     # Шаг 11: editor-critic
-    r = StepResult(11, "editor-critic")
-    prompt = (
-        AGENT_PROMPTS["editor-critic"]
-        + f"\n\nПравила автора:\n{rules_excerpt}\n\nСтатья:\n{context['optimized_draft']}"
-    )
-    output, tokens = run_claude(prompt)
-    context["editor_report"] = output
-    update_step(plan_path, 11)
-    r.finish(output, tokens=tokens)
+    if last_step >= 11 and context.get("editor_report"):
+        print("  [passport] Шаг 11 пропущен (уже выполнен)")
+    else:
+        r = StepResult(11, "editor-critic")
+        prompt = (
+            AGENT_PROMPTS["editor-critic"]
+            + f"\n\nПравила автора:\n{rules_excerpt}\n\nСтатья:\n{context['optimized_draft']}"
+        )
+        output, tokens = run_claude(prompt)
+        context["editor_report"] = output
+        update_step(plan_path, 11)
+        r.finish(output, tokens=tokens)
+        save_state(slug, context, 11)
 
     # Шаг 12: HUMAN REVIEW перед публикацией
     preview = f"GEO-отчет:\n{context['geo_report'][:400]}\n\nРедактор:\n{context['editor_report'][:400]}"
@@ -1080,6 +1157,7 @@ if __name__ == "__main__":
     parser.add_argument("--slug", required=True, help="URL-slug статьи")
     parser.add_argument("--query", required=True, help="Поисковый запрос для GEO-теста")
     parser.add_argument("--auto-approve", action="store_true", help="Пропускать HITL-паузы (тестовый режим)")
+    parser.add_argument("--resume", action="store_true", help="Возобновить с последнего сохранённого шага")
     args = parser.parse_args()
 
     run_pipeline(
@@ -1088,4 +1166,5 @@ if __name__ == "__main__":
         slug=args.slug,
         search_query=args.query,
         auto_approve=args.auto_approve,
+        resume=args.resume,
     )
