@@ -21,17 +21,17 @@
 
 - [x] Шаг 01 — `lead-orchestrator`: прочитан feedback, сформированы ограничения
 - [x] Шаг 02 — `knowledge-retriever`: извлечены релевантные фрагменты из `knowledge/`
-- [ ] Шаг 03 — `web-researcher`: собраны данные из документации и GitHub ⏸ **HUMAN REVIEW**
-- [ ] Шаг 04 — `lead-orchestrator`: утверждение структуры пользователем
-- [ ] Шаг 05 — `content-writer`: написан черновик (блок 1-3)
-- [ ] Шаг 06 — `content-writer`: написан черновик (блок 4-6)
-- [ ] Шаг 07 — `diagram-illustrator`: созданы Mermaid/SVG-схемы
-- [ ] Шаг 08 — `seo-geo-optimizer`: интегрированы LSI-ключи, AEO-форматирование
-- [ ] Шаг 09 — `seo-geo-optimizer`: сгенерирован Schema.org JSON-LD
-- [ ] Шаг 10 — `geo-emulator`: валидация цитируемости ИИ-поисковиками
-- [ ] Шаг 11 — `editor-critic`: финальный аудит качества
-- [ ] Шаг 12 — `lead-orchestrator`: финальный черновик готов ⏸ **HUMAN REVIEW**
-- [ ] Шаг 13 — `lead-orchestrator`: утверждение пользователем
+- [x] Шаг 03 — `web-researcher`: собраны данные из документации и GitHub ⏸ **HUMAN REVIEW**
+- [x] Шаг 04 — `lead-orchestrator`: утверждение структуры пользователем
+- [x] Шаг 05 — `content-writer`: написан черновик (блок 1-3)
+- [x] Шаг 06 — `content-writer`: написан черновик (блок 4-6)
+- [x] Шаг 07 — `diagram-illustrator`: созданы Mermaid/SVG-схемы
+- [x] Шаг 08 — `seo-geo-optimizer`: интегрированы LSI-ключи, AEO-форматирование
+- [x] Шаг 09 — `seo-geo-optimizer`: сгенерирован Schema.org JSON-LD
+- [x] Шаг 10 — `geo-emulator`: валидация цитируемости ИИ-поисковиками
+- [x] Шаг 11 — `editor-critic`: финальный аудит качества
+- [x] Шаг 12 — `lead-orchestrator`: финальный черновик готов ⏸ **HUMAN REVIEW**
+- [x] Шаг 13 — `lead-orchestrator`: утверждение пользователем
 - [ ] Шаг 14 — `deployer-publisher`: коммит и публикация
 
 ---
