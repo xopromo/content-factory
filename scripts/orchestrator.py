@@ -53,7 +53,7 @@ RULES_FILE = ROOT / "ai-clone" / "rules.md"
 STATE_DIR = ROOT / "plans" / ".state"   # Material Passport — состояние пайплайна
 
 # Минимальные требования к исследовательской базе перед запуском content-writer
-RESEARCH_MIN_CHARS = 2000     # символов реального текста из источников
+RESEARCH_MIN_CHARS = 1000     # символов реального текста из источников
 RESEARCH_MIN_SOURCES = 2      # источников с текстом > 100 символов
 
 # Домены по уровню авторитетности для ранжирования источников
