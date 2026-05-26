@@ -108,12 +108,16 @@ def update_step(plan_path: Path, step_num: int, status: str = "done") -> None:
 def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
     """Конвертирует Markdown-статью в автономный HTML с дизайном проекта."""
     import markdown as _md
+    import re
     md_text = md_path.read_text(encoding="utf-8")
+
+    # Убираем code fence ```markdown ... ``` если LLM завернул статью в него
+    md_text = re.sub(r"^```markdown\s*\n", "", md_text, flags=re.MULTILINE)
+    md_text = re.sub(r"^```\s*$", "", md_text, flags=re.MULTILINE)
 
     # Отделяем JSON-LD блок (если есть) от основного текста
     jsonld_block = ""
     if "```json" in md_text and "@context" in md_text:
-        import re
         m = re.search(r"```json\s*(\{[\s\S]*?\})\s*```", md_text)
         if m:
             jsonld_block = f'<script type="application/ld+json">{m.group(1)}</script>'
