@@ -64,7 +64,7 @@ MAIN_KEYBOARD = ReplyKeyboardMarkup(
     is_persistent=True,
 )
 
-NEWS_QUERY = "ВКонтакте реклама таргет 2026"
+NEWS_QUERY = "нейросети искусственный интеллект маркетинг 2026"
 
 NAV_KEYBOARD = ReplyKeyboardMarkup(
     [["🏠 Главное меню"]],
@@ -526,11 +526,17 @@ async def audience_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> in
 def fetch_news(query: str, max_results: int = 3) -> list[dict]:
     """Ищет свежие новости через DuckDuckGo, возвращает list[{title, url, body}]."""
     try:
-        with DDGS() as ddgs:
-            results = list(ddgs.news(query, max_results=max_results, region="ru-ru"))
-        return results
+        results = list(DDGS().news(query, max_results=max_results))
+        if results:
+            return results
     except Exception as e:
-        log.warning("News fetch error: %s", e)
+        log.warning("News fetch error (news): %s", e)
+    # Fallback: текстовый поиск
+    try:
+        results = list(DDGS().text(query, max_results=max_results, region="ru-ru"))
+        return [{"title": r.get("title", ""), "url": r.get("href", ""), "body": r.get("body", ""), "source": "", "date": ""} for r in results]
+    except Exception as e:
+        log.warning("News fetch error (text): %s", e)
         return []
 
 async def menu_news(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
