@@ -156,26 +156,120 @@ def run_claude(prompt: str, context_files: list[Path] = None) -> tuple[str, int]
 
 # ── Human-in-the-Loop ─────────────────────────────────────────────────────────
 
-def human_review(title: str, content: str, step: int, auto: bool = False) -> bool:
+def _tg_wait_reply(timeout: int = 600) -> tuple[str, str]:
     """
-    Интерактивная пауза. В Telegram — кнопки approve/reject.
-    В CLI — просит ввод. auto=True — всегда одобряет (тестовый режим).
+    Ждёт ответного сообщения от пользователя в Telegram.
+    Возвращает (тип: 'text'|'voice', содержимое).
+    Таймаут в секундах (по умолчанию 10 минут).
+    """
+    import urllib.request, urllib.parse, tempfile, time as _time
+    token = os.getenv("TG_BOT_TOKEN")
+    chat_id = str(os.getenv("TG_CHAT_ID", ""))
+    if not token or not chat_id:
+        return "text", input("\nВаш ответ: ").strip().lower()
+
+    # Получаем текущий offset чтобы не читать старые сообщения
+    def _api(method, **params):
+        url = f"https://api.telegram.org/bot{token}/{method}"
+        if params:
+            url += "?" + urllib.parse.urlencode(params)
+        with urllib.request.urlopen(url, timeout=15) as r:
+            return json.loads(r.read())
+
+    # Сдвигаем offset за последнее известное обновление
+    try:
+        updates = _api("getUpdates", limit=1, offset=-1)
+        offset = updates["result"][-1]["update_id"] + 1 if updates["result"] else 0
+    except Exception:
+        offset = 0
+
+    deadline = _time.time() + timeout
+    print(f"  Ожидаю ответа в Telegram ({timeout//60} мин)...")
+
+    while _time.time() < deadline:
+        try:
+            updates = _api("getUpdates", offset=offset, timeout=30, limit=5)
+            for upd in updates.get("result", []):
+                offset = upd["update_id"] + 1
+                msg = upd.get("message", {})
+                if str(msg.get("chat", {}).get("id", "")) != chat_id:
+                    continue
+
+                # Голосовое сообщение
+                voice = msg.get("voice") or msg.get("audio")
+                if voice and _groq_client:
+                    file_id = voice["file_id"]
+                    file_info = _api("getFile", file_id=file_id)
+                    file_path = file_info["result"]["file_path"]
+                    audio_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
+                    with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
+                        tmp_path = tmp.name
+                    urllib.request.urlretrieve(audio_url, tmp_path)
+                    try:
+                        from groq import Groq as _G
+                        client = _G(api_key=os.environ["GROQ_KEY"])
+                        with open(tmp_path, "rb") as f:
+                            result = client.audio.transcriptions.create(
+                                file=(os.path.basename(tmp_path), f),
+                                model="whisper-large-v3-turbo",
+                                language="ru",
+                                response_format="text",
+                            )
+                        transcription = result.strip()
+                        tg_notify(f"🎙 Транскрипция правок:\n\n{transcription}")
+                        return "voice", transcription
+                    finally:
+                        os.unlink(tmp_path)
+
+                # Текстовое сообщение
+                text = msg.get("text", "").strip()
+                if text:
+                    return "text", text
+
+        except Exception as e:
+            print(f"  [TG poll error] {e}")
+            _time.sleep(5)
+
+    return "text", "stop"  # таймаут — останавливаем
+
+
+def human_review(title: str, content: str, step: int, auto: bool = False) -> tuple[bool, str]:
+    """
+    Интерактивная пауза с поддержкой голосовых правок из Telegram.
+    Возвращает (approved: bool, corrections: str).
+    auto=True — всегда одобряет без правок (тестовый режим).
     """
     tg_notify(
         f"⏸ <b>Шаг {step} — требуется ваше решение</b>\n\n"
-        f"<b>{title}</b>\n\n{content[:800]}...\n\n"
-        f"Ответьте: <code>ok</code> — продолжить, <code>stop</code> — остановить"
+        f"<b>{title}</b>\n\n{content[:1200]}\n\n"
+        f"✅ <code>ok</code> — продолжить\n"
+        f"🛑 <code>stop</code> — остановить\n"
+        f"🎙 Голосовое — правки и уточнения (транскрибирую и учту)"
     )
+
     if auto:
         print(f"\n⏭  HUMAN REVIEW шаг {step} — пропущен (--auto-approve)")
-        return True
+        return True, ""
+
     print(f"\n{'='*60}")
     print(f"⏸  HUMAN REVIEW — Шаг {step}: {title}")
     print(f"{'='*60}")
     print(content[:1000])
-    print(f"\n[ok] Продолжить  |  [stop] Остановить")
-    answer = input("\nВаш ответ: ").strip().lower()
-    return answer in ("ok", "y", "yes", "да", "")
+
+    msg_type, answer = _tg_wait_reply(timeout=600)
+
+    if msg_type == "voice":
+        # Голосовые правки — одобряем с корректировками
+        print(f"  Получены голосовые правки: {answer[:200]}")
+        return True, answer
+
+    answer_lower = answer.lower()
+    if answer_lower in ("stop", "стоп", "нет", "no"):
+        return False, ""
+
+    # Любой другой текст = правки
+    corrections = "" if answer_lower in ("ok", "y", "yes", "да", "") else answer
+    return True, corrections
 
 
 # ── Main pipeline ──────────────────────────────────────────────────────────────
@@ -263,7 +357,7 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
     r.finish(output, tokens=tokens)
 
     # Шаг 4: HUMAN REVIEW структуры
-    approved = human_review(
+    approved, corrections = human_review(
         "Утвердите структуру и данные из исследования",
         f"Структура:\n{output[:600]}\n\nКонтекст из базы знаний:\n{context['knowledge_pack'][:400]}",
         step=4,
@@ -272,10 +366,14 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
     if not approved:
         tg_notify("🛑 Генерация остановлена пользователем на шаге 4.")
         sys.exit(0)
+    if corrections:
+        context["corrections"] = corrections
+        tg_notify(f"📝 Правки учтены:\n{corrections[:300]}")
     update_step(plan_path, 4)
 
     # Шаги 5-6: content-writer
     rules_excerpt = RULES_FILE.read_text(encoding="utf-8")[:800] if RULES_FILE.exists() else ""
+    corrections_block = f"\n\n## ПРАВКИ И УТОЧНЕНИЯ ОТ АВТОРА:\n{context['corrections']}" if context.get("corrections") else ""
     for step in (5, 6):
         r = StepResult(step, "content-writer")
         block = "1-3" if step == 5 else "4-6"
@@ -286,6 +384,7 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
                 knowledge_pack=context["knowledge_pack"],
                 web_pack=context["web_pack"],
             )
+            + corrections_block
             + f"\n\nНапиши блоки {block} статьи."
         )
         output, tokens = run_claude(prompt)
@@ -339,7 +438,7 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
 
     # Шаг 12: HUMAN REVIEW перед публикацией
     preview = f"GEO-отчет:\n{context['geo_report'][:400]}\n\nРедактор:\n{context['editor_report'][:400]}"
-    approved = human_review("Утвердите статью перед публикацией", preview, step=12, auto=auto_approve)
+    approved, corrections12 = human_review("Утвердите статью перед публикацией", preview, step=12, auto=auto_approve)
     if not approved:
         tg_notify("🛑 Публикация отменена пользователем на шаге 12.")
         sys.exit(0)
