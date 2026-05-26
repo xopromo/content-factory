@@ -29,9 +29,9 @@
 - [x] Шаг 08 — `seo-geo-optimizer`: интегрированы LSI-ключи, AEO-форматирование
 - [x] Шаг 09 — `seo-geo-optimizer`: сгенерирован Schema.org JSON-LD
 - [x] Шаг 10 — `geo-emulator`: валидация цитируемости ИИ-поисковиками
-- [ ] Шаг 11 — `editor-critic`: финальный аудит качества
-- [ ] Шаг 12 — `lead-orchestrator`: финальный черновик готов ⏸ **HUMAN REVIEW**
-- [ ] Шаг 13 — `lead-orchestrator`: утверждение пользователем
+- [x] Шаг 11 — `editor-critic`: финальный аудит качества
+- [x] Шаг 12 — `lead-orchestrator`: финальный черновик готов ⏸ **HUMAN REVIEW**
+- [x] Шаг 13 — `lead-orchestrator`: утверждение пользователем
 - [ ] Шаг 14 — `deployer-publisher`: коммит и публикация
 
 ---
