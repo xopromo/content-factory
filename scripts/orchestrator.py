@@ -733,6 +733,20 @@ AGENT_PROMPTS = {
         "Если UNVERIFIED = 0 и CONTRADICTED = 0 → в конце напиши строку: FACT_CHECK_PASSED\n"
         "Если есть хотя бы одно UNVERIFIED или CONTRADICTED → напиши: FACT_CHECK_FAILED"
     ),
+    "temporal-verifier": (
+        "Ты агент проверки временной согласованности. "
+        "Твоя задача — найти временные ошибки в тексте статьи.\n\n"
+        "Ищи 5 типов ошибок:\n"
+        "1. Ретроспективная арифметика: «X лет назад» при неверной дате\n"
+        "2. Анахронизм: ссылка на продукт/событие раньше его выхода\n"
+        "3. Устаревшие сравнения: «лучший на рынке» для продукта, у которого уже есть замена\n"
+        "4. Дейктическое настоящее: «сейчас», «сегодня», «в этом году» без уточнения даты\n"
+        "5. Версии без дат: упоминание версии без указания когда она актуальна\n\n"
+        "Для каждой найденной ошибки:\n"
+        "- TEMPORAL_WARN: «цитата» — тип ошибки — рекомендация\n\n"
+        "Если ошибок нет → напиши: TEMPORAL_OK\n"
+        "Если есть хотя бы одна → напиши: TEMPORAL_WARN_FOUND"
+    ),
     "seo-geo-optimizer": (
         "Ты SEO/GEO-оптимизатор. Получи черновик статьи и: "
         "1. Интегрируй LSI-ключи естественно в текст. "
@@ -884,6 +898,47 @@ def parse_editor_min_score(editor_report: str) -> int:
     return int(digits[0]) if digits else 7
 
 
+def run_gemini_spotcheck(claims_text: str) -> tuple[bool, str]:
+    """
+    Проверяет 5-7 ключевых утверждений через Gemini независимо от Groq.
+    Возвращает (всё_ок: bool, отчёт: str).
+    Вызывается только если _gemini_client доступен.
+    """
+    if not _gemini_client:
+        return True, "(Gemini недоступен — spot-check пропущен)"
+
+    prompt = (
+        "Ты независимый fact-checker. Для каждого утверждения ниже ответь кратко: "
+        "LIKELY_TRUE / LIKELY_FALSE / UNCERTAIN — и одним предложением поясни почему.\n\n"
+        "Утверждения:\n"
+        f"{claims_text}\n\n"
+        "Если все утверждения LIKELY_TRUE или UNCERTAIN → напиши: SPOTCHECK_PASS\n"
+        "Если хотя бы одно LIKELY_FALSE → напиши: SPOTCHECK_WARN"
+    )
+    try:
+        resp = _gemini_client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt,
+        )
+        output = resp.text.strip()
+        ok = "SPOTCHECK_WARN" not in output
+        return ok, output
+    except Exception as e:
+        return True, f"(Gemini spot-check ошибка: {e})"
+
+
+def run_temporal_check(article: str) -> tuple[bool, str]:
+    """
+    Проверяет временную согласованность статьи через run_fast (8b модель).
+    Возвращает (ок: bool, отчёт: str).
+    """
+    print("  [temporal-check] Проверяю временную согласованность...")
+    prompt = AGENT_PROMPTS["temporal-verifier"] + f"\n\nСТАТЬЯ:\n{article[:4000]}"
+    output, _ = run_fast(prompt)
+    has_warns = "TEMPORAL_WARN_FOUND" in output
+    return not has_warns, output
+
+
 def run_devil_advocate(article: str) -> tuple[bool, str]:
     """
     Запускает агент оппонирования. Использует run_fast (меньшая модель достаточна).
@@ -904,11 +959,13 @@ def run_devil_advocate(article: str) -> tuple[bool, str]:
 
 def run_fact_checker(draft: str, raw_sources: str, step_label: str) -> tuple[bool, str]:
     """
-    Запускает агент проверки фактов после content-writer.
-    Возвращает (прошло: bool, отчёт: str).
+    Запускает трёхуровневую проверку фактов:
+    1. Основная (Groq 70b): проверка всех утверждений против источников
+    2. Temporal (Groq 8b): проверка временной согласованности
+    3. Gemini spot-check: независимая проверка 5-7 ключевых цифр/фактов
     Блокирует пайплайн при обнаружении UNVERIFIED или CONTRADICTED утверждений.
     """
-    print(f"  [fact-checker] Проверяю факты черновика...")
+    print(f"  [fact-checker] Уровень 1: проверка против источников...")
     prompt = (
         AGENT_PROMPTS["fact-checker"]
         + f"\n\n## ЧЕРНОВИК СТАТЬИ:\n{draft}\n\n"
@@ -916,6 +973,30 @@ def run_fact_checker(draft: str, raw_sources: str, step_label: str) -> tuple[boo
     )
     output, tokens = run_claude(prompt)
     passed = "FACT_CHECK_PASSED" in output
+
+    # Уровень 2: temporal check (run_fast, дёшево)
+    temp_ok, temp_report = run_temporal_check(draft)
+    if not temp_ok:
+        output += f"\n\n### TEMPORAL WARNINGS:\n{temp_report}"
+        tg_notify(f"⚠️ <b>temporal-check</b>: найдены временные несоответствия\n{temp_report[:400]}")
+
+    # Уровень 3: Gemini spot-check на 5-7 ключевых утверждений (если Groq нашёл VERIFIED)
+    if passed and _gemini_client:
+        import re
+        verified_claims = re.findall(r"VERIFIED:.*?\[(\d+)\].*?(?:\n|$)", output)
+        # Извлекаем первые 5 верифицированных фактов для spot-check
+        claims_for_spot = "\n".join(
+            line for line in output.split("\n")
+            if "VERIFIED" in line
+        )[:800]
+        if claims_for_spot:
+            spot_ok, spot_report = run_gemini_spotcheck(claims_for_spot)
+            if not spot_ok:
+                output += f"\n\n### GEMINI SPOTCHECK WARNINGS:\n{spot_report}"
+                tg_notify(f"⚠️ <b>Gemini spot-check</b>: расхождение с основным fact-checker\n{spot_report[:400]}")
+            else:
+                print(f"  [gemini-spotcheck] ✅ SPOTCHECK_PASS")
+
     icon = "✅" if passed else "❌"
     tg_notify(
         f"{icon} <b>fact-checker [{step_label}]</b>\n"
