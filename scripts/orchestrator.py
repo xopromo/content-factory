@@ -16,6 +16,12 @@ from datetime import datetime, timezone
 from typing import Optional
 
 try:
+    from dotenv import load_dotenv as _load_dotenv
+    _load_dotenv(Path(__file__).parent.parent / ".env")
+except ImportError:
+    pass
+
+try:
     from groq import Groq as _Groq
     _groq_client = _Groq(api_key=os.environ.get("GROQ_KEY", "")) if os.environ.get("GROQ_KEY") else None
 except ImportError:
