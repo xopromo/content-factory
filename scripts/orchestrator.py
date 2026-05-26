@@ -757,7 +757,28 @@ AGENT_PROMPTS = {
         "3. Отсутствие канцеляризмов и пассивного залога. "
         "4. Наличие оригинальных элементов (кейсы, таблицы, схемы). "
         "5. GEO-стандарты: первые предложения разделов самодостаточны. "
-        "Верни: оценку 1-10 по каждому критерию и список конкретных правок."
+        "Верни: оценку 1-10 по каждому критерию в формате 'Критерий N: X/10', "
+        "затем список конкретных правок."
+    ),
+    "devil-advocate": (
+        "Ты агент оппонирования. Твоя роль — найти слабые места в статье перед публикацией.\n\n"
+        "Задача:\n"
+        "1. Определи главный тезис статьи (1 предложение).\n"
+        "2. Сформулируй 2 сильных контраргумента к этому тезису.\n"
+        "   Контраргумент сильный, если: опирается на реальную практику, "
+        "   не является очевидным возражением, не опровергается самой статьёй.\n"
+        "3. Проверь: упоминает ли статья эти контраргументы или ограничения?\n"
+        "4. Оцени однобокость изложения по шкале 1-10 "
+        "   (1 = полностью сбалансировано, 10 = пропаганда одной точки зрения).\n\n"
+        "Формат ответа:\n"
+        "ТЕЗИС: ...\n"
+        "КОНТРАРГУМЕНТ 1: ...\n"
+        "КОНТРАРГУМЕНТ 2: ...\n"
+        "ПОКРЫТО В СТАТЬЕ: да/нет/частично\n"
+        "ОДНОБОКОСТЬ: X/10\n"
+        "РЕКОМЕНДАЦИЯ: [добавить раздел 'Ограничения и риски' | статья сбалансирована | ...]\n\n"
+        "Если однобокость >= 7 → напиши: ADVOCATE_FLAG\n"
+        "Если статья сбалансирована → напиши: ADVOCATE_OK"
     ),
 }
 
@@ -846,6 +867,39 @@ def load_state(slug: str) -> tuple[int, dict]:
     except Exception as e:
         print(f"  [passport] Ошибка загрузки: {e}")
         return 0, {}
+
+
+def parse_editor_min_score(editor_report: str) -> int:
+    """Извлекает минимальный балл из отчёта editor-critic. Использует run_fast (8b модель)."""
+    import re
+    scores = re.findall(r"(\d+)/10", editor_report)
+    if scores:
+        return min(int(s) for s in scores)
+    # Запасной вариант: быстрый LLM-парсинг
+    out, _ = run_fast(
+        f"Извлеки минимальный балл из этого отчёта редактора. "
+        f"Верни только одно число (целое от 1 до 10).\n\n{editor_report[:600]}"
+    )
+    digits = re.findall(r"\b([1-9]|10)\b", out)
+    return int(digits[0]) if digits else 7
+
+
+def run_devil_advocate(article: str) -> tuple[bool, str]:
+    """
+    Запускает агент оппонирования. Использует run_fast (меньшая модель достаточна).
+    Возвращает (флаг_однобокости: bool, отчёт: str).
+    """
+    print("  [devil-advocate] Проверяю однобокость тезиса...")
+    prompt = AGENT_PROMPTS["devil-advocate"] + f"\n\nСТАТЬЯ:\n{article[:4000]}"
+    output, tokens = run_fast(prompt)
+    flagged = "ADVOCATE_FLAG" in output
+    icon = "⚠️" if flagged else "✅"
+    tg_notify(
+        f"{icon} <b>devil-advocate</b>\n"
+        f"{'Обнаружена однобокость — рекомендуется добавить раздел ограничений' if flagged else 'Статья сбалансирована'}\n"
+        f"~{tokens} токенов\n\n{output[:600]}"
+    )
+    return flagged, output
 
 
 def run_fact_checker(draft: str, raw_sources: str, step_label: str) -> tuple[bool, str]:
@@ -1027,6 +1081,41 @@ def run_pipeline(
 
     full_draft = context.get("draft_1-3", "") + "\n\n" + context.get("draft_4-6", "")
 
+    # Auto revision loop: быстрая само-проверка черновика (max 1 раз, run_fast)
+    if last_step < 6:
+        revision_prompt = (
+            f"Ты редактор-корректор. Прочитай черновик статьи и найди:\n"
+            f"1. Разделы с маркером [INSUFFICIENT_SOURCES] — перечисли их\n"
+            f"2. Разделы короче 150 слов без конкретных фактов\n"
+            f"3. Первые предложения H2, которые НЕ являются прямым ответом на вопрос\n\n"
+            f"Если всё в порядке → напиши: DRAFT_OK\n"
+            f"Если есть проблемы → напиши: DRAFT_ISSUES, затем список\n\n"
+            f"Черновик:\n{full_draft[:5000]}"
+        )
+        revision_check, _ = run_fast(revision_prompt)
+        if "DRAFT_ISSUES" in revision_check and "INSUFFICIENT_SOURCES" in revision_check:
+            print("  [auto-revision] Обнаружены INSUFFICIENT_SOURCES — пересоздаю проблемные блоки")
+            tg_notify("🔄 <b>auto-revision</b>: Найдены незаполненные блоки, пересоздаю...")
+            fix_prompt = (
+                AGENT_PROMPTS["content-writer"].format(
+                    title=title,
+                    rules_excerpt=rules_excerpt,
+                    knowledge_pack=context.get("knowledge_pack", ""),
+                    web_pack=context.get("web_pack", ""),
+                    raw_sources=context.get("raw_sources", ""),
+                )
+                + corrections_block
+                + f"\n\nТекущий черновик имеет незаполненные блоки:\n{revision_check}\n\n"
+                + "Перепиши ТОЛЬКО блоки с [INSUFFICIENT_SOURCES], используя доступные источники. "
+                + "Остальной текст оставь без изменений. Верни полный исправленный черновик."
+            )
+            fixed_draft, fix_tokens = run_claude(fix_prompt)
+            if len(fixed_draft) >= len(full_draft) * 0.7:
+                full_draft = fixed_draft
+                context["draft_1-3"] = full_draft  # обновляем для последующих шагов
+                print("  [auto-revision] ✅ Черновик исправлен")
+            save_state(slug, context, 6)
+
     # Шаг 6.5: fact-checker — блокируем если найдены непроверенные утверждения
     fact_ok, fact_report = run_fact_checker(full_draft, context["raw_sources"], "6.5")
     context["fact_check_report"] = fact_report
@@ -1094,8 +1183,18 @@ def run_pipeline(
         r.finish(output, tokens=tokens)
         save_state(slug, context, 11)
 
-    # Шаг 12: HUMAN REVIEW перед публикацией
-    preview = f"GEO-отчет:\n{context['geo_report'][:400]}\n\nРедактор:\n{context['editor_report'][:400]}"
+    # Шаг 11.5: devil-advocate (run_fast — llama-3.1-8b-instant, экономия ~4x)
+    advocate_flagged, advocate_report = run_devil_advocate(context.get("optimized_draft", ""))
+    context["advocate_report"] = advocate_report
+    save_state(slug, context, 11)
+
+    # Шаг 12: HUMAN REVIEW перед публикацией (включает отчёт devil-advocate)
+    advocate_warning = f"\n\n⚠️ devil-advocate: {advocate_report[:300]}" if advocate_flagged else ""
+    preview = (
+        f"GEO-отчет:\n{context['geo_report'][:300]}\n\n"
+        f"Редактор:\n{context['editor_report'][:300]}"
+        f"{advocate_warning}"
+    )
     approved, corrections12 = human_review("Утвердите статью перед публикацией", preview, step=12, auto=auto_approve)
     if not approved:
         tg_notify("🛑 Публикация отменена пользователем на шаге 12.")
