@@ -44,6 +44,10 @@ FEEDBACK_DIR = ROOT / "ai-clone" / "feedback"
 KNOWLEDGE_DIR = ROOT / "knowledge"
 RULES_FILE = ROOT / "ai-clone" / "rules.md"
 
+# Минимальные требования к исследовательской базе перед запуском content-writer
+RESEARCH_MIN_CHARS = 2000     # символов реального текста из источников
+RESEARCH_MIN_SOURCES = 2      # источников с текстом > 100 символов
+
 
 # ── Telegram ──────────────────────────────────────────────────────────────────
 
@@ -303,6 +307,80 @@ def format_search_for_llm(fresh: list[dict], deep: list[dict]) -> str:
     return "\n---\n".join(parts)
 
 
+def format_raw_sources(fresh: list[dict], deep: list[dict]) -> str:
+    """
+    Форматирует сырые источники с порядковыми номерами.
+    Используется content-writer и fact-checker для верификации фактов.
+    """
+    parts = []
+    idx = 1
+    for item in fresh:
+        text = item.get("text", "").strip()
+        if not text:
+            continue
+        parts.append(
+            f"[{idx}] {item.get('title', 'Без заголовка')}\n"
+            f"URL: {item.get('url', '')}\n"
+            f"Дата: {item.get('date', '')}\n\n"
+            f"{text[:2500]}"
+        )
+        idx += 1
+    for item in deep:
+        text = item.get("text", "").strip()
+        if not text:
+            continue
+        parts.append(
+            f"[{idx}] {item.get('title', 'Без заголовка')}\n"
+            f"URL: {item.get('url', '')}\n\n"
+            f"{text[:2500]}"
+        )
+        idx += 1
+    return "\n\n---\n\n".join(parts) if parts else "(источники не найдены)"
+
+
+# ── Research gate ─────────────────────────────────────────────────────────────
+
+def research_gate(fresh: list[dict], deep: list[dict]) -> tuple[bool, str]:
+    """
+    Проверяет достаточность исследовательской базы перед запуском content-writer.
+    Блокирует пайплайн, если реального текста из источников недостаточно.
+    Возвращает (достаточно: bool, отчёт: str).
+    """
+    real_sources = [
+        s for s in fresh + deep
+        if len(s.get("text", "").strip()) > 100
+    ]
+    total_chars = sum(len(s["text"]) for s in real_sources)
+
+    report_lines = [
+        f"📊 Источников с текстом: {len(real_sources)} из {len(fresh) + len(deep)}",
+        f"📝 Суммарный объём: {total_chars:,} символов",
+    ]
+
+    issues = []
+    if len(real_sources) < RESEARCH_MIN_SOURCES:
+        issues.append(
+            f"Мало источников с реальным текстом: {len(real_sources)} "
+            f"(нужно минимум {RESEARCH_MIN_SOURCES})"
+        )
+    if total_chars < RESEARCH_MIN_CHARS:
+        issues.append(
+            f"Мало контента: {total_chars} символов "
+            f"(нужно минимум {RESEARCH_MIN_CHARS})"
+        )
+
+    if issues:
+        report_lines.append("\n❌ НЕДОСТАТОЧНО источников для написания статьи:")
+        report_lines.extend(f"  — {i}" for i in issues)
+        report_lines.append(
+            "\nРекомендация: выберите другую тему или расширьте поисковый запрос."
+        )
+        return False, "\n".join(report_lines)
+
+    report_lines.append("✅ Источников достаточно")
+    return True, "\n".join(report_lines)
+
+
 # ── Step runner ────────────────────────────────────────────────────────────────
 
 class StepResult:
@@ -501,12 +579,44 @@ AGENT_PROMPTS = {
         "Верни: топ-5 фактов с источниками, список LSI-ключей, предложение структуры H2-H3."
     ),
     "content-writer": (
-        "Ты копирайтер-смысловик. Пиши черновик статьи '{title}' по структуре. "
-        "Правила: {rules_excerpt}. "
-        "Контекст из базы знаний: {knowledge_pack}. "
-        "Данные из веб-исследования: {web_pack}. "
+        "Ты копирайтер-смысловик. Пиши черновик статьи '{title}' по структуре.\n\n"
+        "## АБСОЛЮТНЫЕ ПРАВИЛА ФАКТЧЕКИНГА (нарушение = брак):\n"
+        "1. Ты можешь писать ТОЛЬКО факты, цифры, имена, события, названия продуктов, "
+        "которые явно присутствуют в разделе «ВЕРИФИЦИРОВАННЫЕ ИСТОЧНИКИ» ниже.\n"
+        "2. После каждого конкретного факта или цифры добавляй ссылку [N], "
+        "где N — номер источника из раздела «ВЕРИФИЦИРОВАННЫЕ ИСТОЧНИКИ».\n"
+        "3. ЗАПРЕЩЕНО дополнять статью фактами из тренировочных данных модели.\n"
+        "4. Если данных из источников не хватает для полноценного раздела — "
+        "напиши вместо него: [INSUFFICIENT_SOURCES: <что именно отсутствует>]\n"
+        "5. Короткая достоверная статья лучше длинной с домыслами.\n\n"
+        "Правила стиля: {rules_excerpt}.\n\n"
+        "Контекст из базы знаний автора: {knowledge_pack}.\n\n"
+        "Аналитика исследователя (структура, LSI, тезисы): {web_pack}.\n\n"
+        "## ВЕРИФИЦИРОВАННЫЕ ИСТОЧНИКИ:\n{raw_sources}\n\n"
         "Пиши поблочно. Первое предложение каждого H2 — прямой ответ на вопрос (AEO). "
-        "Интегрируй конкретные числа, команды, таблицы."
+        "Интегрируй конкретные числа, команды, таблицы — строго из источников выше."
+    ),
+    "fact-checker": (
+        "Ты агент верификации фактов. Твоя задача — найти галлюцинации в черновике статьи.\n\n"
+        "## ИНСТРУКЦИЯ:\n"
+        "1. Прочитай раздел «ИСХОДНЫЕ ИСТОЧНИКИ» — это единственная допустимая фактическая база.\n"
+        "2. Извлеки из черновика ВСЕ верифицируемые утверждения: "
+        "числа, проценты, имена людей, названия организаций, "
+        "названия продуктов/моделей, даты, события, технические параметры.\n"
+        "3. Для каждого утверждения проверь его наличие в исходных источниках.\n"
+        "4. Классифицируй каждое утверждение:\n"
+        "   — VERIFIED: явно присутствует в источниках (укажи номер источника [N])\n"
+        "   — UNVERIFIED: не найдено ни в одном источнике (потенциальная галлюцинация)\n"
+        "   — CONTRADICTED: противоречит тому, что написано в источниках\n\n"
+        "## ФОРМАТ ОТВЕТА:\n"
+        "### ИТОГ\n"
+        "VERIFIED: X | UNVERIFIED: Y | CONTRADICTED: Z\n\n"
+        "### UNVERIFIED (требуют удаления или подтверждения источником):\n"
+        "- «цитата из черновика» — пояснение\n\n"
+        "### CONTRADICTED (требуют немедленного исправления):\n"
+        "- «цитата из черновика» — что именно противоречит источнику [N]\n\n"
+        "Если UNVERIFIED = 0 и CONTRADICTED = 0 → в конце напиши строку: FACT_CHECK_PASSED\n"
+        "Если есть хотя бы одно UNVERIFIED или CONTRADICTED → напиши: FACT_CHECK_FAILED"
     ),
     "seo-geo-optimizer": (
         "Ты SEO/GEO-оптимизатор. Получи черновик статьи и: "
@@ -535,6 +645,30 @@ AGENT_PROMPTS = {
         "Верни: оценку 1-10 по каждому критерию и список конкретных правок."
     ),
 }
+
+
+def run_fact_checker(draft: str, raw_sources: str, step_label: str) -> tuple[bool, str]:
+    """
+    Запускает агент проверки фактов после content-writer.
+    Возвращает (прошло: bool, отчёт: str).
+    Блокирует пайплайн при обнаружении UNVERIFIED или CONTRADICTED утверждений.
+    """
+    print(f"  [fact-checker] Проверяю факты черновика...")
+    prompt = (
+        AGENT_PROMPTS["fact-checker"]
+        + f"\n\n## ЧЕРНОВИК СТАТЬИ:\n{draft}\n\n"
+        + f"## ИСХОДНЫЕ ИСТОЧНИКИ:\n{raw_sources}"
+    )
+    output, tokens = run_claude(prompt)
+    passed = "FACT_CHECK_PASSED" in output
+    icon = "✅" if passed else "❌"
+    tg_notify(
+        f"{icon} <b>fact-checker [{step_label}]</b>\n"
+        f"{'Все факты верифицированы' if passed else 'Найдены непроверенные утверждения'}\n"
+        f"~{tokens} токенов\n\n"
+        f"{output[:800]}"
+    )
+    return passed, output
 
 
 def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_approve: bool = False) -> None:
@@ -571,6 +705,9 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
     deep = web_search_deep(f"{topic} руководство практика кейсы", max_results=5)
     print(f"  Найдено глубинных: {len(deep)}")
 
+    # Сохраняем сырые источники с номерами — понадобятся content-writer и fact-checker
+    context["raw_sources"] = format_raw_sources(fresh, deep)
+
     search_block = format_search_for_llm(fresh, deep)
 
     has_fresh = any(s.get("fresh") for s in fresh)
@@ -599,6 +736,18 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
     update_step(plan_path, 3)
     r.finish(output, tokens=tokens)
 
+    # Шаг 3.5: research-gate — блокируем пайплайн если источников недостаточно
+    gate_ok, gate_report = research_gate(fresh, deep)
+    print(f"\n  [research-gate]\n{gate_report}")
+    if not gate_ok:
+        tg_notify(
+            f"🚫 <b>research-gate: СТОП</b>\n\n{gate_report}\n\n"
+            f"Генерация прекращена. Выберите другую тему или расширьте поисковый запрос."
+        )
+        print("\n🚫 Недостаточно источников. Генерация остановлена.")
+        sys.exit(1)
+    tg_notify(f"🔒 <b>research-gate: OK</b>\n{gate_report}")
+
     fresh_summary = "\n".join(
         f"🔴 [{s['date']}] {s['title']}" for s in fresh
     ) if fresh else "⚠️ Свежих новостей нет"
@@ -622,7 +771,7 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
         tg_notify(f"📝 Правки учтены:\n{corrections[:300]}")
     update_step(plan_path, 4)
 
-    # Шаги 5-6: content-writer
+    # Шаги 5-6: content-writer (с обязательным grounding по верифицированным источникам)
     rules_excerpt = RULES_FILE.read_text(encoding="utf-8")[:800] if RULES_FILE.exists() else ""
     corrections_block = f"\n\n## ПРАВКИ И УТОЧНЕНИЯ ОТ АВТОРА:\n{context['corrections']}" if context.get("corrections") else ""
     for step in (5, 6):
@@ -634,6 +783,7 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
                 rules_excerpt=rules_excerpt,
                 knowledge_pack=context["knowledge_pack"],
                 web_pack=context["web_pack"],
+                raw_sources=context["raw_sources"],
             )
             + corrections_block
             + f"\n\nНапиши блоки {block} статьи."
@@ -644,6 +794,23 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
         r.finish(output, tokens=tokens)
 
     full_draft = context.get("draft_1-3", "") + "\n\n" + context.get("draft_4-6", "")
+
+    # Шаг 6.5: fact-checker — блокируем если найдены непроверенные утверждения
+    fact_ok, fact_report = run_fact_checker(full_draft, context["raw_sources"], "6.5")
+    context["fact_check_report"] = fact_report
+
+    if not fact_ok:
+        # Показываем отчёт пользователю и останавливаемся
+        tg_notify(
+            f"🚫 <b>fact-checker: СТОП</b>\n\n"
+            f"В черновике обнаружены непроверенные или противоречивые утверждения.\n\n"
+            f"{fact_report[:1000]}\n\n"
+            f"Генерация прекращена. Перезапустите с другой темой или добавьте источники."
+        )
+        print(f"\n🚫 fact-checker FAILED:\n{fact_report}")
+        sys.exit(1)
+
+    print("  [fact-checker] ✅ FACT_CHECK_PASSED")
 
     # Шаг 7: diagram-illustrator
     r = StepResult(7, "diagram-illustrator")
