@@ -17,6 +17,7 @@ Voice Bot — голосовые заметки + распаковка эксп�
 import os, re, sys, base64, logging, tempfile, urllib.request, urllib.parse, json
 from pathlib import Path
 from datetime import datetime, timezone
+from typing import Optional
 
 from groq import Groq
 from ddgs import DDGS
@@ -252,7 +253,7 @@ def fmt_questions(questions: list[str]) -> str:
         lines.append(f"{emoji} {q}")
     return "\n\n".join(lines)
 
-async def _transcribe_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> str | None:
+async def _transcribe_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Optional[str]:
     voice = update.message.voice or update.message.audio
     if not voice:
         return None
