@@ -111,9 +111,10 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
     import re
     md_text = md_path.read_text(encoding="utf-8")
 
-    # Убираем code fence ```markdown ... ``` если LLM завернул статью в него
-    md_text = re.sub(r"^```markdown\s*\n", "", md_text, flags=re.MULTILINE)
-    md_text = re.sub(r"^```\s*$", "", md_text, flags=re.MULTILINE)
+    # Убираем ТОЛЬКО внешний wrapper ```markdown ... ``` если LLM завернул статью в него
+    outer = re.match(r"^```markdown\s*\n([\s\S]*)\n```\s*$", md_text.strip())
+    if outer:
+        md_text = outer.group(1)
 
     # Отделяем JSON-LD блок (если есть) от основного текста
     jsonld_block = ""
@@ -174,7 +175,10 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
     .article-wrap a {{ color: var(--primary); text-decoration: none; }}
     .article-wrap a:hover {{ text-decoration: underline; }}
     .article-wrap hr {{ border: none; border-top: 1px solid var(--border); margin: 32px 0; }}
+    .mermaid {{ background: var(--surface); border-radius: var(--radius-md); padding: 20px; margin: 20px 0; overflow-x: auto; }}
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({{startOnLoad:true, theme:'dark'}});</script>
 </head>
 <body>
   <nav class="nav">

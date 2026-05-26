@@ -6,7 +6,150 @@
   <title>Нейросети для бизнеса: практическое руководство 2026</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "[https://ваш-сайт.ru/нейросети-для-бизнеса-2026]",
+      "headline": "Нейросети для бизнеса в 2026: технический стек, ROI и реальные кейсы",
+      "description": "Практическое руководство по внедрению ИИ в бизнес: архитектуры RAG, fine-tuning и агентных систем, реальные ROI-метрики, технический стек без vendor lock-in и стартовый план на 2 недели.",
+      "inLanguage": "ru",
+      "datePublished": "2026-05-26",
+      "dateModified": "2026-05-26",
+      "proficiencyLevel": "Expert",
+      "author": {
+        "@type": "Person",
+        "name": "[Имя автора]",
+        "url": "[https://ваш-сайт.ru/author]"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "[Название издания]",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "[https://ваш-сайт.ru/logo.png]"
+        }
+      },
+      "image": {
+        "@type": "ImageObject",
+        "url": "[https://ваш-сайт.ru/og-image.png]",
+        "width": 1200,
+        "height": 630
+      },
+      "keywords": [
+        "нейросети для бизнеса",
+        "внедрение ИИ",
+        "генеративный ИИ",
+        "RAG",
+        "Retrieval-Augmented Generation",
+        "fine-tuning",
+        "LLM",
+        "большие языковые модели",
+        "автоматизация бизнес-процессов",
+        "машинное обучение",
+        "ROI от ИИ",
+        "LangChain",
+        "векторная база данных",
+        "корпоративный ИИ",
+        "MLOps",
+        "RAGAS",
+        "семантический поиск",
+        "промпт-инжиниринг",
+        "обработка естественного языка"
+      ],
+      "articleSection": [
+        "Почему сейчас — экономика изменилась",
+        "Ключевые архитектуры для бизнес-задач",
+        "Бизнес-сценарии с измеримым результатом",
+        "Как не провалить внедрение",
+        "Стек для старта",
+        "Что делать прямо сейчас"
+      ],
+      "citation": [
+        {
+          "@type": "ScholarlyArticle",
+          "name": "RAGAS: Automated Evaluation of Retrieval Augmented Generation",
+          "identifier": "arXiv:2309.15217"
+        },
+        {
+          "@type": "ScholarlyArticle",
+          "name": "LoRA Fine-tuning for Business Tasks",
+          "identifier": "arXiv:2401.02009"
+        },
+        {
+          "@type": "Report",
+          "name": "AI Index 2025",
+          "author": {
+            "@type": "Organization",
+            "name": "Stanford HAI"
+          }
+        }
+      ],
+      "about": [
+        { "@type": "Thing", "name": "Искусственный интеллект" },
+        { "@type": "Thing", "name": "Retrieval-Augmented Generation" },
+        { "@type": "Thing", "name": "Автоматизация бизнес-процессов" },
+        { "@type": "Thing", "name": "Машинное обучение" },
+        { "@type": "Thing", "name": "Обработка естественного языка" }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "[https://ваш-сайт.ru/нейросети-для-бизнеса-2026#faq]",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Почему сейчас выгодно внедрять нейросети в бизнес?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Стоимость генеративного ИИ упала в 10 раз за 18 месяцев, а автоматизация бизнес-процессов с его помощью окупается менее чем за квартал. Claude 3 Haiku обойдётся в $1.25 на 10 000 обращений в поддержку."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Какую архитектуру ИИ выбрать для корпоративных задач?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Для 90% корпоративных задач достаточно трёх паттернов: RAG — для работы с документами и семантического поиска, fine-tuning — для узких задач с 1000+ примерами, агентные системы — для многошаговых процессов с ветвлением логики."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Сколько стоит внедрение ИИ в малый и средний бизнес?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "При использовании API (Claude 3 Haiku, GPT-4o mini) обработка 10 000 обращений в поддержку обходится в $1.25–15 в месяц. Полный стек (LangChain + pgvector + LangSmith) запускается бесплатно в self-hosted варианте."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Почему 66% AI-проектов не доходят до production?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Провал происходит на трёх этапах: нет baseline-метрики до старта, нет eval-пайплайна в CI/CD, нет ответственного за качество модели в production. Без этих элементов деградация обнаруживается только по жалобам пользователей."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Какой технический стек выбрать для старта с ИИ без vendor lock-in?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Оптимальный стартовый стек в 2026: LangChain или LlamaIndex для оркестрации, Qdrant или pgvector для хранения векторных эмбеддингов, LangSmith или Phoenix для мониторинга. Все компоненты заменяемы независимо друг от друга."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "С чего начать внедрение нейросети в бизнес?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Начните с одной задачи с измеримым baseline, соберите 100 пар вопрос/ответ для eval и запустите RAG-прототип на LangChain + pgvector за две недели. 80% бизнес-задач решаются RAG + GPT-4o mini или Claude 3 Haiku без дообучения."
+          }
+        }
+      ]
+    }
+  ]
+}</script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -44,7 +187,10 @@
     .article-wrap a { color: var(--primary); text-decoration: none; }
     .article-wrap a:hover { text-decoration: underline; }
     .article-wrap hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .mermaid { background: var(--surface); border-radius: var(--radius-md); padding: 20px; margin: 20px 0; overflow-x: auto; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({startOnLoad:true, theme:'dark'});</script>
 </head>
 <body>
   <nav class="nav">
@@ -57,106 +203,101 @@
 <p><strong>AEO-правки</strong> — H2 #1 и #6 переписаны: исходные версии отвечали косвенно. Остальные четыре H2 уже содержали самодостаточные ответы, изменены минимально.</p>
 <hr />
 <h2 id="_2">Оптимизированный текст</h2>
-<h1 id="2026-roi">Нейросети для бизнеса в 2026: технический стек, ROI и реальные кейсы</h1>
-<hr />
-<h2 id="1">1. Почему сейчас — экономика изменилась</h2>
-<p>Внедрение нейросетей в бизнес стало экономически оправданным: стоимость<br />
-генеративного ИИ упала в 10 раз за 18 месяцев, а автоматизация<br />
-бизнес-процессов с его помощью окупается менее чем за квартал. Это не<br />
-тренд — это арифметика.</p>
-<h3 id="11-10">1.1 Падение стоимости инференса в 10×</h3>
-<p>За 18 месяцев — с начала 2023 по середину 2025 — стоимость обработки<br />
-одного миллиона токенов упала в десять раз. GPT-4 Turbo стоил $30 за 1M<br />
-input-токенов. GPT-4o — $2.50. Claude 3 Haiku от Anthropic — $0.25.</p>
-<p>Это означает конкретное изменение экономики: процесс, который раньше<br />
-стоил $3 000 в месяц, теперь стоит $25–300. High-volume сценарии —<br />
-классификация обращений, генерация черновиков, извлечение данных из<br />
-документов с помощью обработки естественного языка (NLP) — стали<br />
-рентабельными для компаний с оборотом от $1M.</p>
-<p>Большие языковые модели (LLM) вроде GPT-4o и Claude 3 Haiku теперь<br />
-доступны по цене, при которой ориентир для расчёта таков: среднее<br />
-обращение в поддержку = ~500 токенов. При 10 000 обращений в месяц —<br />
-Claude 3 Haiku обойдётся в $1.25 на весь объём.</p>
-<table>
-<thead>
-<tr>
-<th>Модель</th>
-<th>Цена (input, 1M токенов)</th>
-<th>Цена (output, 1M токенов)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>GPT-4 Turbo (2023)</td>
-<td>$30.00</td>
-<td>$60.00</td>
-</tr>
-<tr>
-<td>GPT-4o (2025)</td>
-<td>$2.50</td>
-<td>$10.00</td>
-</tr>
-<tr>
-<td>Claude 3.5 Sonnet</td>
-<td>$3.00</td>
-<td>$15.00</td>
-</tr>
-<tr>
-<td>Claude 3 Haiku</td>
-<td>$0.25</td>
-<td>$1.25</td>
-</tr>
-<tr>
-<td>Llama 3.1 70B (self-hosted)</td>
-<td>~$0.10–0.40*</td>
-<td>~$0.10–0.40*</td>
-</tr>
-</tbody>
-</table>
-<p>*Стоимость self-hosted зависит от инфраструктуры: A100 GPU в облаке ≈<br />
-$3/час, при загрузке 70% — окупается на объёме от ~5M токенов/день.</p>
-<h3 id="12-open-source-vs-api">1.2 Open-source vs. API: когда что выгоднее</h3>
-<p>API выгоднее при объёме до 50M токенов в месяц и отсутствии жёстких<br />
-требований к размещению данных. Выше этой отметки — self-hosted<br />
-open-source начинает отбивать капзатраты за 3–6 месяцев.</p>
-<p>Критерий выбора — не только цена. Если данные содержат PII, финансовую<br />
-или медицинскую информацию, API-провайдер означает передачу данных<br />
-третьей стороне. В этом случае рассматривайте Llama 3.1, Mistral Large<br />
-или Qwen 2.5 на собственной инфраструктуре — особенно если цифровая<br />
-трансформация затрагивает чувствительные данные клиентов.</p>
-<p>Практическое правило: начните с API, измерьте реальный объём за 60 дней,<br />
-затем считайте TCO для self-hosted.</p>
-<hr />
-<h2 id="2-">2. Ключевые архитектуры для бизнес-задач</h2>
-<p>Для 90% корпоративных задач достаточно трёх архитектурных паттернов:<br />
-RAG, fine-tuning и агентные системы. Выбор между ними определяется не<br />
-модой, а типом данных и допустимым уровнем ошибок.</p>
-<h3 id="21-rag">2.1 RAG — стандарт для работы с корпоративными данными</h3>
-<p>RAG (Retrieval-Augmented Generation) снижает частоту галлюцинаций с ~20%<br />
-у «голой» LLM до 3–8% — это результат бенчмарка RAGAS<br />
-(arXiv:2309.15217). Механика проста: перед генерацией ответа система<br />
-выполняет семантический поиск по базе знаний на основе векторных<br />
-эмбеддингов и передаёт релевантные фрагменты в контекст модели.</p>
-<p>Это де-факто стандарт для работы с корпоративными документами: контракты,<br />
-регламенты, технические спецификации, база прецедентов поддержки. Модель<br />
-не «знает» ваши данные — она работает с тем, что вы ей подаёте в runtime.</p>
-<p><strong>Минимальный стек для запуска RAG:</strong></p>
-<p>```python</p>
-<h1 id="langchain-qdrant-openai-production-ready">LangChain + Qdrant + OpenAI — production-ready пример</h1>
-<p>from langchain_community.vectorstores import Qdrant<br />
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI<br />
-from langchain.chains import RetrievalQA</p>
-<p>embeddings = OpenAIEmbeddings(model="text-embedding-3-small")<br />
-vectorstore = Qdrant.from_documents(<br />
-    documents=docs,<br />
-    embedding=embeddings,<br />
-    url="http://localhost:6333",<br />
-    collection_name="corporate_kb"<br />
-)</p>
-<p>qa_chain = RetrievalQA.from_chain_type(<br />
-    llm=ChatOpenAI(model="gpt-4o-mini"),<br />
-    retriever=vectorstore.as_retriever(search_kwargs={"k": 5})<br />
-)</p>
+<pre><code class="language-markdown"># Нейросети для бизнеса в 2026: технический стек, ROI и реальные кейсы
+
+---
+
+## 1. Почему сейчас — экономика изменилась
+
+Внедрение нейросетей в бизнес стало экономически оправданным: стоимость
+генеративного ИИ упала в 10 раз за 18 месяцев, а автоматизация
+бизнес-процессов с его помощью окупается менее чем за квартал. Это не
+тренд — это арифметика.
+
+### 1.1 Падение стоимости инференса в 10×
+
+За 18 месяцев — с начала 2023 по середину 2025 — стоимость обработки
+одного миллиона токенов упала в десять раз. GPT-4 Turbo стоил $30 за 1M
+input-токенов. GPT-4o — $2.50. Claude 3 Haiku от Anthropic — $0.25.
+
+Это означает конкретное изменение экономики: процесс, который раньше
+стоил $3 000 в месяц, теперь стоит $25–300. High-volume сценарии —
+классификация обращений, генерация черновиков, извлечение данных из
+документов с помощью обработки естественного языка (NLP) — стали
+рентабельными для компаний с оборотом от $1M.
+
+Большие языковые модели (LLM) вроде GPT-4o и Claude 3 Haiku теперь
+доступны по цене, при которой ориентир для расчёта таков: среднее
+обращение в поддержку = ~500 токенов. При 10 000 обращений в месяц —
+Claude 3 Haiku обойдётся в $1.25 на весь объём.
+
+| Модель | Цена (input, 1M токенов) | Цена (output, 1M токенов) |
+|---|---|---|
+| GPT-4 Turbo (2023) | $30.00 | $60.00 |
+| GPT-4o (2025) | $2.50 | $10.00 |
+| Claude 3.5 Sonnet | $3.00 | $15.00 |
+| Claude 3 Haiku | $0.25 | $1.25 |
+| Llama 3.1 70B (self-hosted) | ~$0.10–0.40* | ~$0.10–0.40* |
+
+*Стоимость self-hosted зависит от инфраструктуры: A100 GPU в облаке ≈
+$3/час, при загрузке 70% — окупается на объёме от ~5M токенов/день.
+
+### 1.2 Open-source vs. API: когда что выгоднее
+
+API выгоднее при объёме до 50M токенов в месяц и отсутствии жёстких
+требований к размещению данных. Выше этой отметки — self-hosted
+open-source начинает отбивать капзатраты за 3–6 месяцев.
+
+Критерий выбора — не только цена. Если данные содержат PII, финансовую
+или медицинскую информацию, API-провайдер означает передачу данных
+третьей стороне. В этом случае рассматривайте Llama 3.1, Mistral Large
+или Qwen 2.5 на собственной инфраструктуре — особенно если цифровая
+трансформация затрагивает чувствительные данные клиентов.
+
+Практическое правило: начните с API, измерьте реальный объём за 60 дней,
+затем считайте TCO для self-hosted.
+
+---
+
+## 2. Ключевые архитектуры для бизнес-задач
+
+Для 90% корпоративных задач достаточно трёх архитектурных паттернов:
+RAG, fine-tuning и агентные системы. Выбор между ними определяется не
+модой, а типом данных и допустимым уровнем ошибок.
+
+### 2.1 RAG — стандарт для работы с корпоративными данными
+
+RAG (Retrieval-Augmented Generation) снижает частоту галлюцинаций с ~20%
+у «голой» LLM до 3–8% — это результат бенчмарка RAGAS
+(arXiv:2309.15217). Механика проста: перед генерацией ответа система
+выполняет семантический поиск по базе знаний на основе векторных
+эмбеддингов и передаёт релевантные фрагменты в контекст модели.
+
+Это де-факто стандарт для работы с корпоративными документами: контракты,
+регламенты, технические спецификации, база прецедентов поддержки. Модель
+не «знает» ваши данные — она работает с тем, что вы ей подаёте в runtime.
+
+**Минимальный стек для запуска RAG:**
+
+```python
+# LangChain + Qdrant + OpenAI — production-ready пример
+from langchain_community.vectorstores import Qdrant
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain.chains import RetrievalQA
+
+embeddings = OpenAIEmbeddings(model=&quot;text-embedding-3-small&quot;)
+vectorstore = Qdrant.from_documents(
+    documents=docs,
+    embedding=embeddings,
+    url=&quot;http://localhost:6333&quot;,
+    collection_name=&quot;corporate_kb&quot;
+)
+
+qa_chain = RetrievalQA.from_chain_type(
+    llm=ChatOpenAI(model=&quot;gpt-4o-mini&quot;),
+    retriever=vectorstore.as_retriever(search_kwargs={&quot;k&quot;: 5})
+)
+</code></pre>
 <p>LangChain (&gt;90k звёзд на GitHub) и LlamaIndex покрывают 80%+<br />
 production-пайплайнов. Для векторного хранилища на старте — Qdrant или<br />
 pgvector (если уже используете PostgreSQL).</p>
@@ -203,11 +344,11 @@ pgvector (если уже используете PostgreSQL).</p>
 <p>Для LoRA на практике: библиотека <code>unsloth</code> сокращает время обучения<br />
 Llama 3.1 8B в 2× и потребление памяти на 60% по сравнению с Hugging<br />
 Face PEFT. Обучение на 2k примерах на одной A100 — около 40 минут.</p>
-<p>```bash</p>
-<h1 id="lora-fine-tuning-unsloth">Установка и запуск LoRA fine-tuning через unsloth</h1>
-<p>pip install unsloth</p>
-<h1 id="trainer-transformers-lora">Далее — стандартный Trainer из transformers с параметрами LoRA:</h1>
-<h1 id="r16-lora_alpha32-target_modulesq_projv_proj">r=16, lora_alpha=32, target_modules=["q_proj","v_proj"]</h1>
+<pre><code class="language-bash"># Установка и запуск LoRA fine-tuning через unsloth
+pip install unsloth
+# Далее — стандартный Trainer из transformers с параметрами LoRA:
+# r=16, lora_alpha=32, target_modules=[&quot;q_proj&quot;,&quot;v_proj&quot;]
+</code></pre>
 <h3 id="23-autogen-langgraph-crewai">2.3 Агентные системы: AutoGen, LangGraph, CrewAI</h3>
 <p>Агентные системы — это интеллектуальная автоматизация следующего уровня:<br />
 несколько специализированных агентов работают совместно, передавая задачи<br />
@@ -222,21 +363,23 @@ enterprise. LangGraph подходит, если нужен контроль н�
 - Нужна интеграция с внешними инструментами (API, БД, браузер)<br />
 - Требуется параллельная обработка подзадач</p>
 <p><strong>Минимальный пример с LangGraph:</strong></p>
-<p>```python<br />
-from langgraph.graph import StateGraph, END<br />
-from typing import TypedDict</p>
-<p>class AgentState(TypedDict):<br />
-    messages: list<br />
-    next_step: str</p>
-<h1 id="_3">Определяете узлы (агентов) и рёбра (переходы)</h1>
-<p>workflow = StateGraph(AgentState)<br />
-workflow.add_node("classifier", classify_intent)<br />
-workflow.add_node("resolver", resolve_issue)<br />
-workflow.add_conditional_edges(<br />
-    "classifier",<br />
-    route_by_intent,<br />
-    {"billing": "resolver", "technical": "resolver", "escalate": END}<br />
-)</p>
+<pre><code class="language-python">from langgraph.graph import StateGraph, END
+from typing import TypedDict
+
+class AgentState(TypedDict):
+    messages: list
+    next_step: str
+
+# Определяете узлы (агентов) и рёбра (переходы)
+workflow = StateGraph(AgentState)
+workflow.add_node(&quot;classifier&quot;, classify_intent)
+workflow.add_node(&quot;resolver&quot;, resolve_issue)
+workflow.add_conditional_edges(
+    &quot;classifier&quot;,
+    route_by_intent,
+    {&quot;billing&quot;: &quot;resolver&quot;, &quot;technical&quot;: &quot;resolver&quot;, &quot;escalate&quot;: END}
+)
+</code></pre>
 <p>Важное ограничение: агентные системы умножают стоимость инференса на<br />
 количество шагов. Задача с 5 агентами и 3 итерациями — это 15<br />
 LLM-вызовов. Считайте TCO заранее.</p>
@@ -254,10 +397,11 @@ LLM-вызовов. Считайте TCO заранее.</p>
 входящего потока в большинстве B2C-компаний. Именно здесь автоматизация<br />
 клиентского сервиса с помощью нейросетей окупается быстрее всего.</p>
 <p><strong>Архитектура для поддержки:</strong></p>
-<p>Входящее обращение<br />
-    → Классификатор интента (LLM, few-shot)<br />
-    → Если tier-1: RAG по базе знаний → генерация ответа → отправка<br />
-    → Если tier-2+: извлечение контекста → передача оператору с саммари</p>
+<pre><code>Входящее обращение
+    → Классификатор интента (LLM, few-shot)
+    → Если tier-1: RAG по базе знаний → генерация ответа → отправка
+    → Если tier-2+: извлечение контекста → передача оператору с саммари
+</code></pre>
 <p>Ключевой параметр качества — confidence threshold для передачи оператору.<br />
 Не устанавливайте его выше 0.85 на старте: лучше передать больше — и<br />
 обучиться на реальных данных.</p>
@@ -302,15 +446,17 @@ LLM-вызовов. Считайте TCO заранее.</p>
 30% времени на подготовку регулярных отчётов. Модель переводит вопрос на<br />
 естественном языке в SQL-запрос, выполняет его, интерпретирует результат.</p>
 <p><strong>Стек:</strong></p>
-<p>```python</p>
-<h1 id="text-to-sql-langchain-sqldatabasechain">Text-to-SQL через LangChain SQLDatabaseChain</h1>
-<p>from langchain_community.utilities import SQLDatabase<br />
-from langchain_openai import ChatOpenAI<br />
-from langchain_experimental.sql import SQLDatabaseChain</p>
-<p>db = SQLDatabase.from_uri("postgresql://user:pass@host/dbname")<br />
-llm = ChatOpenAI(model="gpt-4o", temperature=0)</p>
-<p>chain = SQLDatabaseChain.from_llm(llm, db, verbose=True)<br />
-result = chain.invoke("Покажи топ-10 клиентов по выручке за Q1 2026")</p>
+<pre><code class="language-python"># Text-to-SQL через LangChain SQLDatabaseChain
+from langchain_community.utilities import SQLDatabase
+from langchain_openai import ChatOpenAI
+from langchain_experimental.sql import SQLDatabaseChain
+
+db = SQLDatabase.from_uri(&quot;postgresql://user:pass@host/dbname&quot;)
+llm = ChatOpenAI(model=&quot;gpt-4o&quot;, temperature=0)
+
+chain = SQLDatabaseChain.from_llm(llm, db, verbose=True)
+result = chain.invoke(&quot;Покажи топ-10 клиентов по выручке за Q1 2026&quot;)
+</code></pre>
 <p>Критическое ограничение: Text-to-SQL работает стабильно на схемах до<br />
 50–100 таблиц. На больших схемах — добавляйте semantic layer (dbt<br />
 semantic layer, Cube) или передавайте модели только релевантное<br />
@@ -336,14 +482,15 @@ semantic layer, Cube) или передавайте модели только р
 <p><strong>Чанкинг — критический параметр качества.</strong> Стандартный размер чанка —<br />
 512–1024 токена с перекрытием 10–15%. Для структурированных документов<br />
 (регламенты, договоры) — чанкинг по смысловым блокам, не по размеру.</p>
-<p>```python<br />
-from langchain.text_splitter import RecursiveCharacterTextSplitter</p>
-<p>splitter = RecursiveCharacterTextSplitter(<br />
-    chunk_size=800,<br />
-    chunk_overlap=100,<br />
-    separators=["\n\n", "\n", ". ", " "]<br />
-)<br />
-chunks = splitter.split_documents(documents)</p>
+<pre><code class="language-python">from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=800,
+    chunk_overlap=100,
+    separators=[&quot;\n\n&quot;, &quot;\n&quot;, &quot;. &quot;, &quot; &quot;]
+)
+chunks = splitter.split_documents(documents)
+</code></pre>
 <p>Качество поиска измеряйте через Hit Rate@5 (доля запросов, где правильный<br />
 документ вошёл в топ-5 результатов). Цель для production — выше 0.85.<br />
 Ниже — пересматривайте стратегию чанкинга или embedding-модель.</p>
@@ -391,19 +538,21 @@ MLOps-зрелости: большинство команд внедряют к�
 <p>Evaluation — это не опция, а инфраструктура. Внедряйте её до первого<br />
 деплоя, не после.</p>
 <p><strong>Минимальный стек:</strong></p>
-<p>```bash</p>
-<h1 id="1-golden-dataset-100200">1. Создайте golden dataset: 100–200 пар (вопрос → эталонный ответ)</h1>
-<h1 id="2-ragas-rag-">2. Подключите RAGAS для RAG-пайплайнов</h1>
-<p>pip install ragas</p>
-<h1 id="3">3. Запустите базовые метрики</h1>
-<p>from ragas import evaluate<br />
-from ragas.metrics import faithfulness, answer_relevancy, context_recall</p>
-<p>results = evaluate(<br />
-    dataset=your_dataset,<br />
-    metrics=[faithfulness, answer_relevancy, context_recall]<br />
-)</p>
-<h1 id="faithfulness-085">faithfulness &lt; 0.85 → модель придумывает факты вне контекста</h1>
-<h1 id="context_recall-080-retrieval">context_recall &lt; 0.80 → retrieval не находит нужные чанки</h1>
+<pre><code class="language-bash"># 1. Создайте golden dataset: 100–200 пар (вопрос → эталонный ответ)
+# 2. Подключите RAGAS для RAG-пайплайнов
+pip install ragas
+
+# 3. Запустите базовые метрики
+from ragas import evaluate
+from ragas.metrics import faithfulness, answer_relevancy, context_recall
+
+results = evaluate(
+    dataset=your_dataset,
+    metrics=[faithfulness, answer_relevancy, context_recall]
+)
+# faithfulness &lt; 0.85 → модель придумывает факты вне контекста
+# context_recall &lt; 0.80 → retrieval не находит нужные чанки
+</code></pre>
 <p>Для не-RAG задач — <code>openai/evals</code> или <code>EleutherAI/lm-evaluation-harness</code>.<br />
 Оба работают с любыми моделями через OpenAI-совместимый API.</p>
 <p><strong>Четыре метрики, без которых нельзя идти в production:</strong></p>
@@ -446,11 +595,12 @@ Actions или аналог. Регрессия на 5% по faithfulness до �
 <p>Отправка персональных данных в облачные LLM — юридический риск по GDPR и<br />
 152-ФЗ без дополнительных соглашений с провайдером.</p>
 <p><strong>Практический чеклист перед production:</strong></p>
-<p>☐ Data Processing Agreement (DPA) подписан с OpenAI / Anthropic / Azure<br />
-☐ PII-маскирование на уровне pre-processing (перед отправкой в модель)<br />
-☐ Логи запросов не содержат чувствительных данных<br />
-☐ Роль и права доступа к LLM API задокументированы<br />
-☐ Retention policy для логов определена и соблюдается</p>
+<pre><code>☐ Data Processing Agreement (DPA) подписан с OpenAI / Anthropic / Azure
+☐ PII-маскирование на уровне pre-processing (перед отправкой в модель)
+☐ Логи запросов не содержат чувствительных данных
+☐ Роль и права доступа к LLM API задокументированы
+☐ Retention policy для логов определена и соблюдается
+</code></pre>
 <p>Для обработки медицинских, финансовых или персональных данных —<br />
 рассмотрите self-hosted вариант: Ollama + Llama 3.1 70B на выделенном<br />
 сервере закрывает 80% задач при полном контроле над данными.</p>
@@ -498,17 +648,20 @@ RAG-пайплайнов. Выбор между ними зависит от з�
 </tbody>
 </table>
 <p><strong>Минимальный RAG за 15 строк (LangChain):</strong></p>
-<p>```python<br />
-from langchain_community.vectorstores import Qdrant<br />
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI<br />
-from langchain.chains import RetrievalQA</p>
-<p>embeddings = OpenAIEmbeddings(model="text-embedding-3-small")<br />
-vectorstore = Qdrant.from_documents(docs, embeddings, location=":memory:")</p>
-<p>qa = RetrievalQA.from_chain_type(<br />
-    llm=ChatOpenAI(model="gpt-4o-mini"),  # $0.15/1M tokens — дёшево<br />
-    retriever=vectorstore.as_retriever(search_kwargs={"k": 5})<br />
-)</p>
-<p>answer = qa.invoke("Какова политика возврата товара?")</p>
+<pre><code class="language-python">from langchain_community.vectorstores import Qdrant
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain.chains import RetrievalQA
+
+embeddings = OpenAIEmbeddings(model=&quot;text-embedding-3-small&quot;)
+vectorstore = Qdrant.from_documents(docs, embeddings, location=&quot;:memory:&quot;)
+
+qa = RetrievalQA.from_chain_type(
+    llm=ChatOpenAI(model=&quot;gpt-4o-mini&quot;),  # $0.15/1M tokens — дёшево
+    retriever=vectorstore.as_retriever(search_kwargs={&quot;k&quot;: 5})
+)
+
+answer = qa.invoke(&quot;Какова политика возврата товара?&quot;)
+</code></pre>
 <p>Для production — используйте LangGraph вместо устаревшего AgentExecutor:<br />
 он даёт явный контроль над состоянием агента и поддерживает<br />
 human-in-the-loop.</p>
@@ -553,16 +706,17 @@ human-in-the-loop.</p>
 </table>
 <p>Для старта с объёмом до 500k документов — <code>pgvector</code> с индексом <code>ivfflat</code><br />
 закрывает задачу без новой инфраструктуры:</p>
-<p>```sql<br />
--- Создание колонки и индекса<br />
-ALTER TABLE documents ADD COLUMN embedding vector(1536);<br />
-CREATE INDEX ON documents USING ivfflat (embedding vector_cosine_ops)<br />
-  WITH (lists = 100);</p>
-<p>-- Поиск ближайших 5 документов<br />
-SELECT content, 1 - (embedding &lt;=&gt; $1) AS similarity<br />
-FROM documents<br />
-ORDER BY embedding &lt;=&gt; $1<br />
-LIMIT 5;</p>
+<pre><code class="language-sql">-- Создание колонки и индекса
+ALTER TABLE documents ADD COLUMN embedding vector(1536);
+CREATE INDEX ON documents USING ivfflat (embedding vector_cosine_ops)
+  WITH (lists = 100);
+
+-- Поиск ближайших 5 документов
+SELECT content, 1 - (embedding &lt;=&gt; $1) AS similarity
+FROM documents
+ORDER BY embedding &lt;=&gt; $1
+LIMIT 5;
+</code></pre>
 <p>При росте свыше 1M векторов или при необходимости фильтрации по<br />
 метаданным — мигрируйте на Qdrant. Миграция занимает один скрипт<br />
 переиндексации.</p>
@@ -572,25 +726,27 @@ LIMIT 5;</p>
 и Phoenix (Arize) решают одну задачу разными путями — и оба вписываются в<br />
 существующий MLOps-процесс.</p>
 <p><strong>LangSmith</strong> — нативный инструмент для LangChain-стека:</p>
-<p>```python<br />
-import os<br />
-os.environ["LANGCHAIN_TRACING_V2"] = "true"<br />
-os.environ["LANGCHAIN_API_KEY"] = "ls_..."</p>
-<h1 id="_4">Всё остальное — без изменений. Трассировка включается автоматически.</h1>
+<pre><code class="language-python">import os
+os.environ[&quot;LANGCHAIN_TRACING_V2&quot;] = &quot;true&quot;
+os.environ[&quot;LANGCHAIN_API_KEY&quot;] = &quot;ls_...&quot;
+
+# Всё остальное — без изменений. Трассировка включается автоматически.
+</code></pre>
 <p>Даёт: полное дерево вызовов, латентность каждого шага, стоимость токенов,<br />
 сравнение версий промптов.</p>
 <p><strong>Phoenix (Arize)</strong> — open-source альтернатива, работает локально, не<br />
 отправляет данные во внешние сервисы:</p>
-<p>```bash<br />
-pip install arize-phoenix<br />
-python -m phoenix.server.main &amp;  # UI на localhost:6006</p>
+<pre><code class="language-bash">pip install arize-phoenix
+python -m phoenix.server.main &amp;  # UI на localhost:6006
+</code></pre>
 <p>Оба инструмента поддерживают экспорт в OpenTelemetry — данные можно<br />
 направить в существующий Grafana/Datadog стек.</p>
 <p><strong>Минимальные алерты, которые должны быть с первого дня:</strong></p>
-<p>☐ P95 latency &gt; 5s → алерт в Slack<br />
-☐ Error rate &gt; 1% → алерт в PagerDuty / Telegram<br />
-☐ Cost per day &gt; N$ → алерт на email<br />
-☐ Faithfulness &lt; 0.80 (еженедельный eval-прогон) → задача в трекер</p>
+<pre><code>☐ P95 latency &gt; 5s → алерт в Slack
+☐ Error rate &gt; 1% → алерт в PagerDuty / Telegram
+☐ Cost per day &gt; N$ → алерт на email
+☐ Faithfulness &lt; 0.80 (еженедельный eval-прогон) → задача в трекер
+</code></pre>
 <hr />
 <h2 id="6">6. Что делать прямо сейчас</h2>
 <p>Начните с одной задачи с измеримым baseline, соберите 100 пар вопрос/ответ<br />
@@ -635,155 +791,11 @@ python -m phoenix.server.main &amp;  # UI на localhost:6006</p>
 без дообучения.</p>
 <p>Единственное решение, которое нельзя откладывать — это<br />
 eval-инфраструктура. Всё остальное можно поменять: модель, стек,<br />
-архитектуру. Отсутствие измерений в production не лечится ретроспективно.</p>
+архитектуру. Отсутствие измерений в production не лечится ретроспективно.<br />
+```</p>
 <hr />
 <h2 id="schemaorg-json-ld">Schema.org JSON-LD</h2>
 <p>Используется <code>@graph</code> с двумя типами: <code>TechArticle</code> (основной) + <code>FAQPage</code> (для AEO/GEO — захватывает ответы из H2). Плейсхолдеры <code>[…]</code> заменить перед публикацией.</p>
-<p>```json<br />
-{<br />
-  "@context": "https://schema.org",<br />
-  "@graph": [<br />
-    {<br />
-      "@type": "TechArticle",<br />
-      "@id": "[https://ваш-сайт.ru/нейросети-для-бизнеса-2026]",<br />
-      "headline": "Нейросети для бизнеса в 2026: технический стек, ROI и реальные кейсы",<br />
-      "description": "Практическое руководство по внедрению ИИ в бизнес: архитектуры RAG, fine-tuning и агентных систем, реальные ROI-метрики, технический стек без vendor lock-in и стартовый план на 2 недели.",<br />
-      "inLanguage": "ru",<br />
-      "datePublished": "2026-05-26",<br />
-      "dateModified": "2026-05-26",<br />
-      "proficiencyLevel": "Expert",<br />
-      "author": {<br />
-        "@type": "Person",<br />
-        "name": "[Имя автора]",<br />
-        "url": "[https://ваш-сайт.ru/author]"<br />
-      },<br />
-      "publisher": {<br />
-        "@type": "Organization",<br />
-        "name": "[Название издания]",<br />
-        "logo": {<br />
-          "@type": "ImageObject",<br />
-          "url": "[https://ваш-сайт.ru/logo.png]"<br />
-        }<br />
-      },<br />
-      "image": {<br />
-        "@type": "ImageObject",<br />
-        "url": "[https://ваш-сайт.ru/og-image.png]",<br />
-        "width": 1200,<br />
-        "height": 630<br />
-      },<br />
-      "keywords": [<br />
-        "нейросети для бизнеса",<br />
-        "внедрение ИИ",<br />
-        "генеративный ИИ",<br />
-        "RAG",<br />
-        "Retrieval-Augmented Generation",<br />
-        "fine-tuning",<br />
-        "LLM",<br />
-        "большие языковые модели",<br />
-        "автоматизация бизнес-процессов",<br />
-        "машинное обучение",<br />
-        "ROI от ИИ",<br />
-        "LangChain",<br />
-        "векторная база данных",<br />
-        "корпоративный ИИ",<br />
-        "MLOps",<br />
-        "RAGAS",<br />
-        "семантический поиск",<br />
-        "промпт-инжиниринг",<br />
-        "обработка естественного языка"<br />
-      ],<br />
-      "articleSection": [<br />
-        "Почему сейчас — экономика изменилась",<br />
-        "Ключевые архитектуры для бизнес-задач",<br />
-        "Бизнес-сценарии с измеримым результатом",<br />
-        "Как не провалить внедрение",<br />
-        "Стек для старта",<br />
-        "Что делать прямо сейчас"<br />
-      ],<br />
-      "citation": [<br />
-        {<br />
-          "@type": "ScholarlyArticle",<br />
-          "name": "RAGAS: Automated Evaluation of Retrieval Augmented Generation",<br />
-          "identifier": "arXiv:2309.15217"<br />
-        },<br />
-        {<br />
-          "@type": "ScholarlyArticle",<br />
-          "name": "LoRA Fine-tuning for Business Tasks",<br />
-          "identifier": "arXiv:2401.02009"<br />
-        },<br />
-        {<br />
-          "@type": "Report",<br />
-          "name": "AI Index 2025",<br />
-          "author": {<br />
-            "@type": "Organization",<br />
-            "name": "Stanford HAI"<br />
-          }<br />
-        }<br />
-      ],<br />
-      "about": [<br />
-        { "@type": "Thing", "name": "Искусственный интеллект" },<br />
-        { "@type": "Thing", "name": "Retrieval-Augmented Generation" },<br />
-        { "@type": "Thing", "name": "Автоматизация бизнес-процессов" },<br />
-        { "@type": "Thing", "name": "Машинное обучение" },<br />
-        { "@type": "Thing", "name": "Обработка естественного языка" }<br />
-      ]<br />
-    },<br />
-    {<br />
-      "@type": "FAQPage",<br />
-      "@id": "[https://ваш-сайт.ru/нейросети-для-бизнеса-2026#faq]",<br />
-      "mainEntity": [<br />
-        {<br />
-          "@type": "Question",<br />
-          "name": "Почему сейчас выгодно внедрять нейросети в бизнес?",<br />
-          "acceptedAnswer": {<br />
-            "@type": "Answer",<br />
-            "text": "Стоимость генеративного ИИ упала в 10 раз за 18 месяцев, а автоматизация бизнес-процессов с его помощью окупается менее чем за квартал. Claude 3 Haiku обойдётся в $1.25 на 10 000 обращений в поддержку."<br />
-          }<br />
-        },<br />
-        {<br />
-          "@type": "Question",<br />
-          "name": "Какую архитектуру ИИ выбрать для корпоративных задач?",<br />
-          "acceptedAnswer": {<br />
-            "@type": "Answer",<br />
-            "text": "Для 90% корпоративных задач достаточно трёх паттернов: RAG — для работы с документами и семантического поиска, fine-tuning — для узких задач с 1000+ примерами, агентные системы — для многошаговых процессов с ветвлением логики."<br />
-          }<br />
-        },<br />
-        {<br />
-          "@type": "Question",<br />
-          "name": "Сколько стоит внедрение ИИ в малый и средний бизнес?",<br />
-          "acceptedAnswer": {<br />
-            "@type": "Answer",<br />
-            "text": "При использовании API (Claude 3 Haiku, GPT-4o mini) обработка 10 000 обращений в поддержку обходится в $1.25–15 в месяц. Полный стек (LangChain + pgvector + LangSmith) запускается бесплатно в self-hosted варианте."<br />
-          }<br />
-        },<br />
-        {<br />
-          "@type": "Question",<br />
-          "name": "Почему 66% AI-проектов не доходят до production?",<br />
-          "acceptedAnswer": {<br />
-            "@type": "Answer",<br />
-            "text": "Провал происходит на трёх этапах: нет baseline-метрики до старта, нет eval-пайплайна в CI/CD, нет ответственного за качество модели в production. Без этих элементов деградация обнаруживается только по жалобам пользователей."<br />
-          }<br />
-        },<br />
-        {<br />
-          "@type": "Question",<br />
-          "name": "Какой технический стек выбрать для старта с ИИ без vendor lock-in?",<br />
-          "acceptedAnswer": {<br />
-            "@type": "Answer",<br />
-            "text": "Оптимальный стартовый стек в 2026: LangChain или LlamaIndex для оркестрации, Qdrant или pgvector для хранения векторных эмбеддингов, LangSmith или Phoenix для мониторинга. Все компоненты заменяемы независимо друг от друга."<br />
-          }<br />
-        },<br />
-        {<br />
-          "@type": "Question",<br />
-          "name": "С чего начать внедрение нейросети в бизнес?",<br />
-          "acceptedAnswer": {<br />
-            "@type": "Answer",<br />
-            "text": "Начните с одной задачи с измеримым baseline, соберите 100 пар вопрос/ответ для eval и запустите RAG-прототип на LangChain + pgvector за две недели. 80% бизнес-задач решаются RAG + GPT-4o mini или Claude 3 Haiku без дообучения."<br />
-          }<br />
-        }<br />
-      ]<br />
-    }<br />
-  ]<br />
-}</p>
 <hr />
 <p><strong>Комментарий по JSON-LD:</strong><br />
 - <code>TechArticle</code> — точнее, чем <code>Article</code>, для технического контента; даёт свойство <code>proficiencyLevel</code><br />
