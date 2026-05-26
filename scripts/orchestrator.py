@@ -10,6 +10,7 @@ import json
 import time
 import argparse
 import subprocess
+import urllib.request
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
@@ -19,6 +20,16 @@ try:
     _groq_client = _Groq(api_key=os.environ.get("GROQ_KEY", "")) if os.environ.get("GROQ_KEY") else None
 except ImportError:
     _groq_client = None
+
+try:
+    from ddgs import DDGS as _DDGS
+except ImportError:
+    _DDGS = None
+
+try:
+    import trafilatura as _trafilatura
+except ImportError:
+    _trafilatura = None
 
 ROOT = Path(__file__).parent.parent
 PLANS_DIR = ROOT / "plans"
@@ -90,6 +101,64 @@ def update_step(plan_path: Path, step_num: int, status: str = "done") -> None:
     elif status == "failed":
         content = content.replace(step_marker, f"- [!] Шаг {step_num:02d}", 1)
     plan_path.write_text(content, encoding="utf-8")
+
+
+# ── Web search ────────────────────────────────────────────────────────────────
+
+def web_search(query: str, max_results: int = 8) -> str:
+    """
+    Ищет актуальные материалы через DuckDuckGo.
+    Опционально вытаскивает текст страниц через trafilatura.
+    Возвращает форматированный блок для передачи в LLM.
+    """
+    if not _DDGS:
+        return "(ddgs не установлен — поиск недоступен)"
+
+    results = []
+    try:
+        items = list(_DDGS().text(query, max_results=max_results, region="ru-ru"))
+        if not items:
+            items = list(_DDGS().text(query, max_results=max_results))
+    except Exception as e:
+        return f"(ошибка поиска: {e})"
+
+    for item in items:
+        title = item.get("title", "")
+        url = item.get("href", "")
+        snippet = item.get("body", "")
+
+        # Пробуем вытащить полный текст страницы
+        full_text = ""
+        if _trafilatura and url:
+            try:
+                downloaded = _trafilatura.fetch_url(url)
+                if downloaded:
+                    full_text = _trafilatura.extract(downloaded, include_comments=False) or ""
+                    full_text = full_text[:1500]
+            except Exception:
+                pass
+
+        content = full_text if full_text else snippet
+        results.append(f"### {title}\nURL: {url}\n{content}")
+
+    return "\n\n---\n\n".join(results) if results else "(результаты не найдены)"
+
+
+def web_search_news(query: str, max_results: int = 5) -> str:
+    """Ищет свежие новости через DuckDuckGo News."""
+    if not _DDGS:
+        return ""
+    try:
+        items = list(_DDGS().news(query, max_results=max_results))
+        if not items:
+            return ""
+        lines = []
+        for item in items:
+            date = item.get("date", "")[:10]
+            lines.append(f"- [{date}] {item.get('title', '')} — {item.get('source', '')}\n  {item.get('body', '')[:200]}")
+        return "\n".join(lines)
+    except Exception:
+        return ""
 
 
 # ── Step runner ────────────────────────────────────────────────────────────────
@@ -348,18 +417,36 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
     update_step(plan_path, 2)
     r.finish(output, tokens=tokens)
 
-    # Шаг 3: web-researcher + HUMAN REVIEW
+    # Шаг 3: web-researcher — реальный поиск через ddgs
     r = StepResult(3, "web-researcher")
-    prompt = AGENT_PROMPTS["web-researcher"].format(topic=topic)
-    output, tokens = run_claude(prompt)
+    print("  Ищу актуальные материалы через DuckDuckGo...")
+    tg_notify(f"🔍 <b>Шаг 03</b> — web-researcher\nИщу: {topic}")
+
+    search_results = web_search(f"{topic} 2025 2026", max_results=6)
+    news_results = web_search_news(f"{topic}", max_results=4)
+
+    synthesis_prompt = (
+        f"Ты аналитик. Тема статьи: «{topic}».\n\n"
+        f"Вот результаты поиска по теме (свежие материалы 2025-2026):\n\n"
+        f"{search_results}\n\n"
+        f"Свежие новости:\n{news_results}\n\n"
+        f"На основе ТОЛЬКО этих материалов (не используй данные из тренировки старше 2024 года):\n"
+        f"1. Выдели топ-5 актуальных фактов с источниками (URL)\n"
+        f"2. Предложи структуру статьи H2-H3\n"
+        f"3. Составь список из 15 LSI-ключей по теме\n"
+        f"4. Укажи главный тезис статьи одним предложением"
+    )
+    output, tokens = run_claude(synthesis_prompt)
     context["web_pack"] = output
+    context["raw_search"] = search_results[:3000]
     update_step(plan_path, 3)
     r.finish(output, tokens=tokens)
 
     # Шаг 4: HUMAN REVIEW структуры
     approved, corrections = human_review(
         "Утвердите структуру и данные из исследования",
-        f"Структура:\n{output[:600]}\n\nКонтекст из базы знаний:\n{context['knowledge_pack'][:400]}",
+        f"📌 Главный тезис и структура:\n{output[:800]}\n\n"
+        f"📚 Контекст из базы знаний:\n{context['knowledge_pack'][:300]}",
         step=4,
         auto=auto_approve,
     )
