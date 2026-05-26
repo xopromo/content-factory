@@ -55,6 +55,19 @@ RULES_FILE = ROOT / "ai-clone" / "rules.md"
 RESEARCH_MIN_CHARS = 2000     # символов реального текста из источников
 RESEARCH_MIN_SOURCES = 2      # источников с текстом > 100 символов
 
+# Домены по уровню авторитетности для ранжирования источников
+_TIER1_DOMAINS = {
+    "arxiv.org", "github.com", "anthropic.com", "openai.com", "deepmind.com",
+    "huggingface.co", "pytorch.org", "tensorflow.org", "paperswithcode.com",
+    "proceedings.mlr.press", "aclanthology.org", "research.google",
+    "ai.meta.com", "mistral.ai", "docs.python.org", "developer.mozilla.org",
+}
+_TIER2_DOMAINS = {
+    "techcrunch.com", "venturebeat.com", "wired.com", "theverge.com",
+    "arstechnica.com", "zdnet.com", "towardsdatascience.com", "substack.com",
+    "mit.edu", "stanford.edu", "harvard.edu", "medium.com", "habr.com",
+}
+
 
 # ── Telegram ──────────────────────────────────────────────────────────────────
 
@@ -365,8 +378,11 @@ def format_search_for_llm(fresh: list[dict], deep: list[dict]) -> str:
 
 def format_raw_sources(fresh: list[dict], deep: list[dict]) -> str:
     """
-    Форматирует сырые источники с порядковыми номерами.
-    Используется content-writer и fact-checker для верификации фактов.
+    Форматирует сырые источники с порядковыми номерами и уровнем авторитетности.
+    ⭐⭐⭐ = первичный источник (GitHub, arxiv, официальная дока)
+    ⭐⭐   = качественный блог (TechCrunch, MIT, Хабр)
+    ⭐     = общий источник
+    content-writer обязан приоритизировать ⭐⭐⭐ при конфликте фактов.
     """
     parts = []
     idx = 1
@@ -374,10 +390,11 @@ def format_raw_sources(fresh: list[dict], deep: list[dict]) -> str:
         text = item.get("text", "").strip()
         if not text:
             continue
+        tier = _source_tier(item.get("url", ""))
         parts.append(
-            f"[{idx}] {item.get('title', 'Без заголовка')}\n"
+            f"[{idx}] {_TIER_LABEL[tier]} {item.get('title', 'Без заголовка')}\n"
             f"URL: {item.get('url', '')}\n"
-            f"Дата: {item.get('date', '')}\n\n"
+            f"Дата: {item.get('date', '')} | Уровень: {_TIER_LABEL[tier]}\n\n"
             f"{text[:2500]}"
         )
         idx += 1
@@ -385,56 +402,87 @@ def format_raw_sources(fresh: list[dict], deep: list[dict]) -> str:
         text = item.get("text", "").strip()
         if not text:
             continue
+        tier = _source_tier(item.get("url", ""))
         parts.append(
-            f"[{idx}] {item.get('title', 'Без заголовка')}\n"
-            f"URL: {item.get('url', '')}\n\n"
+            f"[{idx}] {_TIER_LABEL[tier]} {item.get('title', 'Без заголовка')}\n"
+            f"URL: {item.get('url', '')}\n"
+            f"Уровень: {_TIER_LABEL[tier]}\n\n"
             f"{text[:2500]}"
         )
         idx += 1
     return "\n\n---\n\n".join(parts) if parts else "(источники не найдены)"
 
 
-# ── Research gate ─────────────────────────────────────────────────────────────
+# ── FINER gate ────────────────────────────────────────────────────────────────
 
-def research_gate(fresh: list[dict], deep: list[dict]) -> tuple[bool, str]:
+def finer_gate(topic: str, fresh: list[dict], deep: list[dict]) -> tuple[bool, str]:
     """
-    Проверяет достаточность исследовательской базы перед запуском content-writer.
-    Блокирует пайплайн, если реального текста из источников недостаточно.
-    Возвращает (достаточно: bool, отчёт: str).
+    FINER-оценка темы и исследовательской базы (адаптировано из ARS):
+    F — Feasible:  достаточно ли источников для статьи
+    I — Interesting: есть ли свежий инфоповод (последняя неделя)
+    N — Novel:     не слишком ли тема перегружена однотипными источниками
+    E — Engaging:  упоминаются ли в теме/источниках AI/tech-ключевые слова
+    R — Relevant:  есть ли хотя бы один первичный источник (⭐⭐⭐)
+
+    Блокирует пайплайн только при F=0 (физическая невозможность написать статью).
+    Остальные флаги — предупреждения для HITL-шага 4.
+    Возвращает (pass: bool, отчёт: str).
     """
-    real_sources = [
-        s for s in fresh + deep
-        if len(s.get("text", "").strip()) > 100
-    ]
-    total_chars = sum(len(s["text"]) for s in real_sources)
+    all_sources = fresh + deep
+    real = [s for s in all_sources if len(s.get("text", "").strip()) > 100]
+    total_chars = sum(len(s["text"]) for s in real)
 
-    report_lines = [
-        f"📊 Источников с текстом: {len(real_sources)} из {len(fresh) + len(deep)}",
-        f"📝 Суммарный объём: {total_chars:,} символов",
-    ]
+    # F — Feasible (механически)
+    f_score = min(len(real) / 5, 1.0)
+    f_ok = len(real) >= RESEARCH_MIN_SOURCES and total_chars >= RESEARCH_MIN_CHARS
+    f_label = f"{'✅' if f_ok else '❌'} F Feasible: {len(real)} источников, {total_chars:,} симв."
 
-    issues = []
-    if len(real_sources) < RESEARCH_MIN_SOURCES:
-        issues.append(
-            f"Мало источников с реальным текстом: {len(real_sources)} "
-            f"(нужно минимум {RESEARCH_MIN_SOURCES})"
-        )
-    if total_chars < RESEARCH_MIN_CHARS:
-        issues.append(
-            f"Мало контента: {total_chars} символов "
-            f"(нужно минимум {RESEARCH_MIN_CHARS})"
-        )
+    # I — Interesting/Fresh (механически)
+    has_fresh = any(s.get("fresh") for s in fresh)
+    i_label = f"{'✅' if has_fresh else '⚠️'} I Interesting: {'есть горячая новость' if has_fresh else 'нет новостей за неделю'}"
 
-    if issues:
-        report_lines.append("\n❌ НЕДОСТАТОЧНО источников для написания статьи:")
-        report_lines.extend(f"  — {i}" for i in issues)
-        report_lines.append(
-            "\nРекомендация: выберите другую тему или расширьте поисковый запрос."
-        )
-        return False, "\n".join(report_lines)
+    # N — Novel: смотрим разнообразие доменов
+    domains = set()
+    for s in real:
+        try:
+            from urllib.parse import urlparse
+            d = urlparse(s.get("url", "")).netloc.lower().removeprefix("www.")
+            domains.add(d)
+        except Exception:
+            pass
+    n_ok = len(domains) >= 2
+    n_label = f"{'✅' if n_ok else '⚠️'} N Novel: {len(domains)} разных доменов {'(риск однобокости)' if not n_ok else ''}"
 
-    report_lines.append("✅ Источников достаточно")
-    return True, "\n".join(report_lines)
+    # E — Engaging: AI/tech ключевые слова в теме или источниках
+    ai_keywords = {"ai", "llm", "gpt", "claude", "нейросет", "model", "llama", "gemini",
+                   "python", "api", "код", "разработ", "автомат", "агент"}
+    topic_lower = topic.lower()
+    e_ok = any(kw in topic_lower for kw in ai_keywords)
+    e_label = f"{'✅' if e_ok else '⚠️'} E Engaging: {'тема в нише AI/tech' if e_ok else 'тема вне AI/tech ниши'}"
+
+    # R — Relevant: хотя бы один ⭐⭐⭐ источник
+    has_tier1 = any(_source_tier(s.get("url", "")) == 1 for s in real)
+    r_label = f"{'✅' if has_tier1 else '⚠️'} R Relevant: {'есть первичный источник ⭐⭐⭐' if has_tier1 else 'только вторичные источники'}"
+
+    warnings = []
+    if not has_fresh:
+        warnings.append("нет горячего инфоповода")
+    if not n_ok:
+        warnings.append("мало разных доменов — риск однобокости")
+    if not has_tier1:
+        warnings.append("нет первичных источников — факты сложнее верифицировать")
+
+    lines = ["## FINER-оценка темы", f_label, i_label, n_label, e_label, r_label]
+    if warnings:
+        lines.append(f"\n⚠️ Предупреждения: {'; '.join(warnings)}")
+
+    if not f_ok:
+        lines.append("\n❌ СТОП: недостаточно источников для написания статьи.")
+        lines.append("Рекомендация: смените тему или расширьте поисковый запрос.")
+        return False, "\n".join(lines)
+
+    lines.append("\n✅ Тема прошла проверку")
+    return True, "\n".join(lines)
 
 
 # ── Step runner ────────────────────────────────────────────────────────────────
@@ -713,6 +761,54 @@ AGENT_PROMPTS = {
 }
 
 
+def _source_tier(url: str) -> int:
+    """Классифицирует источник по уровню авторитетности (1=первичный, 2=качественный, 3=общий)."""
+    if not url:
+        return 3
+    try:
+        from urllib.parse import urlparse
+        domain = urlparse(url).netloc.lower().removeprefix("www.")
+        if any(d in domain for d in _TIER1_DOMAINS):
+            return 1
+        if any(d in domain for d in _TIER2_DOMAINS):
+            return 2
+    except Exception:
+        pass
+    return 3
+
+
+_TIER_LABEL = {1: "⭐⭐⭐", 2: "⭐⭐", 3: "⭐"}
+
+
+def run_fast(prompt: str) -> tuple[str, int]:
+    """
+    Быстрый вызов LLM для лёгких задач (проверки, классификации, короткие ответы).
+    Использует llama-3.1-8b-instant (Groq) вместо 70b — экономия ~4x токенов.
+    """
+    tokens = len(prompt.split()) * 2
+    if _groq_client:
+        try:
+            resp = _groq_client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=1024,
+                temperature=0.2,
+            )
+            return resp.choices[0].message.content.strip(), tokens
+        except Exception as e:
+            print(f"[GROQ FAST ERROR] {e}")
+    if _gemini_client:
+        try:
+            resp = _gemini_client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=prompt,
+            )
+            return resp.text.strip(), tokens
+        except Exception as e:
+            print(f"[GEMINI FAST ERROR] {e}")
+    return "", tokens
+
+
 def run_fact_checker(draft: str, raw_sources: str, step_label: str) -> tuple[bool, str]:
     """
     Запускает агент проверки фактов после content-writer.
@@ -802,30 +898,31 @@ def run_pipeline(topic: str, title: str, slug: str, search_query: str, auto_appr
     update_step(plan_path, 3)
     r.finish(output, tokens=tokens)
 
-    # Шаг 3.5: research-gate — блокируем пайплайн если источников недостаточно
-    gate_ok, gate_report = research_gate(fresh, deep)
-    print(f"\n  [research-gate]\n{gate_report}")
-    if not gate_ok:
+    # Шаг 3.5: FINER gate — оцениваем тему, блокируем при F=0
+    finer_ok, finer_report = finer_gate(topic, fresh, deep)
+    context["finer_report"] = finer_report
+    print(f"\n  [FINER gate]\n{finer_report}")
+    if not finer_ok:
         tg_notify(
-            f"🚫 <b>research-gate: СТОП</b>\n\n{gate_report}\n\n"
+            f"🚫 <b>FINER gate: СТОП</b>\n\n{finer_report}\n\n"
             f"Генерация прекращена. Выберите другую тему или расширьте поисковый запрос."
         )
-        print("\n🚫 Недостаточно источников. Генерация остановлена.")
+        print("\n🚫 FINER gate: нет источников. Генерация остановлена.")
         sys.exit(1)
-    tg_notify(f"🔒 <b>research-gate: OK</b>\n{gate_report}")
+    tg_notify(f"🔍 <b>FINER gate: OK</b>\n{finer_report}")
 
     fresh_summary = "\n".join(
-        f"🔴 [{s['date']}] {s['title']}" for s in fresh
+        f"🔴 [{s['date']}] {s['title']} {_TIER_LABEL[_source_tier(s.get('url',''))]}"
+        for s in fresh
     ) if fresh else "⚠️ Свежих новостей нет"
 
-    # Шаг 4: HUMAN REVIEW структуры
-    no_fresh_alert = "\n\n⚠️ Горячих новостей за неделю НЕТ — возможно стоит сменить тему!" if not has_fresh else ""
+    # Шаг 4: HUMAN REVIEW структуры (включает FINER-отчёт)
     approved, corrections = human_review(
         "Утвердите структуру и данные из исследования",
         f"📰 Информационные поводы:\n{fresh_summary}\n\n"
-        f"📌 Тезис и структура:\n{output[:700]}\n\n"
-        f"📚 База знаний:\n{context['knowledge_pack'][:200]}"
-        f"{no_fresh_alert}",
+        f"📌 Тезис и структура:\n{output[:600]}\n\n"
+        f"{finer_report}\n\n"
+        f"📚 База знаний:\n{context['knowledge_pack'][:150]}",
         step=4,
         auto=auto_approve,
     )
