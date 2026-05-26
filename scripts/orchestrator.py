@@ -202,6 +202,8 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
 
 
 # ── Web search ────────────────────────────────────────────────────────────────
+
+def _fetch_full_text(url: str, max_chars: int = 3000) -> str:
     """Вытаскивает полный текст страницы через trafilatura (без рекламы и мусора)."""
     if not _trafilatura or not url:
         return ""
