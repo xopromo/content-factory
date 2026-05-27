@@ -273,9 +273,11 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
     # Таблицы требуют пустую строку перед первой строкой — добавляем если строка перед | не пустая
     md_text = re.sub(r'(?m)^([^|\n#][^\n]*)\n(\|)', r'\1\n\n\2', md_text)
 
-    # Убираем метки "**Лид**" и "**Вывод**" из текста
+    # Убираем метки "Лид" и "Вывод" (как строки или как заголовки)
     md_text = re.sub(r'^\*\*Лид\*\*\s*\n?', '', md_text, flags=re.MULTILINE)
     md_text = re.sub(r'^\*\*Вывод\*\*\s*\n?', '', md_text, flags=re.MULTILINE)
+    md_text = re.sub(r'^#+\s+\*?\*?Лид\*?\*?\s*\n?', '', md_text, flags=re.MULTILINE)
+    md_text = re.sub(r'^#+\s+\*?\*?Вывод\*?\*?\s*\n?', '', md_text, flags=re.MULTILINE)
 
     # Убираем жирное форматирование из текста (заменяем **text** на text)
     md_text = re.sub(r'\*\*(.*?)\*\*', r'\1', md_text)
