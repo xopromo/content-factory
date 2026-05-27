@@ -1772,6 +1772,14 @@ def run_pipeline(
         update_step(plan_path, 7)
         r.finish(output, tokens=tokens)
 
+    # Проверка черновика перед публикацией
+    _draft_bad_signs = ["передай мне реальную", "предоставь источники", "это не статья",
+                        "сообщение об ошибке", "написать невозможно", "оптимизировать нечего"]
+    if not full_draft or len(full_draft) < 200 or any(s in full_draft.lower() for s in _draft_bad_signs):
+        print("❌ Черновик пустой или содержит ошибку LLM — генерация остановлена.")
+        tg_notify("❌ <b>Генерация остановлена</b>: черновик пустой или невалидный.")
+        sys.exit(1)
+
     # Шаг 8-9: seo-geo-optimizer
     if last_step >= 8 and context.get("optimized_draft"):
         print("  [passport] Шаги 8-9 пропущены (уже выполнены)")
