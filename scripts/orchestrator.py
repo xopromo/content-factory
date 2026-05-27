@@ -417,39 +417,45 @@ def format_search_for_llm(fresh: list[dict], deep: list[dict]) -> str:
     return "\n---\n".join(parts)
 
 
+_TIER_TEXT_LIMIT = {1: 1200, 2: 700, 3: 350}  # символов текста по уровню авторитетности
+_RAW_SOURCES_CAP = 7000  # суммарный лимит всего блока raw_sources
+
+
 def format_raw_sources(fresh: list[dict], deep: list[dict]) -> str:
     """
     Форматирует сырые источники с порядковыми номерами и уровнем авторитетности.
     ⭐⭐⭐ = первичный источник (GitHub, arxiv, официальная дока)
     ⭐⭐   = качественный блог (TechCrunch, MIT, Хабр)
     ⭐     = общий источник
-    content-writer обязан приоритизировать ⭐⭐⭐ при конфликте фактов.
+    Текст каждого источника ограничен _TIER_TEXT_LIMIT, итого не более _RAW_SOURCES_CAP символов.
     """
     parts = []
     idx = 1
-    for item in fresh:
+    total_chars = 0
+    all_items = [
+        (item, True) for item in fresh
+    ] + [
+        (item, False) for item in deep
+    ]
+    # Tier-1 источники сначала
+    all_items.sort(key=lambda x: _source_tier(x[0].get("url", "")))
+    for item, is_fresh in all_items:
         text = item.get("text", "").strip()
         if not text:
             continue
         tier = _source_tier(item.get("url", ""))
-        parts.append(
+        text = text[:_TIER_TEXT_LIMIT[tier]]
+        date_line = f"Дата: {item.get('date', '')} | " if is_fresh else ""
+        part = (
             f"[{idx}] {_TIER_LABEL[tier]} {item.get('title', 'Без заголовка')}\n"
             f"URL: {item.get('url', '')}\n"
-            f"Дата: {item.get('date', '')} | Уровень: {_TIER_LABEL[tier]}\n\n"
-            f"{text[:2500]}"
+            f"{date_line}Уровень: {_TIER_LABEL[tier]}\n\n"
+            f"{text}"
         )
-        idx += 1
-    for item in deep:
-        text = item.get("text", "").strip()
-        if not text:
-            continue
-        tier = _source_tier(item.get("url", ""))
-        parts.append(
-            f"[{idx}] {_TIER_LABEL[tier]} {item.get('title', 'Без заголовка')}\n"
-            f"URL: {item.get('url', '')}\n"
-            f"Уровень: {_TIER_LABEL[tier]}\n\n"
-            f"{text[:2500]}"
-        )
+        total_chars += len(part)
+        if total_chars > _RAW_SOURCES_CAP:
+            break
+        parts.append(part)
         idx += 1
     return "\n\n---\n\n".join(parts) if parts else "(источники не найдены)"
 
@@ -549,11 +555,12 @@ class StepResult:
         )
 
 
-def run_claude(prompt: str, context_files: list[Path] = None) -> tuple[str, int]:
+def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: bool = False) -> tuple[str, int]:
     """
     Вызывает LLM для выполнения задачи агента.
     Использует Groq (llama-3.3-70b) если есть GROQ_KEY, иначе claude CLI.
     Возвращает (output, estimated_tokens).
+    inject_feedback=True только для content-writer (остальным не нужно).
     """
     context = ""
     if context_files:
@@ -561,8 +568,13 @@ def run_claude(prompt: str, context_files: list[Path] = None) -> tuple[str, int]
             if f.exists():
                 context += f"\n\n### {f.name}\n{f.read_text(encoding='utf-8')}"
 
-    feedback = aggregate_feedback()
-    full_prompt = "\n\n".join(p for p in [feedback, context, prompt] if p.strip())
+    parts = []
+    if inject_feedback:
+        parts.append(aggregate_feedback())
+    if context:
+        parts.append(context)
+    parts.append(prompt)
+    full_prompt = "\n\n".join(p for p in parts if p.strip())
     tokens = len(full_prompt.split()) * 2
 
     if _groq_client:
@@ -1214,7 +1226,7 @@ def run_pipeline(
             + corrections_block
             + f"\n\nНапиши блоки {block} статьи."
         )
-        output, tokens = run_claude(prompt)
+        output, tokens = run_claude(prompt, inject_feedback=True)
         context[f"draft_{block}"] = output
         update_step(plan_path, step)
         r.finish(output, tokens=tokens)
@@ -1250,7 +1262,7 @@ def run_pipeline(
                 + "Перепиши ТОЛЬКО блоки с [INSUFFICIENT_SOURCES], используя доступные источники. "
                 + "Остальной текст оставь без изменений. Верни полный исправленный черновик."
             )
-            fixed_draft, fix_tokens = run_claude(fix_prompt)
+            fixed_draft, fix_tokens = run_claude(fix_prompt, inject_feedback=True)
             if len(fixed_draft) >= len(full_draft) * 0.7:
                 full_draft = fixed_draft
                 context["draft_1-3"] = full_draft  # обновляем для последующих шагов
