@@ -168,13 +168,69 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
     if outer:
         md_text = outer.group(1)
 
-    # Отделяем JSON-LD блок (если есть) от основного текста
+    # Отделяем JSON-LD блок — два формата: raw <script> или ```json code block
     jsonld_block = ""
-    if "```json" in md_text and "@context" in md_text:
-        m = re.search(r"```json\s*(\{[\s\S]*?\})\s*```", md_text)
-        if m:
-            jsonld_block = f'<script type="application/ld+json">{m.group(1)}</script>'
-            md_text = md_text[:m.start()] + md_text[m.end():]
+    # Формат 1: <script type="application/ld+json">...</script> прямо в тексте
+    m = re.search(r'<script type="application/ld\+json">([\s\S]*?)</script>', md_text)
+    if m:
+        jsonld_block = f'<script type="application/ld+json">{m.group(1)}</script>'
+        # Убираем весь раздел вокруг JSON-LD (заголовок "JSON-LD" + примечание)
+        md_text = re.sub(
+            r'\n#{1,3}\s*JSON-LD\s*\n[\s\S]*?(?=\n#{1,3}\s|\Z)',
+            '',
+            md_text,
+        )
+        md_text = md_text[:m.start()] + md_text[m.end():]
+    elif "```json" in md_text and "@context" in md_text:
+        # Формат 2: ```json { ... } ```
+        m2 = re.search(r"```json\s*(\{[\s\S]*?\})\s*```", md_text)
+        if m2:
+            jsonld_block = f'<script type="application/ld+json">{m2.group(1)}</script>'
+            md_text = md_text[:m2.start()] + md_text[m2.end():]
+
+    # Удаляем маркеры [INSUFFICIENT_SOURCES: ...] — могут содержать вложенные [...] внутри
+    # Используем жадный поиск до последней ] на строке (не захватываем через границы абзаца)
+    def _remove_insufficient(text: str) -> str:
+        result = []
+        i = 0
+        while i < len(text):
+            if text[i:].startswith('[INSUFFICIENT_SOURCES:'):
+                # Ищем закрывающую ] с учётом вложенных скобок
+                depth = 0
+                j = i
+                while j < len(text):
+                    if text[j] == '[':
+                        depth += 1
+                    elif text[j] == ']':
+                        depth -= 1
+                        if depth == 0:
+                            j += 1
+                            break
+                    j += 1
+                # Пропускаем маркер и trailing whitespace/newline
+                while j < len(text) and text[j] in (' ', '\t', '\n'):
+                    j += 1
+                i = j
+            else:
+                result.append(text[i])
+                i += 1
+        return ''.join(result)
+
+    # Убираем заголовок + INSUFFICIENT_SOURCES если раздел только из них состоит
+    md_text = re.sub(
+        r'\n#{2,4}[^\n]+\n+(?=\[INSUFFICIENT_SOURCES:)',
+        '\n',
+        md_text,
+    )
+    md_text = _remove_insufficient(md_text)
+    # Убираем "Примечание по JSON-LD" если осталось
+    md_text = re.sub(r'\*\*Примечание по JSON-LD:\*\*[^\n]*\n?', '', md_text)
+    # Убираем служебный отчёт SEO-оптимизатора перед H1 (до первого одиночного #)
+    h1_match = re.search(r'^# ', md_text, re.MULTILINE)
+    if h1_match:
+        md_text = md_text[h1_match.start():]
+    # Убираем пустые секции: заголовок H2/H3 сразу за которым следует другой заголовок или конец
+    md_text = re.sub(r'\n(#{2,4}[^\n]+)\n+(?=#{1,4}|\Z)', '\n', md_text)
 
     body_html = _md.markdown(
         md_text,
