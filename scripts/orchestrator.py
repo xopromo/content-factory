@@ -711,11 +711,15 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
     if _cerebras_client:
         try:
             resp = _cerebras_client.chat.completions.create(
-                model="llama-3.3-70b",
+                model="gpt-oss-120b",
                 messages=[{"role": "user", "content": full_prompt}],
                 max_tokens=8192,
             )
-            return resp.choices[0].message.content.strip(), tokens
+            msg = resp.choices[0].message
+            text = msg.content or getattr(msg, "reasoning", None) or ""
+            if text.strip():
+                return text.strip(), tokens
+            raise ValueError("пустой ответ")
         except Exception as e:
             print(f"[ОШИБКА CEREBRAS] {e} — пробую OpenRouter")
 
@@ -735,12 +739,19 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
                 print(f"[ОШИБКА OPENROUTER {_or_model}] {e}")
         print("  [openrouter] все модели недоступны — пробую claude CLI")
 
-    # Последний резерв: claude CLI
+    # Предпоследний резерв: claude CLI с Haiku (быстро и дёшево)
+    result = subprocess.run(
+        ["claude", "-p", full_prompt, "--output-format", "text", "--model", "claude-haiku-4-5"],
+        capture_output=True, text=True, cwd="/tmp",
+    )
+    if result.returncode == 0 and result.stdout.strip():
+        return result.stdout.strip(), tokens
+    print(f"[ОШИБКА HAIKU] {result.stderr.strip()[:120]} — пробую Sonnet")
+
+    # Последний резерв: claude CLI Sonnet
     result = subprocess.run(
         ["claude", "-p", full_prompt, "--output-format", "text"],
-        capture_output=True,
-        text=True,
-        cwd="/tmp",
+        capture_output=True, text=True, cwd="/tmp",
     )
     output = result.stdout.strip() if result.returncode == 0 else result.stderr.strip()
     return output, tokens
@@ -1070,11 +1081,15 @@ def run_fast(prompt: str) -> tuple[str, int]:
     if _cerebras_client:
         try:
             resp = _cerebras_client.chat.completions.create(
-                model="llama-3.1-8b-instant",
+                model="gpt-oss-120b",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=1024,
             )
-            return resp.choices[0].message.content.strip(), tokens
+            msg = resp.choices[0].message
+            text = msg.content or getattr(msg, "reasoning", None) or ""
+            if text.strip():
+                return text.strip(), tokens
+            raise ValueError("пустой ответ")
         except Exception as e:
             print(f"[ОШИБКА CEREBRAS-FAST] {e}")
     if _mistral_client:
