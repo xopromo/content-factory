@@ -443,33 +443,94 @@ def _fetch_full_text(url: str, max_chars: int = 3000) -> str:
     return ""
 
 
+def web_search_yandex(query: str, search_type: str = "news", max_results: int = 5) -> list[dict]:
+    """
+    Поиск через Yandex Search API (fallback при ошибках DuckDuckGo).
+    search_type: 'news' или 'web'
+    Возвращает список {title, url, date?, text}.
+    """
+    import requests
+
+    api_key = os.getenv("YANDEX_API_KEY", "")
+    folder_id = os.getenv("YANDEX_FOLDER_ID", "")
+
+    if not api_key or not folder_id:
+        return []
+
+    try:
+        url = "https://search-api.yandex.ru/search"
+        headers = {
+            "Authorization": f"Api-Key {api_key}",
+        }
+        params = {
+            "query": query,
+            "folderId": folder_id,
+            "pageSize": max_results,
+        }
+
+        # Добавляем фильтр по типу поиска
+        if search_type == "news":
+            params["filter"] = "news"
+
+        response = requests.get(url, headers=headers, params=params, timeout=8)
+        response.raise_for_status()
+
+        data = response.json()
+        results = []
+
+        for item in data.get("results", [])[:max_results]:
+            result_url = item.get("url", "")
+            full_text = _fetch_full_text(result_url)
+
+            results.append({
+                "title": item.get("title", ""),
+                "url": result_url,
+                "date": item.get("publishedDate", "")[:10] if item.get("publishedDate") else "",
+                "source": item.get("domain", ""),
+                "text": full_text or item.get("snippet", ""),
+            })
+
+        return results
+    except Exception as e:
+        print(f"  [SEARCH] yandex ошибка: {e}")
+        return []
+
+
 def web_search_fresh(query: str, max_results: int = 3) -> list[dict]:
     """
     Слой 1: свежие новости за последнюю неделю.
     Возвращает список {title, url, date, source, text}.
+    Fallback: DuckDuckGo → Yandex Search API
     """
-    if not _DDGS:
-        return []
-    for timelimit in ("w", "m"):  # неделя → если пусто, месяц
-        try:
-            items = list(_DDGS().news(query, max_results=max_results, timelimit=timelimit))
-            if not items:
-                continue
-            results = []
-            for item in items:
-                url = item.get("url", "")
-                full_text = _fetch_full_text(url)
-                results.append({
-                    "title": item.get("title", ""),
-                    "url": url,
-                    "date": item.get("date", "")[:10],
-                    "source": item.get("source", ""),
-                    "text": full_text or item.get("body", ""),
-                    "fresh": timelimit == "w",
-                })
-            return results
-        except Exception as e:
-            print(f"  [SEARCH] news/{timelimit} ошибка: {e}")
+    # Попробуем DuckDuckGo
+    if _DDGS:
+        for timelimit in ("w", "m"):  # неделя → если пусто, месяц
+            try:
+                items = list(_DDGS().news(query, max_results=max_results, timelimit=timelimit))
+                if not items:
+                    continue
+                results = []
+                for item in items:
+                    url = item.get("url", "")
+                    full_text = _fetch_full_text(url)
+                    results.append({
+                        "title": item.get("title", ""),
+                        "url": url,
+                        "date": item.get("date", "")[:10],
+                        "source": item.get("source", ""),
+                        "text": full_text or item.get("body", ""),
+                        "fresh": timelimit == "w",
+                    })
+                return results
+            except Exception as e:
+                print(f"  [SEARCH] news/{timelimit} ошибка: {e}")
+
+    # Fallback: Yandex Search API
+    print(f"  [SEARCH] trying Yandex Search API...")
+    yandex_results = web_search_yandex(query, search_type="news", max_results=max_results)
+    if yandex_results:
+        return yandex_results
+
     return []
 
 
@@ -477,24 +538,34 @@ def web_search_deep(query: str, max_results: int = 5) -> list[dict]:
     """
     Слой 2: глубинные источники без ограничения по дате.
     Возвращает список {title, url, text}.
+    Fallback: DuckDuckGo → Yandex Search API
     """
-    if not _DDGS:
-        return []
-    try:
-        items = list(_DDGS().text(query, max_results=max_results))
-        results = []
-        for item in items:
-            url = item.get("href", "")
-            full_text = _fetch_full_text(url)
-            results.append({
-                "title": item.get("title", ""),
-                "url": url,
-                "text": full_text or item.get("body", ""),
-            })
-        return results
-    except Exception as e:
-        print(f"  [SEARCH] text ошибка: {e}")
-        return []
+    # Попробуем DuckDuckGo
+    if _DDGS:
+        try:
+            items = list(_DDGS().text(query, max_results=max_results))
+            results = []
+            for item in items:
+                url = item.get("href", "")
+                full_text = _fetch_full_text(url)
+                results.append({
+                    "title": item.get("title", ""),
+                    "url": url,
+                    "text": full_text or item.get("body", ""),
+                })
+            if results:
+                return results
+        except Exception as e:
+            print(f"  [SEARCH] text ошибка: {e}")
+
+    # Fallback: Yandex Search API
+    print(f"  [SEARCH] trying Yandex Search API...")
+    yandex_results = web_search_yandex(query, search_type="web", max_results=max_results)
+    if yandex_results:
+        # Преобразуем результаты в формат deep (без date)
+        return [{"title": r["title"], "url": r["url"], "text": r["text"]} for r in yandex_results]
+
+    return []
 
 
 def format_search_for_llm(fresh: list[dict], deep: list[dict]) -> str:
