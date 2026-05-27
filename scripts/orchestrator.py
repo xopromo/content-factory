@@ -546,7 +546,7 @@ def format_raw_sources(fresh: list[dict], deep: list[dict]) -> str:
 
 # ── FINER gate ────────────────────────────────────────────────────────────────
 
-def finer_gate(topic: str, fresh: list[dict], deep: list[dict]) -> tuple[bool, str]:
+def finer_gate(topic: str, fresh: list[dict], deep: list[dict], mode: str = "seo") -> tuple[bool, str]:
     """
     FINER-оценка темы и исследовательской базы (адаптировано из ARS):
     F — Feasible:  достаточно ли источников для статьи
@@ -563,9 +563,13 @@ def finer_gate(topic: str, fresh: list[dict], deep: list[dict]) -> tuple[bool, s
     real = [s for s in all_sources if len(s.get("text", "").strip()) > 100]
     total_chars = sum(len(s["text"]) for s in real)
 
-    # F — Feasible (механически)
+    # F — Feasible: пороги зависят от режима
+    # news: 1 источник и 300 симв. достаточно — свежих новостей мало по определению
+    # seo/full: стандартные пороги
+    _min_sources = 1 if mode == "news" else RESEARCH_MIN_SOURCES
+    _min_chars   = 300 if mode == "news" else RESEARCH_MIN_CHARS
     f_score = min(len(real) / 5, 1.0)
-    f_ok = len(real) >= RESEARCH_MIN_SOURCES and total_chars >= RESEARCH_MIN_CHARS
+    f_ok = len(real) >= _min_sources and total_chars >= _min_chars
     f_label = f"{'✅' if f_ok else '❌'} F Feasible: {len(real)} источников, {total_chars:,} симв."
 
     # I — Interesting/Fresh (механически)
@@ -1386,7 +1390,7 @@ def run_pipeline(
         print("  [passport] FINER gate пропущен (уже выполнен на шаге 3)")
         finer_report = context.get("finer_report", "")
     else:
-        finer_ok, finer_report = finer_gate(topic, fresh, deep)
+        finer_ok, finer_report = finer_gate(topic, fresh, deep, mode=mode)
         context["finer_report"] = finer_report
         print(f"\n  [FINER gate]\n{finer_report}")
         if not finer_ok:
