@@ -49,6 +49,16 @@ except ImportError:
     _cerebras_client = None
 
 try:
+    from openai import OpenAI as _OpenAI
+    _openrouter_key = os.environ.get("OPENROUTER_KEY", "")
+    _openrouter_client = _OpenAI(
+        api_key=_openrouter_key,
+        base_url="https://openrouter.ai/api/v1",
+    ) if _openrouter_key else None
+except ImportError:
+    _openrouter_client = None
+
+try:
     from ddgs import DDGS as _DDGS
 except ImportError:
     _DDGS = None
@@ -707,7 +717,18 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
-            print(f"[ОШИБКА CEREBRAS] {e} — пробую claude CLI")
+            print(f"[ОШИБКА CEREBRAS] {e} — пробую OpenRouter")
+
+    if _openrouter_client:
+        try:
+            resp = _openrouter_client.chat.completions.create(
+                model="meta-llama/llama-4-maverick:free",
+                messages=[{"role": "user", "content": full_prompt}],
+                max_tokens=8192,
+            )
+            return resp.choices[0].message.content.strip(), tokens
+        except Exception as e:
+            print(f"[ОШИБКА OPENROUTER] {e} — пробую claude CLI")
 
     # Последний резерв: claude CLI
     result = subprocess.run(
@@ -1061,6 +1082,16 @@ def run_fast(prompt: str) -> tuple[str, int]:
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
             print(f"[ОШИБКА MISTRAL-FAST] {e}")
+    if _openrouter_client:
+        try:
+            resp = _openrouter_client.chat.completions.create(
+                model="deepseek/deepseek-chat-v3-0324:free",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=1024,
+            )
+            return resp.choices[0].message.content.strip(), tokens
+        except Exception as e:
+            print(f"[ОШИБКА OPENROUTER-FAST] {e}")
     return "", tokens
 
 
