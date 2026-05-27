@@ -944,6 +944,26 @@ AGENT_PROMPTS = {
         "Если однобокость >= 7 → напиши: ADVOCATE_FLAG\n"
         "Если статья сбалансирована → напиши: ADVOCATE_OK"
     ),
+    "news-writer": (
+        "Ты журналист технологического издания. Напиши короткую информационную статью (~500-600 слов).\n\n"
+        "## АБСОЛЮТНЫЕ ПРАВИЛА ФАКТЧЕКИНГА (нарушение = брак):\n"
+        "1. Только факты, явно присутствующие в «ВЕРИФИЦИРОВАННЫХ ИСТОЧНИКАХ».\n"
+        "2. После каждого факта или цифры — ссылка [N].\n"
+        "3. ЗАПРЕЩЕНО дополнять фактами из памяти модели.\n"
+        "4. Если данных не хватает для раздела — напиши: [INSUFFICIENT_SOURCES: <что отсутствует>]\n"
+        "5. ЗАПРЕЩЕНО вводить таксономии и классификации, которых нет в источниках.\n"
+        "6. ЗАПРЕЩЕНО приписывать взгляды «экспертам», если источник не содержит такой атрибуции.\n\n"
+        "Структура статьи:\n"
+        "# {title}\n"
+        "**Лид** (2-3 предложения — суть события, кто, что, когда, почему важно)\n"
+        "## [H2: главный факт или событие]\n"
+        "## [H2: контекст или последствия]\n"
+        "## [H2: что это значит для читателя]\n"
+        "**Вывод** (1-2 предложения)\n\n"
+        "Правила стиля: {rules_excerpt}\n\n"
+        "## ВЕРИФИЦИРОВАННЫЕ ИСТОЧНИКИ:\n{raw_sources}\n\n"
+        "Напиши статью строго по структуре. Каждое H2 начинается с прямого ответа (AEO)."
+    ),
 }
 
 
@@ -1186,7 +1206,7 @@ def run_fact_checker(draft: str, raw_sources: str, step_label: str) -> tuple[boo
 
 def run_pipeline(
     topic: str, title: str, slug: str, search_query: str,
-    auto_approve: bool = False, resume: bool = False,
+    auto_approve: bool = False, resume: bool = False, mode: str = "full",
 ) -> None:
     # ── Resume: загружаем сохранённое состояние ──────────────────────────────
     last_step, saved_ctx = load_state(slug) if resume else (0, {})
@@ -1194,8 +1214,9 @@ def run_pipeline(
         print(f"\n▶️  Возобновляем с шага {last_step + 1} (slug: {slug})")
         tg_notify(f"▶️ <b>Возобновление пайплайна</b>\nСлуг: {slug}\nПродолжаем с шага {last_step + 1}")
     else:
-        print(f"\n🚀 Content Factory — запуск генерации: {title}")
-        tg_notify(f"🚀 <b>Запуск генерации</b>\n📝 {title}\n🔍 {topic}")
+        mode_label = " [режим: новость]" if mode == "news" else ""
+        print(f"\n🚀 Content Factory — запуск генерации{mode_label}: {title}")
+        tg_notify(f"🚀 <b>Запуск генерации{mode_label}</b>\n📝 {title}\n🔍 {topic}")
 
     plan_path = create_plan(title, slug) if last_step == 0 else (PLANS_DIR / f"*_{slug}.md")
     # Если resume и план уже существует — найти его
@@ -1203,8 +1224,11 @@ def run_pipeline(
         matches = list(PLANS_DIR.glob(f"*_{slug}.md"))
         plan_path = matches[0] if matches else create_plan(title, slug)
 
-    context: dict = {"topic": topic, "title": title, "search_query": search_query}
+    context: dict = {"topic": topic, "title": title, "search_query": search_query, "mode": mode}
     context.update(saved_ctx)  # восстанавливаем сохранённые данные
+    # Синхронизируем search_query из passport (мог быть сужен на шаге 1.5)
+    search_query = context.get("search_query", search_query)
+    mode = context.get("mode", mode)
 
     # Шаг 1: Оркестратор читает feedback
     if last_step >= 1:
@@ -1217,8 +1241,42 @@ def run_pipeline(
         r.finish(feedback or "(нет feedback)", tokens=len(feedback.split()))
         save_state(slug, context, 1)
 
-    # Шаг 2: knowledge-retriever
-    if last_step >= 2:
+    # Шаг 1.5: проверка ширины темы — сужаем search_query если тема слишком широкая
+    if last_step < 2:
+        scope_prompt = (
+            f"Оцени, насколько конкретна тема для статьи длиной 1500-2000 слов.\n"
+            f"Тема: «{topic}»\n"
+            f"Поисковый запрос: «{search_query}»\n\n"
+            f"Правила оценки:\n"
+            f"- СЛИШКОМ ШИРОКАЯ: охватывает 5+ отдельных подтем, каждая из которых потянет на отдельную статью\n"
+            f"  Примеры широких: «ИИ инструменты 2026», «история машинного обучения», «React vs Vue»\n"
+            f"- ДОСТАТОЧНО КОНКРЕТНАЯ: один чёткий угол, можно раскрыть за 1500-2000 слов\n"
+            f"  Примеры конкретных: «GitHub Copilot переходит на кредитную модель оплаты»,"
+            f" «как работает attention в трансформерах», «Андрей Карпати и концепция vibe coding»\n\n"
+            f"Если тема СЛИШКОМ ШИРОКАЯ — напиши более узкий поисковый запрос (одна строка, без объяснений).\n"
+            f"Если тема ДОСТАТОЧНО КОНКРЕТНАЯ — напиши: SCOPE_OK"
+        )
+        scope_result, _ = run_fast(scope_prompt)
+        scope_result = scope_result.strip()
+        if "SCOPE_OK" not in scope_result:
+            narrowed = scope_result.splitlines()[0].strip("•-* \"'`")
+            if narrowed and len(narrowed) > 5:
+                print(f"  [scope] ⚠️ Тема широкая → сужаю запрос: «{narrowed}»")
+                tg_notify(f"🔍 <b>Шаг 1.5 — scope</b>: тема сужена\n«{search_query}» → «{narrowed}»")
+                search_query = narrowed
+                context["search_query"] = search_query
+            else:
+                print("  [scope] ✅ Тема конкретна")
+        else:
+            print("  [scope] ✅ Тема конкретна")
+        save_state(slug, context, 1)
+
+    # Шаг 2: knowledge-retriever (пропускается в режиме news)
+    if mode == "news":
+        print("  [news] Шаг 2 пропущен (режим новость)")
+        context.setdefault("knowledge_pack", "")
+        save_state(slug, context, 2)
+    elif last_step >= 2:
         print("  [passport] Шаг 2 пропущен (уже выполнен)")
     else:
         r = StepResult(2, "knowledge-retriever")
@@ -1236,17 +1294,23 @@ def run_pipeline(
         has_fresh = context.get("has_fresh_news", False)
     else:
         r = StepResult(3, "web-researcher")
-        print("  [Слой 1] Ищу свежие новости за неделю...")
-        tg_notify(f"🔍 <b>Шаг 03</b> — web-researcher\n⏳ Ищу актуальные источники...")
-
-        # search_query используется если задан явно (более специфичный запрос)
         _sq = search_query or topic
-        fresh = web_search_fresh(_sq, max_results=3)
-        print(f"  Найдено свежих: {len(fresh)}")
 
-        print("  [Слой 2] Ищу глубинные источники...")
-        deep = web_search_deep(f"{_sq} практика кейсы руководство", max_results=5)
-        print(f"  Найдено глубинных: {len(deep)}")
+        if mode == "news":
+            # Режим новость: только свежие источники, без глубинного поиска
+            print("  [news] Ищу свежие источники (1 слой)...")
+            tg_notify(f"🔍 <b>Шаг 03 [новость]</b> — web-researcher\n⏳ Ищу свежие источники...")
+            fresh = web_search_fresh(_sq, max_results=5)
+            deep = []
+            print(f"  Найдено свежих: {len(fresh)}")
+        else:
+            print("  [Слой 1] Ищу свежие новости за неделю...")
+            tg_notify(f"🔍 <b>Шаг 03</b> — web-researcher\n⏳ Ищу актуальные источники...")
+            fresh = web_search_fresh(_sq, max_results=3)
+            print(f"  Найдено свежих: {len(fresh)}")
+            print("  [Слой 2] Ищу глубинные источники...")
+            deep = web_search_deep(f"{_sq} практика кейсы руководство", max_results=5)
+            print(f"  Найдено глубинных: {len(deep)}")
 
         context["raw_sources"] = format_raw_sources(fresh, deep)
         search_block = format_search_for_llm(fresh, deep)
@@ -1256,19 +1320,31 @@ def run_pipeline(
             "\n\n⚠️ ВНИМАНИЕ: горячих новостей за последнюю неделю не найдено. "
             "На шаге 4 автор должен решить: использовать имеющееся или выбрать другую тему."
         )
-        synthesis_prompt = (
-            f"Ты аналитик контента. Тема: «{topic}».\n\n"
-            f"Ниже — реальные найденные материалы. Работай ТОЛЬКО с ними, "
-            f"не добавляй факты из своих тренировочных данных.\n\n"
-            f"{search_block}\n\n"
-            f"Задача:\n"
-            f"1. Определи главный информационный повод (самая свежая и значимая новость)\n"
-            f"2. Выдели 5 ключевых фактов с URL-источниками\n"
-            f"3. Предложи структуру статьи H2–H3 (6–8 разделов)\n"
-            f"4. Составь 15 LSI-ключей\n"
-            f"5. Сформулируй главный тезис одним предложением"
-            f"{freshness_warning}"
-        )
+        if mode == "news":
+            synthesis_prompt = (
+                f"Ты редактор новостного раздела. Тема: «{topic}».\n\n"
+                f"Ниже — найденные материалы. Работай ТОЛЬКО с ними.\n\n"
+                f"{search_block}\n\n"
+                f"Задача:\n"
+                f"1. Определи главный информационный повод\n"
+                f"2. Выдели 3-5 ключевых фактов с URL-источниками\n"
+                f"3. Предложи структуру новостной заметки (лид + 2-3 блока H2)\n"
+                f"{freshness_warning}"
+            )
+        else:
+            synthesis_prompt = (
+                f"Ты аналитик контента. Тема: «{topic}».\n\n"
+                f"Ниже — реальные найденные материалы. Работай ТОЛЬКО с ними, "
+                f"не добавляй факты из своих тренировочных данных.\n\n"
+                f"{search_block}\n\n"
+                f"Задача:\n"
+                f"1. Определи главный информационный повод (самая свежая и значимая новость)\n"
+                f"2. Выдели 5 ключевых фактов с URL-источниками\n"
+                f"3. Предложи структуру статьи H2–H3 (6–8 разделов)\n"
+                f"4. Составь 15 LSI-ключей\n"
+                f"5. Сформулируй главный тезис одним предложением"
+                f"{freshness_warning}"
+            )
         output, tokens = run_claude(synthesis_prompt)
         context["web_pack"] = output
         context["has_fresh_news"] = has_fresh
@@ -1300,7 +1376,10 @@ def run_pipeline(
     ) if fresh else "⚠️ Свежих новостей нет"
 
     # Шаг 3.6: Gap Analysis — определяем что важно для ЭТОЙ темы, но не попало в источники
-    if last_step < 3:
+    # Пропускается в режиме news (нет времени на дозапросы)
+    if mode == "news":
+        print("  [news] Gap Analysis пропущен (режим новость)")
+    elif last_step < 3:
         gap_prompt = (
             f"Тема статьи: «{topic}»\n\n"
             f"Найденные источники:\n{context.get('raw_sources', '')[:2000]}\n\n"
@@ -1354,33 +1433,58 @@ def run_pipeline(
     # Шаги 5-6: content-writer (с обязательным grounding по верифицированным источникам)
     rules_excerpt = RULES_FILE.read_text(encoding="utf-8")[:800] if RULES_FILE.exists() else ""
     corrections_block = f"\n\n## ПРАВКИ И УТОЧНЕНИЯ ОТ АВТОРА:\n{context['corrections']}" if context.get("corrections") else ""
-    for step in (5, 6):
-        block = "1-3" if step == 5 else "4-6"
-        if last_step >= step and context.get(f"draft_{block}"):
-            print(f"  [passport] Шаг {step} пропущен (уже выполнен)")
-            continue
-        r = StepResult(step, "content-writer")
-        prompt = (
-            AGENT_PROMPTS["content-writer"].format(
-                title=title,
-                rules_excerpt=rules_excerpt,
-                knowledge_pack=context.get("knowledge_pack", ""),
-                web_pack=context.get("web_pack", ""),
-                raw_sources=context.get("raw_sources", ""),
+
+    if mode == "news":
+        # Режим новость: один вызов, промпт news-writer
+        if last_step >= 5 and context.get("draft_1-3"):
+            print("  [passport] Шаг 5 пропущен (уже выполнен)")
+        else:
+            r = StepResult(5, "news-writer")
+            prompt = (
+                AGENT_PROMPTS["news-writer"].format(
+                    title=title,
+                    rules_excerpt=rules_excerpt,
+                    raw_sources=context.get("raw_sources", ""),
+                )
+                + corrections_block
             )
-            + corrections_block
-            + f"\n\nНапиши блоки {block} статьи."
-        )
-        output, tokens = run_claude(prompt, inject_feedback=True)
-        context[f"draft_{block}"] = output
-        update_step(plan_path, step)
-        r.finish(output, tokens=tokens)
-        save_state(slug, context, step)
+            output, tokens = run_claude(prompt, inject_feedback=True)
+            context["draft_1-3"] = output
+            context["draft_4-6"] = ""
+            update_step(plan_path, 5)
+            update_step(plan_path, 6)
+            r.finish(output, tokens=tokens)
+            save_state(slug, context, 6)
+        full_draft = context.get("draft_1-3", "")
+    else:
+        for step in (5, 6):
+            block = "1-3" if step == 5 else "4-6"
+            if last_step >= step and context.get(f"draft_{block}"):
+                print(f"  [passport] Шаг {step} пропущен (уже выполнен)")
+                continue
+            r = StepResult(step, "content-writer")
+            prompt = (
+                AGENT_PROMPTS["content-writer"].format(
+                    title=title,
+                    rules_excerpt=rules_excerpt,
+                    knowledge_pack=context.get("knowledge_pack", ""),
+                    web_pack=context.get("web_pack", ""),
+                    raw_sources=context.get("raw_sources", ""),
+                )
+                + corrections_block
+                + f"\n\nНапиши блоки {block} статьи."
+            )
+            output, tokens = run_claude(prompt, inject_feedback=True)
+            context[f"draft_{block}"] = output
+            update_step(plan_path, step)
+            r.finish(output, tokens=tokens)
+            save_state(slug, context, step)
+        full_draft = context.get("draft_1-3", "") + "\n\n" + context.get("draft_4-6", "")
 
-    full_draft = context.get("draft_1-3", "") + "\n\n" + context.get("draft_4-6", "")
-
-    # Auto revision loop: быстрая само-проверка черновика (max 1 раз, run_fast)
-    if last_step < 6:
+    # Auto revision loop: быстрая само-проверка черновика (пропускается в режиме news)
+    if mode == "news":
+        print("  [news] Auto-revision пропущен (режим новость)")
+    elif last_step < 6:
         revision_prompt = (
             f"Ты редактор-корректор. Прочитай черновик статьи и найди:\n"
             f"1. Разделы с маркером [INSUFFICIENT_SOURCES] — перечисли их\n"
@@ -1414,11 +1518,12 @@ def run_pipeline(
                 print("  [auto-revision] ✅ Черновик исправлен")
             save_state(slug, context, 6)
 
-    # Шаг 6.4: INSUFFICIENT_SOURCES quality gate
-    # Если черновик содержит >1 незаполненной секции — доищем данные и перепишем
+    # Шаг 6.4: INSUFFICIENT_SOURCES quality gate (пропускается в режиме news)
     import re as _re_q
     _isuf_count = len(_re_q.findall(r'\[INSUFFICIENT_SOURCES:', full_draft))
-    if _isuf_count > 1 and last_step < 6:
+    if mode == "news":
+        print("  [news] Quality Gate пропущен (режим новость)")
+    elif _isuf_count > 1 and last_step < 6:
         print(f"  [quality-gate] {_isuf_count} незаполненных секций — ищу дополнительные источники...")
         tg_notify(f"🔍 <b>Quality Gate</b>: {_isuf_count} пустых секций — дозапрашиваю источники...")
         # Извлекаем что именно не хватает
@@ -1497,24 +1602,38 @@ def run_pipeline(
     print("  [fact-checker] ✅ FACT_CHECK_PASSED")
     save_state(slug, context, 6)
 
-    # Шаг 7: diagram-illustrator
-    r = StepResult(7, "diagram-illustrator")
-    prompt = (
-        f"Создай Mermaid.js диаграммы для статьи '{title}'. "
-        f"Идентифицируй 2-3 процесса в тексте, которые выиграют от визуализации. "
-        f"Верни готовые блоки ```mermaid ... ``` с пояснениями.\n\nТекст статьи:\n{full_draft[:3000]}"
-    )
-    output, tokens = run_claude(prompt)
-    context["diagrams"] = output
-    update_step(plan_path, 7)
-    r.finish(output, tokens=tokens)
+    # Шаг 7: diagram-illustrator (пропускается в режиме news)
+    if mode == "news":
+        print("  [news] Диаграммы пропущены (режим новость)")
+        context.setdefault("diagrams", "")
+    else:
+        r = StepResult(7, "diagram-illustrator")
+        prompt = (
+            f"Создай Mermaid.js диаграммы для статьи '{title}'. "
+            f"Идентифицируй 2-3 процесса в тексте, которые выиграют от визуализации. "
+            f"Верни готовые блоки ```mermaid ... ``` с пояснениями.\n\nТекст статьи:\n{full_draft[:3000]}"
+        )
+        output, tokens = run_claude(prompt)
+        context["diagrams"] = output
+        update_step(plan_path, 7)
+        r.finish(output, tokens=tokens)
 
     # Шаг 8-9: seo-geo-optimizer
     if last_step >= 8 and context.get("optimized_draft"):
         print("  [passport] Шаги 8-9 пропущены (уже выполнены)")
     else:
         r = StepResult(8, "seo-geo-optimizer")
-        prompt = AGENT_PROMPTS["seo-geo-optimizer"] + f"\n\nЧерновик:\n{full_draft}"
+        if mode == "news":
+            seo_prompt = (
+                "Ты SEO-оптимизатор. Получи короткую новостную статью и: "
+                "1. Интегрируй 3-5 ключевых слов естественно в текст. "
+                "2. Проверь AEO: первые предложения H2 должны быть самодостаточными ответами. "
+                "3. Сгенерируй Schema.org JSON-LD (NewsArticle) для этой статьи. "
+                "4. Верни оптимизированный текст + JSON-LD блок отдельно."
+            )
+            prompt = seo_prompt + f"\n\nСтатья:\n{full_draft}"
+        else:
+            prompt = AGENT_PROMPTS["seo-geo-optimizer"] + f"\n\nЧерновик:\n{full_draft}"
         output, tokens = run_claude(prompt)
         context["optimized_draft"] = output
         update_step(plan_path, 8)
@@ -1522,18 +1641,25 @@ def run_pipeline(
         r.finish(output, tokens=tokens)
         save_state(slug, context, 8)
 
-    # Шаг 10: geo-emulator
-    r = StepResult(10, "geo-emulator")
-    prompt = AGENT_PROMPTS["geo-emulator"].format(
-        topic=topic, search_query=search_query
-    ) + f"\n\nТекст статьи:\n{context['optimized_draft']}"
-    output, tokens = run_claude(prompt)
-    context["geo_report"] = output
-    update_step(plan_path, 10)
-    r.finish(output, tokens=tokens)
+    # Шаг 10: geo-emulator (пропускается в режиме news)
+    if mode == "news":
+        print("  [news] GEO-эмулятор пропущен (режим новость)")
+        context.setdefault("geo_report", "")
+    else:
+        r = StepResult(10, "geo-emulator")
+        prompt = AGENT_PROMPTS["geo-emulator"].format(
+            topic=topic, search_query=search_query
+        ) + f"\n\nТекст статьи:\n{context['optimized_draft']}"
+        output, tokens = run_claude(prompt)
+        context["geo_report"] = output
+        update_step(plan_path, 10)
+        r.finish(output, tokens=tokens)
 
-    # Шаг 11: editor-critic
-    if last_step >= 11 and context.get("editor_report"):
+    # Шаг 11: editor-critic (пропускается в режиме news)
+    if mode == "news":
+        print("  [news] Editor-critic пропущен (режим новость)")
+        context.setdefault("editor_report", "")
+    elif last_step >= 11 and context.get("editor_report"):
         print("  [passport] Шаг 11 пропущен (уже выполнен)")
     else:
         r = StepResult(11, "editor-critic")
@@ -1547,16 +1673,20 @@ def run_pipeline(
         r.finish(output, tokens=tokens)
         save_state(slug, context, 11)
 
-    # Шаг 11.5: devil-advocate (run_fast — llama-3.1-8b-instant, экономия ~4x)
-    advocate_flagged, advocate_report = run_devil_advocate(context.get("optimized_draft", ""))
+    # Шаг 11.5: devil-advocate (пропускается в режиме news)
+    if mode == "news":
+        print("  [news] Devil-advocate пропущен (режим новость)")
+        advocate_flagged, advocate_report = False, ""
+    else:
+        advocate_flagged, advocate_report = run_devil_advocate(context.get("optimized_draft", ""))
     context["advocate_report"] = advocate_report
     save_state(slug, context, 11)
 
     # Шаг 12: HUMAN REVIEW перед публикацией (включает отчёт devil-advocate)
     advocate_warning = f"\n\n⚠️ devil-advocate: {advocate_report[:300]}" if advocate_flagged else ""
     preview = (
-        f"GEO-отчет:\n{context['geo_report'][:300]}\n\n"
-        f"Редактор:\n{context['editor_report'][:300]}"
+        f"GEO-отчет:\n{context.get('geo_report', '')[:300]}\n\n"
+        f"Редактор:\n{context.get('editor_report', '')[:300]}"
         f"{advocate_warning}"
     )
     approved, corrections12 = human_review("Утвердите статью перед публикацией", preview, step=12, auto=auto_approve)
@@ -1621,6 +1751,10 @@ if __name__ == "__main__":
     parser.add_argument("--query", required=True, help="Поисковый запрос для GEO-теста")
     parser.add_argument("--auto-approve", action="store_true", help="Пропускать HITL-паузы (тестовый режим)")
     parser.add_argument("--resume", action="store_true", help="Возобновить с последнего сохранённого шага")
+    parser.add_argument(
+        "--mode", choices=["full", "news"], default="full",
+        help="Режим генерации: full — полная статья (60+ мин), news — короткая новость (15 мин)"
+    )
     args = parser.parse_args()
 
     run_pipeline(
@@ -1630,4 +1764,5 @@ if __name__ == "__main__":
         search_query=args.query,
         auto_approve=args.auto_approve,
         resume=args.resume,
+        mode=args.mode,
     )
