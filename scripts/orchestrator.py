@@ -1241,34 +1241,37 @@ def run_pipeline(
         r.finish(feedback or "(нет feedback)", tokens=len(feedback.split()))
         save_state(slug, context, 1)
 
-    # Шаг 1.5: проверка ширины темы — сужаем search_query если тема слишком широкая
+    # Шаг 1.5: проверка специфичности поискового запроса
+    # Цель: не «влезет ли в 1500 слов», а «вернёт ли запрос конкретные результаты»
     if last_step < 2:
         scope_prompt = (
-            f"Оцени, насколько конкретна тема для статьи длиной 1500-2000 слов.\n"
+            f"Оцени поисковый запрос: достаточно ли он специфичен, чтобы поисковик вернул "
+            f"конкретные, релевантные результаты — а не общий обзор из 100 разных статей?\n\n"
             f"Тема: «{topic}»\n"
             f"Поисковый запрос: «{search_query}»\n\n"
-            f"Правила оценки:\n"
-            f"- СЛИШКОМ ШИРОКАЯ: охватывает 5+ отдельных подтем, каждая из которых потянет на отдельную статью\n"
-            f"  Примеры широких: «ИИ инструменты 2026», «история машинного обучения», «React vs Vue»\n"
-            f"- ДОСТАТОЧНО КОНКРЕТНАЯ: один чёткий угол, можно раскрыть за 1500-2000 слов\n"
-            f"  Примеры конкретных: «GitHub Copilot переходит на кредитную модель оплаты»,"
-            f" «как работает attention в трансформерах», «Андрей Карпати и концепция vibe coding»\n\n"
-            f"Если тема СЛИШКОМ ШИРОКАЯ — напиши более узкий поисковый запрос (одна строка, без объяснений).\n"
-            f"Если тема ДОСТАТОЧНО КОНКРЕТНАЯ — напиши: SCOPE_OK"
+            f"Примеры слишком общих запросов (вернут всё подряд):\n"
+            f"- «ИИ инструменты для разработчиков» — слишком широко\n"
+            f"- «машинное обучение 2026» — слишком широко\n\n"
+            f"Примеры конкретных запросов (вернут нужное):\n"
+            f"- «GitHub Copilot тарификация по запросам 2026» — конкретно\n"
+            f"- «как работает механизм attention в трансформерах» — конкретно\n"
+            f"- «Андрей Карпати vibe coding концепция» — конкретно\n\n"
+            f"Если запрос СЛИШКОМ ОБЩИЙ — напиши один более конкретный запрос на русском (одна строка).\n"
+            f"Если запрос ДОСТАТОЧНО КОНКРЕТНЫЙ — напиши: SCOPE_OK"
         )
         scope_result, _ = run_fast(scope_prompt)
         scope_result = scope_result.strip()
         if "SCOPE_OK" not in scope_result:
             narrowed = scope_result.splitlines()[0].strip("•-* \"'`")
             if narrowed and len(narrowed) > 5:
-                print(f"  [scope] ⚠️ Тема широкая → сужаю запрос: «{narrowed}»")
-                tg_notify(f"🔍 <b>Шаг 1.5 — scope</b>: тема сужена\n«{search_query}» → «{narrowed}»")
+                print(f"  [scope] ⚠️ Запрос слишком общий → уточняю: «{narrowed}»")
+                tg_notify(f"🔍 <b>Шаг 1.5 — scope</b>: запрос уточнён\n«{search_query}» → «{narrowed}»")
                 search_query = narrowed
                 context["search_query"] = search_query
             else:
-                print("  [scope] ✅ Тема конкретна")
+                print("  [scope] ✅ Запрос достаточно конкретен")
         else:
-            print("  [scope] ✅ Тема конкретна")
+            print("  [scope] ✅ Запрос достаточно конкретен")
         save_state(slug, context, 1)
 
     # Шаг 2: knowledge-retriever (пропускается в режиме news)
@@ -1411,11 +1414,36 @@ def run_pipeline(
                     print(f"    +{len(extra)} источн. → «{q[:55]}»")
         save_state(slug, context, 3)
 
-    # Шаг 4: HUMAN REVIEW структуры (включает FINER-отчёт)
+    # Шаг 3.7: генерируем 2-3 варианта угла статьи на основе реальных найденных источников
+    if last_step < 3:
+        angles_prompt = (
+            f"Тема: «{topic}»\n\n"
+            f"Найденные источники (заголовки и даты):\n"
+            f"{context.get('raw_sources', '')[:3000]}\n\n"
+            f"На основе РЕАЛЬНЫХ найденных материалов предложи 2-3 варианта угла статьи.\n"
+            f"Каждый вариант — это конкретный журналистский угол, основанный на том, что реально есть в источниках.\n\n"
+            f"Формат каждого варианта (строго):\n"
+            f"ВАРИАНТ N: [заголовок-тезис одним предложением]\n"
+            f"СВЕЖЕСТЬ: [дата самого свежего источника по этой теме]\n"
+            f"ИСТОЧНИКИ: [сколько источников поддерживают этот угол]\n"
+            f"СУТЬ: [что конкретно будет в статье, 1-2 предложения]\n\n"
+            f"Важно: предлагай только то, что реально есть в источниках. "
+            f"Не придумывай углы, которые нет чем подкрепить."
+        )
+        angles_result, _ = run_fast(angles_prompt)
+        context["angles"] = angles_result
+        print(f"\n  [варианты угла]\n{angles_result}")
+        save_state(slug, context, 3)
+    else:
+        angles_result = context.get("angles", "")
+
+    # Шаг 4: HUMAN REVIEW — выбор угла статьи + утверждение структуры
+    angles_block = f"\n\n🎯 <b>Варианты угла статьи</b> (выберите номер в ответе):\n{angles_result}" if angles_result else ""
     approved, corrections = human_review(
-        "Утвердите структуру и данные из исследования",
-        f"📰 Информационные поводы:\n{fresh_summary}\n\n"
-        f"📌 Тезис и структура:\n{context.get('web_pack', '')[:600]}\n\n"
+        "Выберите угол статьи и утвердите данные исследования",
+        f"📰 Свежие источники:\n{fresh_summary}\n"
+        f"{angles_block}\n\n"
+        f"📌 Анализ исследователя:\n{context.get('web_pack', '')[:400]}\n\n"
         f"{finer_report}\n\n"
         f"📚 База знаний:\n{context['knowledge_pack'][:150]}",
         step=4,
@@ -1432,7 +1460,25 @@ def run_pipeline(
 
     # Шаги 5-6: content-writer (с обязательным grounding по верифицированным источникам)
     rules_excerpt = RULES_FILE.read_text(encoding="utf-8")[:800] if RULES_FILE.exists() else ""
-    corrections_block = f"\n\n## ПРАВКИ И УТОЧНЕНИЯ ОТ АВТОРА:\n{context['corrections']}" if context.get("corrections") else ""
+    # Если автор выбрал конкретный вариант угла — передаём его явно в writer
+    selected_angle_block = ""
+    if angles_result and context.get("corrections"):
+        selected_angle_block = (
+            f"\n\n## ВЫБРАННЫЙ УГОЛ СТАТЬИ:\n"
+            f"Автор выбрал следующее направление (учти при написании):\n"
+            f"{context['corrections']}\n\n"
+            f"Все доступные варианты были:\n{angles_result}"
+        )
+    elif angles_result:
+        # Автор одобрил без правок — берём первый вариант
+        selected_angle_block = (
+            f"\n\n## УГОЛ СТАТЬИ:\n"
+            f"Пиши по первому варианту из предложенных:\n{angles_result.splitlines()[0] if angles_result else ''}"
+        )
+    corrections_block = (
+        f"\n\n## ПРАВКИ И УТОЧНЕНИЯ ОТ АВТОРА:\n{context['corrections']}"
+        if context.get("corrections") else ""
+    ) + selected_angle_block
 
     if mode == "news":
         # Режим новость: один вызов, промпт news-writer
