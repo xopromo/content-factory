@@ -1038,10 +1038,17 @@ def run_hallucination_detector(draft: str, raw_sources: str) -> tuple[bool, str]
 
     print("  [hallucination-detector] Проверяю введение новых сущностей...")
 
+    common_terms = {
+        'Series', 'Round', 'Funding', 'API', 'SDK', 'CLI', 'HTTP', 'JSON', 'XML',
+        'REST', 'GraphQL', 'SQL', 'NoSQL', 'AWS', 'GCP', 'Azure', 'VM', 'GPU',
+        'USD', 'EUR', 'GBP', 'CNY', 'The', 'You', 'They', 'It', 'We',
+        'May', 'June', 'July', 'August', 'AI', 'ML', 'NLP', 'CV', 'LLM',
+    }
+
     def extract_entities(text):
         entities = set()
         for word in re.findall(r'\b[A-Z][a-zA-Z]*(?:\s+[A-Z][a-zA-Z]*)*\b', text):
-            if len(word) > 2:
+            if len(word) > 2 and word not in common_terms:
                 entities.add(word)
         return entities
 
@@ -1055,38 +1062,39 @@ def run_hallucination_detector(draft: str, raw_sources: str) -> tuple[bool, str]
         return True, report
 
     blocking_entities = []
-    warning_entities = []
 
     for entity in unknowns:
         entity_lower = entity.lower()
-        found_similar = False
+        found_exact_match = False
+        potential_misspelling = None
 
         for source_ent in source_entities:
             source_lower = source_ent.lower()
+            if source_lower == entity_lower:
+                found_exact_match = True
+                break
+
             if source_lower in entity_lower or entity_lower in source_lower:
-                found_similar = True
+                potential_misspelling = source_ent
                 break
 
             dist = abs(len(entity) - len(source_ent))
             if dist <= 2 and source_lower[:3] == entity_lower[:3]:
-                found_similar = True
-                warning_entities.append(f"{entity} ≈ {source_ent}")
+                potential_misspelling = source_ent
                 break
 
-        if not found_similar and len(entity) > 3:
-            blocking_entities.append(entity)
+        if not found_exact_match and len(entity) > 3:
+            if potential_misspelling:
+                blocking_entities.append(f"{entity} (похоже на {potential_misspelling}, но не совпадает)")
+            else:
+                blocking_entities.append(entity)
 
     status = len(blocking_entities) == 0
 
-    report_lines = []
     if blocking_entities:
-        report_lines.append(f"❌ Критические сущности (неизвестные):\n  " + "\n  ".join(blocking_entities))
-    if warning_entities:
-        report_lines.append(f"⚠️  Похожие на источники:\n  " + "\n  ".join(warning_entities))
-    if not report_lines:
-        report_lines.append("✅ Все известные сущности подтверждены")
-
-    report = "\n".join(report_lines)
+        report = "❌ Обнаружены неизвестные сущности:\n  " + "\n  ".join(blocking_entities)
+    else:
+        report = "✅ Все сущности подтверждены источниками"
 
     tg_notify(
         f"{'✅' if status else '❌'} <b>hallucination-detector</b>\n"
