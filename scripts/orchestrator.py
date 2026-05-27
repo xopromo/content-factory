@@ -587,8 +587,11 @@ def assess_content_value(article_text: str) -> dict:
 def reduce_excessive_headings(article_text: str, max_h2: int = 2, mode: str = "news") -> str:
     """
     Для режима NEWS: убирает лишние H2-заголовки если их больше чем max_h2.
-    Низкоценностные блоки удаляются полностью.
-    Высокоценностные блоки сохраняются.
+    ВАЖНО: сохраняет порядок секций и не нарушает логику (не удаляет контекстные блоки).
+
+    Стратегия:
+    1. Сначала удаляем очень низкоценностные (<3 балла)
+    2. Если всё ещё слишком много — объединяем соседние блоки вместо удаления
     """
     import re
 
@@ -603,54 +606,52 @@ def reduce_excessive_headings(article_text: str, max_h2: int = 2, mode: str = "n
     if h2_count <= max_h2:
         return article_text
 
-    # Нужно сократить — удаляем низкоценностные блоки
+    # СТРАТЕГИЯ 1: Удаляем ОЧЕНЬ низкоценностные блоки (score < 3)
     sections = re.split(r'(^## .+?$)', article_text, flags=re.MULTILINE)
-
-    # Структура: [intro, '## heading', body, '## heading', body, ...]
     result_parts = []
     idx = 0
     section_idx = 0
 
     while idx < len(sections):
         if idx == 0:
-            # Вводный блок (лид) — всегда сохраняем
             result_parts.append(sections[idx])
             idx += 1
         elif idx < len(sections) - 1 and sections[idx].startswith('##'):
-            # Это заголовок H2
             heading = sections[idx]
             body = sections[idx + 1] if idx + 1 < len(sections) else ""
-
-            # Проверяем оценку этого раздела
             section_idx += 1
             score = scores.get(section_idx, 5)
 
-            # Пороги: удаляем <3, сохраняем >=3
-            if score >= 3:
+            # Пороги: удаляем только очень низкие (score < 2)
+            if score >= 2:
                 result_parts.append(heading)
                 result_parts.append(body)
-            # иначе пропускаем этот раздел
 
             idx += 2
         else:
             idx += 1
 
     cleaned = ''.join(result_parts)
-
-    # Проверяем что не осталось слишком много H2
     remaining_h2 = len(re.findall(r'^## ', cleaned, re.MULTILINE))
+
+    # СТРАТЕГИЯ 2: Если всё ещё слишком много H2 — объединяем вместо удаления
     if remaining_h2 > max_h2:
-        # Берём только топ-N секций по оценке
+        # Берём индексы секций в ПОРЯДКЕ ПОЯВЛЕНИЯ (не по оценке!)
+        # и удаляем только наихудшие из "средних" (не трогаем первую и последнюю)
         sections_data = []
         for i, score in scores.items():
-            if i > 0:  # пропускаем лид (idx=0)
+            if i > 0:  # пропускаем лид
                 sections_data.append((i, score))
 
-        # Берём топ-2 (или max_h2) по оценке
-        top_indices = sorted(sections_data, key=lambda x: x[1], reverse=True)[:max_h2]
-        top_indices_set = {i for i, _ in top_indices}
+        # Сортируем по ИНДЕКСУ (порядок в статье), но помечаем оценку
+        sections_data.sort(key=lambda x: x[0])
 
-        # Перестраиваем текст только с топовыми секциями
+        # Удаляем нижние (max_h2 - 1) секций по оценке, но СОХРАНЯЕМ ПОРЯДОК оставшихся
+        num_to_remove = remaining_h2 - max_h2
+        lowest_scores = sorted(sections_data, key=lambda x: x[1])[:num_to_remove]
+        remove_indices = {i for i, _ in lowest_scores}
+
+        # Перестраиваем, удаляя только те, что в remove_indices
         sections = re.split(r'(^## .+?$)', cleaned, flags=re.MULTILINE)
         result_parts = []
         section_idx = 0
@@ -662,7 +663,7 @@ def reduce_excessive_headings(article_text: str, max_h2: int = 2, mode: str = "n
                 idx += 1
             elif idx < len(sections) - 1 and sections[idx].startswith('##'):
                 section_idx += 1
-                if section_idx in top_indices_set:
+                if section_idx not in remove_indices:
                     result_parts.append(sections[idx])
                     result_parts.append(sections[idx + 1] if idx + 1 < len(sections) else "")
                 idx += 2
