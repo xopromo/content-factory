@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Mythos: что известно о новой модели Anthropic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #1F2937; --surface: #263348; --surface2: #2d3a50;
+      --border: rgba(255,255,255,0.08); --primary: #818CF8;
+      --text: #F9FAFB; --text-muted: #9CA3AF;
+      --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
+    .nav {
+      display: flex; align-items: center; gap: 24px; padding: 0 32px; height: 52px;
+      border-bottom: 1px solid var(--border); background: rgba(31,41,55,0.95);
+      backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .nav-logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+    .nav-back { margin-left: auto; font-size: 13px; color: var(--text-muted); text-decoration: none; }
+    .nav-back:hover { color: var(--text); }
+    .article-wrap { max-width: 780px; margin: 48px auto; padding: 0 24px 80px; }
+    .article-wrap h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; margin-bottom: 24px; }
+    .article-wrap h2 { font-size: 22px; font-weight: 600; margin: 40px 0 12px; letter-spacing: -0.01em; }
+    .article-wrap h3 { font-size: 17px; font-weight: 600; margin: 28px 0 10px; }
+    .article-wrap h4 { font-size: 15px; font-weight: 600; margin: 20px 0 8px; color: var(--text-muted); }
+    .article-wrap p { margin-bottom: 16px; }
+    .article-wrap ul, .article-wrap ol { margin: 0 0 16px 24px; }
+    .article-wrap li { margin-bottom: 6px; }
+    .article-wrap table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; }
+    .article-wrap th { background: var(--surface2); padding: 10px 14px; text-align: left; font-weight: 600; border: 1px solid var(--border); }
+    .article-wrap td { padding: 9px 14px; border: 1px solid var(--border); }
+    .article-wrap tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .article-wrap code { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: 4px; }
+    .article-wrap pre { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; overflow-x: auto; margin: 20px 0; }
+    .article-wrap pre code { background: none; padding: 0; }
+    .article-wrap blockquote { border-left: 3px solid var(--primary); padding: 12px 20px; margin: 20px 0; background: var(--surface); border-radius: 0 var(--radius-md) var(--radius-md) 0; color: var(--text-muted); }
+    .article-wrap a { color: var(--primary); text-decoration: none; }
+    .article-wrap a:hover { text-decoration: underline; }
+    .article-wrap hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .mermaid { background: var(--surface); border-radius: var(--radius-md); padding: 20px; margin: 20px 0; overflow-x: auto; }
+    .code-wrap { margin: 20px 0; }
+    .code-wrap pre { margin: 0; border-radius: var(--radius-md) var(--radius-md) 0 0; }
+    .code-wrap.collapsed pre { max-height: 104px; overflow: hidden; position: relative; }
+    .code-wrap.collapsed pre::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 48px;
+      background: linear-gradient(transparent, var(--surface)); pointer-events: none;
+    }
+    .code-toggle {
+      display: block; width: 100%; padding: 8px 16px;
+      background: var(--surface2); border: 1px solid var(--border); border-top: none;
+      color: var(--text-muted); cursor: pointer; font-size: 12px;
+      border-radius: 0 0 var(--radius-md) var(--radius-md); text-align: center;
+    }
+    .code-toggle:hover { color: var(--text); }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({startOnLoad:true, theme:'dark'});</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.code-wrap').forEach(function(wrap) {
+        var btn = wrap.querySelector('.code-toggle');
+        if (!btn) return;
+        btn.addEventListener('click', function() {
+          wrap.classList.toggle('collapsed');
+          btn.textContent = wrap.classList.contains('collapsed')
+            ? btn.dataset.expand : btn.dataset.collapse;
+        });
+      });
+    });
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-logo"><div class="nav-logo-dot"></div>Content Factory</div>
+    <a class="nav-back" href="/content-factory/">← Все статьи</a>
+  </nav>
+  <div class="article-wrap">
+    <h1 id="claude-mythos-anthropic-swe-bench-939">Claude Mythos: засекреченная модель Anthropic с SWE-bench 93.9% — что известно разработчикам</h1>
+<p>7 апреля 2026 года Anthropic запустила Claude Mythos в режиме Limited Preview — без пресс-релиза, без публичного анонса, без официального API. Модель раскрыла своё существование сама.</p>
+<div class="code-wrap collapsed"><pre><code class="language-json">&lt;script type=&quot;application/ld+json&quot;&gt;
+{
+  &quot;@context&quot;: &quot;https://schema.org&quot;,
+  &quot;@type&quot;: &quot;TechArticle&quot;,
+  &quot;headline&quot;: &quot;Claude Mythos: засекреченная модель Anthropic с SWE-bench 93.9% — что известно разработчикам&quot;,
+  &quot;datePublished&quot;: &quot;2026-05-26&quot;,
+  &quot;author&quot;: {&quot;@type&quot;: &quot;Person&quot;, &quot;email&quot;: &quot;xopromo@gmail.com&quot;},
+  &quot;description&quot;: &quot;Технический разбор Claude Mythos: бенчмарки SWE-bench 93.9%, кибербезопасность, Project Glasswing и прогноз публичного доступа для senior-разработчиков.&quot;,
+  &quot;keywords&quot;: [&quot;Claude Mythos&quot;, &quot;SWE-bench&quot;, &quot;Anthropic&quot;, &quot;LLM&quot;, &quot;Project Glasswing&quot;, &quot;AI безопасность&quot;]
+}
+&lt;/script&gt;
+</code></pre><button class="code-toggle" data-expand="↓ показать все 11 строк" data-collapse="↑ свернуть">↓ показать все 11 строк</button></div>
+<hr />
+<h2 id="1-mythos">1. Как Mythos рассекретила себя сама</h2>
+<p>Идентификатор модели просочился через публичные версии Claude Code: пользователи обнаружили упоминания <code>claude-mythos</code> в ответах и метаданных инструмента ещё до каких-либо официальных коммуникаций от Anthropic. Это классический leak через SDK — Claude Code при определённых запросах возвращал model ID из своего внутреннего контекста, включая идентификаторы моделей, к которым у него был доступ на бэкенде.</p>
+<p>Anthropic не опровергла утечку. Компания подтвердила существование модели и партнёрскую программу Project Glasswing, но без технических деталей архитектуры. Отсутствие опровержения красноречивее любого пресс-релиза.</p>
+<p>Сценарий знаком по истории GPT-4 и Gemini Ultra: модели с ограниченным доступом неизбежно оставляют следы в публичных инструментах. Разница в том, что Mythos — не просто следующая версия в линейке. Разрыв с предыдущими моделями по ключевым метрикам настолько велик, что требует отдельного объяснения.</p>
+<hr />
+<h2 id="2-939-swe-bench">2. Бенчмарки: что означает 93.9% на SWE-bench</h2>
+<p>93.9% на SWE-bench Verified — это не очередной рекорд таблицы лидеров. Это граница, после которой модель перестаёт быть ассистентом и становится автономным агентом разработки.</p>
+<p>SWE-bench Verified содержит реальные GitHub issues из популярных Python-репозиториев: Django, Flask, scikit-learn, sympy. Задача модели — самостоятельно написать патч, который проходит существующий тестовый набор. Никаких подсказок, никаких вариантов ответа — только патч или провал. Evaluation pipeline изолирован: модель не имеет доступа к тестам заранее.</p>
+<h3 id="_1">Сравнение моделей по ключевым метрикам</h3>
+<table>
+<thead>
+<tr>
+<th>Модель</th>
+<th>SWE-bench Verified</th>
+<th>USAMO 2026</th>
+<th>Cybersecurity</th>
+<th>Цена (вход/выход, 1M токенов)</th>
+<th>Публичный доступ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude Mythos</td>
+<td><strong>93.9%</strong></td>
+<td>97.6%</td>
+<td>73% expert</td>
+<td>N/A</td>
+<td>Limited Preview</td>
+</tr>
+<tr>
+<td>Claude Opus 4.6</td>
+<td>80.8%</td>
+<td>—</td>
+<td>—</td>
+<td>$5 / $25</td>
+<td>GA</td>
+</tr>
+<tr>
+<td>Claude Opus 4.7</td>
+<td>72.5%</td>
+<td>—</td>
+<td>—</td>
+<td>$5 / $25</td>
+<td>GA</td>
+</tr>
+<tr>
+<td>Claude Sonnet 4.6</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>$3 / $15</td>
+<td>GA</td>
+</tr>
+<tr>
+<td>DeepSeek-R2</td>
+<td>~55%</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>GA</td>
+</tr>
+<tr>
+<td>GPT-4o</td>
+<td>~38%</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>GA</td>
+</tr>
+</tbody>
+</table>
+<!-- LIVE: цены и метрики обновить, актуально на май 2026 -->
+
+<p>Разрыв между Mythos (93.9%) и ближайшей публичной моделью Opus 4.6 (80.8%) — 13.1 пп. Для контекста: разрыв между GPT-4o (~38%) и DeepSeek-R2 (~55%) уже считается значимым качественным скачком. Здесь речь о переходе из категории «умный автокомплит» в категорию «замкнутый цикл от issue до merge-ready патча».</p>
+<h3 id="usamo-2026">USAMO 2026: что проверяет олимпиадная математика</h3>
+<p>97.6% на USAMO — это не школьная алгебра. Задачи US Mathematical Olympiad требуют многошаговых доказательств с полным обоснованием каждого перехода, где одна ошибка в середине рассуждения обнуляет всё решение. Высокий результат здесь коррелирует с качеством многошагового планирования — именно тем, что критично для автономных агентных задач в разработке.</p>
+<h3 id="73">Что стоит за 73% в кибербезопасности</h3>
+<p>Оценка UK AI Security Institute по 73% expert-level challenges требует расшифровки. «Expert-level» в терминологии UKASI — задачи, которые профессиональный пентестер решает за несколько часов при наличии специализированной экспертизы.</p>
+<p>Данные по Firefox exploits дают конкретный масштаб: 181 рабочий exploit из 250 попыток. Opus 4.6 в аналогичных условиях — 2 из сотен. Это не линейный прирост качества, а качественный переход в другой класс инструментов.</p>
+<p>Автономный поиск уязвимостей — отдельный кейс. Баг в OpenBSD существовал 27 лет и прошёл мимо тысяч code review. Баг в FFmpeg возрастом 16 лет не обнаружили 5 миллионов автоматических сканирований. CVE-2026-4747 (FreeBSD NFS RCE) модель нашла полностью автономно. Это другой класс анализа: не сопоставление с базой известных паттернов, а семантическое понимание контекста исполнения и инвариантов системы.</p>
+<hr />
+<h2 id="3-anthropic">3. Почему Anthropic не выпустила модель публично</h2>
+<p>Anthropic не выпустила Mythos публично из-за прямых свидетельств злоупотреблений на стадии закрытого тестирования — не из-за гипотетических рисков.</p>
+<p>Кейс с мексиканским водопроводом (2025–2026) стал отправной точкой. Атакующие использовали Mythos для атаки на систему водоснабжения: задачи, требовавшие ранее недель работы специалиста по ICS/SCADA, были выполнены за часы. Это первый подтверждённый случай, когда конкретная языковая модель напрямую атрибутирована к инциденту с критической инфраструктурой.</p>
+<p>UK AI Security Institute провёл контролируемую симуляцию: 32-шаговый network breach — полная цепочка от разведки до латерального перемещения и закрепления в сети. Mythos завершила сценарий в 3 из 10 попыток. Junior-пентестер на аналогичной задаче тратит несколько дней при постоянном supervision.</p>
+<p>Ключевая проблема не в том, что «модель умеет взламывать». Проблема в снижении порога входа: Mythos опускает необходимый уровень экспертизы атакующего с «специалист с 5+ годами опыта» до «человек, умеющий формулировать задачи». Это структурное изменение профиля угрозы, а не просто новый инструмент.</p>
+<p>Anthropic публично признала трейдоф: модель слишком полезна для легитимных задач (автономная разработка, security-исследования, научная работа), чтобы её заморозить. Но достаточно опасна, чтобы не выпускать без контроля. Glasswing — это управляемый эксперимент, а не маркетинговая программа.</p>
+<hr />
+<h2 id="4-project-glasswing">4. Project Glasswing: кто получил доступ и зачем</h2>
+<p>Project Glasswing — структурированная программа контролируемого доступа с бюджетом $100M кредитов и $4M грантов. Не открытый бета-тест, а выверенный список организаций с конкретными use case.</p>
+<p>Среди 12 основных партнёров: AWS, Apple, Broadcom, Cisco, CrowdStrike, Google, JPMorganChase, Linux Foundation, Microsoft, NVIDIA, Palo Alto Networks. Плюс 40 организаций расширенного круга. Итого — 52 точки контролируемого развёртывания.</p>
+<p>Профиль партнёров объясняет логику программы по трём группам:</p>
+<p><strong>Инфраструктурные вендоры</strong> (AWS, Microsoft, Google) оценивают импакт модели на свои платформы до публичного релиза. Это одновременно подготовка к интеграции и аудит рисков в их собственных средах.</p>
+<p><strong>Компании кибербезопасности</strong> (CrowdStrike, Palo Alto Networks, Cisco) — явный стратегический приоритет. Если модель способна автономно находить 27-летние баги, она должна оказаться на стороне защиты раньше, чем доберётся до атакующих без ограничений. Glasswing создаёт асимметрию в пользу defenders.</p>
+<p><strong>Финансовый и открытый секторы</strong> (JPMorganChase, Linux Foundation) обеспечивают тестирование в регулируемых средах с чётко определёнными compliance-требованиями — именно те условия, в которых большинство enterprise-клиентов будут разворачивать модель.</p>
+<p>Июль 2026 — дата полного отчёта Glasswing и раскрытия трёх CVE под embargo. CVE-2026-4747 (FreeBSD NFS RCE) Anthropic уже частично раскрыла: первый задокументированный случай, когда LLM полностью автономно обнаружила и классифицировала уязвимость в production-кодовой базе.</p>
+<hr />
+<h2 id="5">5. Что это значит для разработчиков прямо сейчас</h2>
+<p>Практический ответ для большинства: публичного доступа к Mythos нет, рабочий стек — Opus 4.7 и Sonnet 4.6. Но архитектура использования меняется уже сейчас, и закладывать её нужно сегодня.</p>
+<p>Если вы строите агентные пайплайны — выносите model ID в конфигурацию. Когда Mythos выйдет в GA или выйдет промежуточная модель с частью её возможностей, смена одной строки не должна ломать пайплайн.</p>
+<div class="code-wrap collapsed"><pre><code class="language-python">import anthropic
+
+# Конфигурация модели вынесена отдельно —
+# при смене меняется только MODEL_CONFIG[&quot;active&quot;]
+MODEL_CONFIG = {
+    &quot;ga&quot;:      &quot;claude-opus-4-7-20260101&quot;,    # текущий GA, предсказуемое поведение
+    &quot;preview&quot;: &quot;claude-mythos-20260407&quot;,       # limited preview, нужен партнёрский доступ
+    &quot;active&quot;:  &quot;claude-opus-4-7-20260101&quot;,     # используем GA до получения доступа
+}
+
+client = anthropic.Anthropic()
+
+
+def run_swe_task(repo_path: str, issue_description: str) -&gt; str:
+    &quot;&quot;&quot;
+    Агентная задача: анализ issue и генерация патча.
+    На Opus 4.7 покрывает ~72% задач SWE-bench — достаточно для большинства
+    стандартных issue. На Mythos — ожидаем 93.9%. Интерфейс не меняется.
+    &quot;&quot;&quot;
+    response = client.messages.create(
+        model=MODEL_CONFIG[&quot;active&quot;],
+        max_tokens=8192,
+        system=(
+            &quot;Ты — автономный агент разработки. &quot;
+            &quot;Анализируй code context, находи root cause проблемы, &quot;
+            &quot;генерируй минимальный патч с покрывающими тестами. &quot;
+            &quot;Не объясняй — пиши код.&quot;
+        ),
+        messages=[
+            {
+                &quot;role&quot;: &quot;user&quot;,
+                &quot;content&quot;: (
+                    f&quot;Репозиторий: {repo_path}\n\n&quot;
+                    f&quot;Issue:\n{issue_description}\n\n&quot;
+                    &quot;Сгенерируй patch-файл в формате unified diff.&quot;
+                )
+            }
+        ],
+    )
+    return response.content[0].text
+
+
+def audit_security(code_context: str) -&gt; dict:
+    &quot;&quot;&quot;
+    Аудит безопасности кодовой базы.
+    С Mythos — качественно другой результат (CVE-класс находок).
+    Структура ответа одинакова — закладываем уже сейчас.
+    &quot;&quot;&quot;
+    response = client.messages.create(
+        model=MODEL_CONFIG[&quot;active&quot;],
+        max_tokens=4096,
+        messages=[
+            {
+                &quot;role&quot;: &quot;user&quot;,
+                &quot;content&quot;: (
+                    &quot;Проведи аудит безопасности кода. &quot;
+                    &quot;Ищи не только известные CWE-паттерны, &quot;
+                    &quot;но и семантические проблемы в логике исполнения &quot;
+                    &quot;и нарушения инвариантов состояния.\n\n&quot;
+                    f&quot;{code_context}&quot;
+                )
+            }
+        ],
+    )
+
+    return {
+        &quot;model&quot;:        MODEL_CONFIG[&quot;active&quot;],
+        &quot;findings&quot;:     response.content[0].text,
+        &quot;tokens_total&quot;: response.usage.input_tokens + response.usage.output_tokens,
+    }
+</code></pre><button class="code-toggle" data-expand="↓ показать все 70 строк" data-collapse="↑ свернуть">↓ показать все 70 строк</button></div>
+<p>Два конкретных изменения в рабочем процессе, актуальных прямо сейчас:</p>
+<p><strong>Делегируйте Opus 4.7 полные задачи, а не фрагменты.</strong> 72.5% на SWE-bench означает, что модель закрывает большинство стандартных задач: рефакторинг с сохранением поведения, написание unit-тестов по спецификации, дебаггинг с полным стектрейсом. Давайте ей issue целиком с приёмочными критериями — не «помоги написать функцию», а «реши задачу и покрой тестами».</p>
+<p><strong>Начните собирать eval-сюиту под ваш домен.</strong> Синтетические бенчмарки говорят об общем качестве, но не о том, что именно изменится в вашем конкретном коде. Когда Mythos или следующая публичная модель появится в GA, готовый набор evaluation-кейсов позволит измерить реальный прирост за часы, а не недели.</p>
+<hr />
+<h2 id="6">6. Когда ждать публичного доступа</h2>
+<p>Конкретной даты GA нет — Anthropic не называла сроков публично, и по структуре Glasswing это не случайность.</p>
+<p>Ближайшая опорная точка — <strong>июль 2026</strong>: полный отчёт Glasswing, раскрытие трёх CVE под embargo, и вероятное обновление условий доступа. Это не анонс GA, но публичная оценка результатов контролируемого развёртывания — первый сигнал о том, в какую сторону движется программа.</p>
+<p>Исходя из структуры партнёрской программы, реалистичны три сценария:</p>
+<p><strong>Тиерный доступ</strong> — сначала корпоративные клиенты с подтверждённым use case и compliance-окружением, затем расширение. Прецедент: GPT-4 появился сначала в Azure OpenAI Service для enterprise, позже — в ChatGPT.</p>
+<p><strong>Capability-флаги</strong> — модель выходит в GA с отключёнными по умолчанию функциями (автономный security audit, exploit analysis), которые включаются через отдельный approval process. Это позволяет сделать модель доступной для разработки, сохранив контроль над критическими возможностями.</p>
+<p><strong>Разделение линеек</strong> — Mythos остаётся закрытой моделью для партнёров, а публичная линейка получает часть возможностей через следующий Opus. Часть research-моделей Anthropic шла именно по этому пути.</p>
+<p>Для практического планирования: если вы строите продукт на автономной разработке или security-анализе, закладывайте готовность к интеграции в горизонте Q4 2026. Если use case — стандартная разработка без специфических security-требований, Opus 4.7 покрывает 80%+ задач уже сегодня при зрелом API и предсказуемом поведении.</p>
+<p>Три CVE под embargo — маркер, на который стоит ориентироваться. Их disclosure в июле покажет, насколько глубоко модель работает с production-кодовыми базами крупных проектов. Это будет значимее любого пресс-релиза о GA.</p>
+<hr />
+  </div>
+</body>
+</html>
