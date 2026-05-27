@@ -1022,6 +1022,80 @@ def run_devil_advocate(article: str) -> tuple[bool, str]:
     return flagged, output
 
 
+def run_hallucination_detector(draft: str, raw_sources: str) -> tuple[bool, str]:
+    """
+    Детектор галлюцинаций — проверяет что все названия компаний, продуктов,
+    персон в тексте присутствуют в исходных источниках.
+
+    Ловит ошибки типа:
+    - "Devika" когда в источнике только "Devin"
+    - Неизвестные названия продуктов/компаний
+    - Новые персоны, не упомянутые в источниках
+
+    Возвращает (passed: bool, report: str).
+    """
+    import re
+
+    print("  [hallucination-detector] Проверяю введение новых сущностей...")
+
+    def extract_entities(text):
+        entities = set()
+        for word in re.findall(r'\b[A-Z][a-zA-Z]*(?:\s+[A-Z][a-zA-Z]*)*\b', text):
+            if len(word) > 2:
+                entities.add(word)
+        return entities
+
+    source_entities = extract_entities(raw_sources)
+    draft_entities = extract_entities(draft)
+
+    unknowns = draft_entities - source_entities
+
+    if not unknowns:
+        report = "✅ Все сущности присутствуют в источниках"
+        return True, report
+
+    blocking_entities = []
+    warning_entities = []
+
+    for entity in unknowns:
+        entity_lower = entity.lower()
+        found_similar = False
+
+        for source_ent in source_entities:
+            source_lower = source_ent.lower()
+            if source_lower in entity_lower or entity_lower in source_lower:
+                found_similar = True
+                break
+
+            dist = abs(len(entity) - len(source_ent))
+            if dist <= 2 and source_lower[:3] == entity_lower[:3]:
+                found_similar = True
+                warning_entities.append(f"{entity} ≈ {source_ent}")
+                break
+
+        if not found_similar and len(entity) > 3:
+            blocking_entities.append(entity)
+
+    status = len(blocking_entities) == 0
+
+    report_lines = []
+    if blocking_entities:
+        report_lines.append(f"❌ Критические сущности (неизвестные):\n  " + "\n  ".join(blocking_entities))
+    if warning_entities:
+        report_lines.append(f"⚠️  Похожие на источники:\n  " + "\n  ".join(warning_entities))
+    if not report_lines:
+        report_lines.append("✅ Все известные сущности подтверждены")
+
+    report = "\n".join(report_lines)
+
+    tg_notify(
+        f"{'✅' if status else '❌'} <b>hallucination-detector</b>\n"
+        f"{report[:600]}"
+    )
+
+    return status, report
+
+
 def run_fact_checker(draft: str, raw_sources: str, step_label: str) -> tuple[bool, str]:
     """
     Запускает трёхуровневую проверку фактов:
@@ -1268,6 +1342,22 @@ def run_pipeline(
                 context["draft_1-3"] = full_draft  # обновляем для последующих шагов
                 print("  [auto-revision] ✅ Черновик исправлен")
             save_state(slug, context, 6)
+
+    # Шаг 6.4: hallucination-detector — блокируем если найдены новые неизвестные сущности
+    halluc_ok, halluc_report = run_hallucination_detector(full_draft, context["raw_sources"])
+    context["hallucination_report"] = halluc_report
+
+    if not halluc_ok:
+        tg_notify(
+            f"🚫 <b>hallucination-detector: СТОП</b>\n\n"
+            f"В черновике найдены введённые сущности, отсутствующие в источниках.\n\n"
+            f"{halluc_report[:1000]}\n\n"
+            f"Генерация прекращена. Проверьте исходные источники или переформулируйте запрос."
+        )
+        print(f"\n🚫 hallucination-detector FAILED:\n{halluc_report}")
+        sys.exit(1)
+
+    print("  [hallucination-detector] ✅ Галлюцинаций не обнаружено")
 
     # Шаг 6.5: fact-checker — блокируем если найдены непроверенные утверждения
     fact_ok, fact_report = run_fact_checker(full_draft, context["raw_sources"], "6.5")
