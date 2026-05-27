@@ -1085,7 +1085,7 @@ def run_fast(prompt: str) -> tuple[str, int]:
     if _openrouter_client:
         try:
             resp = _openrouter_client.chat.completions.create(
-                model="deepseek/deepseek-chat-v3-0324:free",
+                model="deepseek/deepseek-v4-flash:free",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=1024,
             )
