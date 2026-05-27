@@ -484,39 +484,30 @@ def validate_entity_names(article_text: str, sources_text: str) -> tuple[bool, l
         if entity in ignore_list or entity.isupper():
             continue
 
-        # Ищем вариации этого имени в источниках
-        # Например: "Devin" должен быть в источниках, если написан "Devika" в статье
+        # Ищем: есть ли в источниках похожее НО ДРУГОЕ имя?
+        # Это главный кейс: "Devika" в статье, "Devin" в источниках
         entity_lower = entity.lower()
-        sources_lower = sources_text.lower()
 
-        # Если точного совпадения нет, проверяем похожие варианты
-        if entity not in sources_text and entity_lower not in sources_lower:
-            # Может быть это опечатка? Проверяем похожие слова в источниках
-            # Например "Devika" вместо "Devin"
-            similar_found = False
-            for match in re.finditer(r'\b[A-Z][a-zA-Z]*\b', sources_text):
-                source_word = match.group(0)
-                # Если похожи на 80%+ — могла быть опечатка
-                if (entity != source_word and
-                    entity_lower != source_word.lower() and
-                    len(entity) > 3):  # Только для дольших слов
-                    # Проверяем расстояние Левенштейна
-                    from difflib import SequenceMatcher
-                    ratio = SequenceMatcher(None, entity_lower, source_word.lower()).ratio()
-                    if ratio > 0.75:  # 75% схожести
-                        errors.append(
-                            f"⚠️ ВОЗМОЖНАЯ ОШИБКА: в статье '{entity}', "
-                            f"в источниках похожее слово '{source_word}' — проверь совпадение!"
-                        )
-                        similar_found = True
-                        break
+        # Если точное совпадение есть — OK, пропускаем
+        if entity_lower in sources_text.lower():
+            continue
 
-            if not similar_found and len(entity) > 3:
-                # Совсем не найдено в источниках
+        # Ищем похожее слово в источниках (возможная опечатка)
+        for match in re.finditer(r'\b[A-Z][a-zA-Z]{3,}\b', sources_text):
+            source_word = match.group(0)
+            if source_word in ignore_list or source_word.isupper():
+                continue
+            if entity_lower == source_word.lower():
+                break  # Точное совпадение (case-insensitive) — OK
+            from difflib import SequenceMatcher
+            ratio = SequenceMatcher(None, entity_lower, source_word.lower()).ratio()
+            # 75-99%: похожее но не идентичное → возможная опечатка
+            if 0.75 < ratio < 1.0:
                 errors.append(
-                    f"❌ КРИТИЧЕСКАЯ ОШИБКА: '{entity}' в статье не найдена в источниках. "
-                    f"Это галлюцинация или неправильное название?"
+                    f"⚠️ ВОЗМОЖНАЯ ОШИБКА ИМЕНИ: в статье '{entity}', "
+                    f"в источниках похожее слово '{source_word}' — проверь, не опечатка ли!"
                 )
+                break
 
     is_valid = len(errors) == 0
     return is_valid, errors

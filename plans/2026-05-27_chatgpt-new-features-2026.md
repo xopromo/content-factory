@@ -1,8 +1,8 @@
-# План статьи: Google Gemini в Gmail и Drive: что изменилось для обычных пользователей
+# План статьи: ChatGPT обновился: что нового для обычных пользователей
 
 **Дата создания:** 2026-05-27  
 **Статус:** draft | in-progress | review | done  
-**Оркестратор запустил:** 2026-05-27 22:19 UTC
+**Оркестратор запустил:** 2026-05-27 22:16 UTC
 
 ---
 
@@ -26,13 +26,13 @@
 - [x] Шаг 05 — `content-writer`: написан черновик (блок 1-3)
 - [x] Шаг 06 — `content-writer`: написан черновик (блок 4-6)
 - [ ] Шаг 07 — `diagram-illustrator`: созданы Mermaid/SVG-схемы
-- [x] Шаг 08 — `seo-geo-optimizer`: интегрированы LSI-ключи, AEO-форматирование
-- [x] Шаг 09 — `seo-geo-optimizer`: сгенерирован Schema.org JSON-LD
+- [ ] Шаг 08 — `seo-geo-optimizer`: интегрированы LSI-ключи, AEO-форматирование
+- [ ] Шаг 09 — `seo-geo-optimizer`: сгенерирован Schema.org JSON-LD
 - [ ] Шаг 10 — `geo-emulator`: валидация цитируемости ИИ-поисковиками
 - [ ] Шаг 11 — `editor-critic`: финальный аудит качества
-- [x] Шаг 12 — `lead-orchestrator`: финальный черновик готов ⏸ **HUMAN REVIEW**
-- [x] Шаг 13 — `lead-orchestrator`: утверждение пользователем
-- [x] Шаг 14 — `deployer-publisher`: коммит и публикация
+- [ ] Шаг 12 — `lead-orchestrator`: финальный черновик готов ⏸ **HUMAN REVIEW**
+- [ ] Шаг 13 — `lead-orchestrator`: утверждение пользователем
+- [ ] Шаг 14 — `deployer-publisher`: коммит и публикация
 
 ---
 
