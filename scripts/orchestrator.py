@@ -1650,9 +1650,9 @@ def run_pipeline(
             )
             print(f"\n🚫 fact-checker FAILED (CONTRADICTED):\n{fact_report}")
             sys.exit(1)
-        elif mode == "news" and _unverified_count > 0:
-            # UNVERIFIED в режиме news — вырезаем неверифицированные утверждения, не переписываем
-            print(f"  [fact-checker] ✂️ {_unverified_count} UNVERIFIED → вырезаю из черновика (режим новость)")
+        elif mode in ("news", "seo") and _unverified_count > 0:
+            # UNVERIFIED в режимах news/seo — вырезаем, не переписываем и не блокируем
+            print(f"  [fact-checker] ✂️ {_unverified_count} UNVERIFIED → вырезаю из черновика (режим {mode})")
             tg_notify(f"✂️ <b>fact-strip</b>: убираю {_unverified_count} неверифицированных утверждений")
             strip_prompt = (
                 f"Ты редактор. Из статьи нужно убрать конкретные утверждения, "
@@ -1836,8 +1836,13 @@ if __name__ == "__main__":
     parser.add_argument("--auto-approve", action="store_true", help="Пропускать HITL-паузы (тестовый режим)")
     parser.add_argument("--resume", action="store_true", help="Возобновить с последнего сохранённого шага")
     parser.add_argument(
-        "--mode", choices=["full", "news"], default="full",
-        help="Режим генерации: full — полная статья (60+ мин), news — короткая новость (15 мин)"
+        "--mode", choices=["full", "seo", "news"], default="seo",
+        help=(
+            "Режим генерации: "
+            "seo — полный пайплайн, гибкий фактчекинг (DEFAULT, ~30 мин); "
+            "news — короткая новость, минимум шагов (~15 мин); "
+            "full — максимальная точность, строгий фактчекинг (~60 мин, редко)"
+        )
     )
     args = parser.parse_args()
 
