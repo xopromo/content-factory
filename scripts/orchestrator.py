@@ -584,6 +584,104 @@ def assess_content_value(article_text: str) -> dict:
     return scores
 
 
+def verify_article_logic(article_text: str, removed_sections: list[str] = None) -> tuple[bool, str]:
+    """
+    Проверяет логику и целостность статьи после удаления блоков.
+    Возвращает (is_coherent, issues_report).
+
+    Проверяет:
+    1. Есть ли разрывы между соседними H2-блоками
+    2. Есть ли ссылки на удалённые концепции
+    3. Согласованность вывода с фактами
+    """
+    import re
+
+    if removed_sections is None:
+        removed_sections = []
+
+    issues = []
+
+    # Извлекаем все H2-секции
+    sections = re.split(r'(^## .+?$)', article_text, flags=re.MULTILINE)
+    h2_headings = []
+    h2_bodies = []
+
+    for i in range(1, len(sections), 2):
+        if i < len(sections):
+            heading = sections[i].strip('# ').strip()
+            body = sections[i + 1] if i + 1 < len(sections) else ""
+            h2_headings.append(heading)
+            h2_bodies.append(body)
+
+    # Проверка 1: Вывод ссылается на удалённые концепции?
+    if h2_bodies:
+        last_body = h2_bodies[-1]  # Последний блок обычно вывод
+
+        # Ищем существительные в заголовках оставшихся блоков
+        remaining_concepts = set()
+        for heading in h2_headings[:-1]:  # все кроме последнего (вывод)
+            words = heading.lower().split()
+            remaining_concepts.update([w for w in words if len(w) > 3])
+
+        # Ищем в выводе ссылки на удалённые концепции
+        for removed in removed_sections:
+            removed_words = removed.lower().split()
+            for word in removed_words:
+                if len(word) > 4 and word in last_body.lower():
+                    # Это слово было в удалённом блоке и сейчас в выводе
+                    issues.append(
+                        f"⚠️ Вывод ссылается на удалённую концепцию '{word}' "
+                        f"(была в блоке '{removed[:30]}...')"
+                    )
+
+    # Проверка 2: Очень короткие оставшиеся блоки (<100 слов после удаления)
+    for i, body in enumerate(h2_bodies):
+        word_count = len(body.split())
+        if word_count < 80:
+            issues.append(
+                f"⚠️ Блок #{i+1} очень короткий ({word_count} слов) — "
+                f"может быть неполным после удаления контекста"
+            )
+
+    # Проверка 3: Нет фактов в первых блоках (числа, ссылки)
+    if h2_bodies:
+        first_body = h2_bodies[0]
+        has_facts = bool(re.search(r'\d+|http|\[[\d]\]', first_body))
+        if not has_facts and len(h2_bodies) > 1:
+            issues.append(
+                "⚠️ Первый блок не содержит конкретных фактов/чисел — "
+                "может быть слишком общим"
+            )
+
+    is_coherent = len(issues) == 0
+    report = "\n".join(issues) if issues else "✅ Логика и целостность сохранены"
+
+    return is_coherent, report
+
+
+def rewrite_for_coherence(article_text: str, logic_issues: str, sources: str) -> str:
+    """
+    Переписывает оставшиеся блоки статьи чтобы восстановить целостность.
+    Используется когда после удаления блоков выявлены проблемы логики.
+    """
+    prompt = (
+        "Ты редактор-логик. Статья была сокращена (удалены некоторые H2-блоки), "
+        "и теперь в ней есть проблемы с логикой и связностью.\n\n"
+        "ПРОБЛЕМЫ:\n" + logic_issues + "\n\n"
+        "ЗАДАЧА:\n"
+        "1. Перепиши оставшиеся H2-блоки так чтобы они логически связывались\n"
+        "2. Убери ссылки на удалённые концепции\n"
+        "3. Убедись что вывод опирается на оставшиеся факты, а не на удалённые\n"
+        "4. Расширь короткие блоки (если <100 слов) добавив больше деталей\n"
+        "5. Используй ТОЛЬКО информацию из источников, не придумывай новое\n\n"
+        "ИСТОЧНИКИ (для проверки):\n" + sources[:2000] + "\n\n"
+        "СТАТЬЯ:\n" + article_text + "\n\n"
+        "Верни только переписанную статью (без комментариев)."
+    )
+    result, _ = run_fast(prompt)
+    return result
+
+
 def reduce_excessive_headings(article_text: str, max_h2: int = 2, mode: str = "news") -> str:
     """
     Для режима NEWS: убирает лишние H2-заголовки если их больше чем max_h2.
@@ -1966,6 +2064,23 @@ def run_pipeline(
             h2_before = len(__import__('re').findall(r'^## ', full_draft, __import__('re').MULTILINE))
             h2_after = len(__import__('re').findall(r'^## ', cleaned, __import__('re').MULTILINE))
             print(f"  [news-optim] H2 заголовков: {h2_before} → {h2_after}")
+
+            # Шаг 6.3.1: Проверяем логику после удаления блоков
+            print(f"  [logic-check] Проверяю целостность статьи после сокращения...")
+            is_coherent, logic_report = verify_article_logic(cleaned)
+            print(f"  [logic-check] {logic_report}")
+
+            # Если есть проблемы — переписываем для целостности
+            if not is_coherent:
+                print(f"  [logic-rewrite] Обнаружены разрывы логики — переписываю...")
+                tg_notify("🔄 <b>logic-rewrite</b>: Переписываю блоки для целостности статьи")
+                rewritten = rewrite_for_coherence(cleaned, logic_report, context.get("raw_sources", ""))
+                if len(rewritten) >= len(cleaned) * 0.6:
+                    cleaned = rewritten
+                    print(f"  [logic-rewrite] ✅ Статья переписана для целостности")
+                else:
+                    print(f"  [logic-rewrite] ⚠️ Переписанная версия слишком короткая — используюю оптимизированную")
+
             full_draft = cleaned
             context["draft_1-3"] = cleaned
     else:
