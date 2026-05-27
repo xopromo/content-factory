@@ -443,6 +443,74 @@ def _fetch_full_text(url: str, max_chars: int = 3000) -> str:
     return ""
 
 
+def validate_entity_names(article_text: str, sources_text: str) -> tuple[bool, list[str]]:
+    """
+    Проверяет что названия компаний/продуктов в статье совпадают ТОЧНО с источниками.
+    Возвращает (is_valid, list_of_errors).
+    """
+    import re
+
+    errors = []
+
+    # Ищем известные компании/продукты в статье (капитализированные слова и фразы)
+    # Паттерны типа: CompanyName, Product Name, "кавычки"
+    entity_patterns = [
+        (r'\b([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)\b', 'common'),  # CamelCase или два слова с заглавной
+        (r'"([^"]+)"', 'quoted'),  # В кавычках
+    ]
+
+    found_entities = set()
+    for pattern, pattern_type in entity_patterns:
+        for match in re.finditer(pattern, article_text):
+            entity = match.group(1).strip()
+            if len(entity) > 2:  # Игнорируем короткие слова (I, A, и т.д.)
+                found_entities.add(entity)
+
+    # Проверяем каждую найденную сущность
+    # Если сущность есть в статье, она ДОЛЖНА быть в источниках (примерно)
+    for entity in sorted(found_entities):
+        # Пропускаем обычные слова которые случайно капитализированы
+        if entity in ['The', 'By', 'In', 'For', 'And', 'Or', 'As', 'Is', 'Was']:
+            continue
+
+        # Ищем вариации этого имени в источниках
+        # Например: "Devin" должен быть в источниках, если написан "Devika" в статье
+        entity_lower = entity.lower()
+        sources_lower = sources_text.lower()
+
+        # Если точного совпадения нет, проверяем похожие варианты
+        if entity not in sources_text and entity_lower not in sources_lower:
+            # Может быть это опечатка? Проверяем похожие слова в источниках
+            # Например "Devika" вместо "Devin"
+            similar_found = False
+            for match in re.finditer(r'\b[A-Z][a-zA-Z]*\b', sources_text):
+                source_word = match.group(0)
+                # Если похожи на 80%+ — могла быть опечатка
+                if (entity != source_word and
+                    entity_lower != source_word.lower() and
+                    len(entity) > 3):  # Только для дольших слов
+                    # Проверяем расстояние Левенштейна
+                    from difflib import SequenceMatcher
+                    ratio = SequenceMatcher(None, entity_lower, source_word.lower()).ratio()
+                    if ratio > 0.75:  # 75% схожести
+                        errors.append(
+                            f"⚠️ ВОЗМОЖНАЯ ОШИБКА: в статье '{entity}', "
+                            f"в источниках похожее слово '{source_word}' — проверь совпадение!"
+                        )
+                        similar_found = True
+                        break
+
+            if not similar_found and len(entity) > 3:
+                # Совсем не найдено в источниках
+                errors.append(
+                    f"❌ КРИТИЧЕСКАЯ ОШИБКА: '{entity}' в статье не найдена в источниках. "
+                    f"Это галлюцинация или неправильное название?"
+                )
+
+    is_valid = len(errors) == 0
+    return is_valid, errors
+
+
 def web_search_yandex(query: str, search_type: str = "news", max_results: int = 5) -> list[dict]:
     """
     Поиск через Yandex Search API (fallback при ошибках DuckDuckGo).
@@ -1055,18 +1123,21 @@ AGENT_PROMPTS = {
         "2. Извлеки из черновика ВСЕ верифицируемые утверждения: "
         "числа, проценты, имена людей, названия организаций, "
         "названия продуктов/моделей, даты, события, технические параметры.\n"
-        "3. Для каждого утверждения проверь его наличие в исходных источниках.\n"
-        "4. Классифицируй каждое утверждение:\n"
+        "3. ⚠️ ОСОБО ВНИМАТЕЛЬНО: Названия компаний и продуктов должны совпадать ТОЧНО с источниками:\n"
+        "   Если в источнике 'Devin', а в статье 'Devika' → это CONTRADICTED (ошибка в имени).\n"
+        "   Если в источнике 'Cognition Labs', а в статье 'Cognition' → проверь что это один и тот же.\n"
+        "4. Для каждого утверждения проверь его наличие в исходных источниках.\n"
+        "5. Классифицируй каждое утверждение:\n"
         "   — VERIFIED: явно присутствует в источниках (укажи номер источника [N])\n"
         "   — UNVERIFIED: не найдено ни в одном источнике (потенциальная галлюцинация)\n"
-        "   — CONTRADICTED: противоречит тому, что написано в источниках\n\n"
+        "   — CONTRADICTED: противоречит тому, что написано в источниках ИЛИ имя неточно\n\n"
         "## ФОРМАТ ОТВЕТА:\n"
         "### ИТОГ\n"
         "VERIFIED: X | UNVERIFIED: Y | CONTRADICTED: Z\n\n"
         "### UNVERIFIED (требуют удаления или подтверждения источником):\n"
         "- «цитата из черновика» — пояснение\n\n"
         "### CONTRADICTED (требуют немедленного исправления):\n"
-        "- «цитата из черновика» — что именно противоречит источнику [N]\n\n"
+        "- «цитата из черновика» — что именно противоречит источнику [N] или как звучит правильно\n\n"
         "Если UNVERIFIED = 0 и CONTRADICTED = 0 → в конце напиши строку: FACT_CHECK_PASSED\n"
         "Если есть хотя бы одно UNVERIFIED или CONTRADICTED → напиши: FACT_CHECK_FAILED"
     ),
@@ -1897,6 +1968,28 @@ def run_pipeline(
 
     print("  [fact-checker] ✅ FACT_CHECK_PASSED")
     save_state(slug, context, 6)
+
+    # Шаг 6.7: entity-validator — проверка названий компаний/продуктов
+    print(f"  [entity-validator] Проверяю названия компаний и продуктов...")
+    entity_valid, entity_errors = validate_entity_names(full_draft, context["raw_sources"])
+    if entity_errors:
+        print(f"  [entity-validator] ⚠️ Найдены ошибки в названиях:")
+        for error in entity_errors:
+            print(f"    {error}")
+        # КРИТИЧЕСКИЕ ошибки (❌) блокируют статью, ПРЕДУПРЕЖДЕНИЯ (⚠️) логируют
+        critical_errors = [e for e in entity_errors if e.startswith("❌")]
+        if critical_errors:
+            tg_notify(f"🚫 <b>entity-validator: КРИТИЧЕСКАЯ ОШИБКА</b>\n\n{''.join(critical_errors)}")
+            print(f"\n🚫 entity-validator FAILED (критические ошибки в названиях):")
+            for error in critical_errors:
+                print(f"  {error}")
+            sys.exit(1)
+        else:
+            # Только предупреждения — логируем и продолжаем
+            tg_notify(f"⚠️ <b>entity-validator: предупреждения</b>\n\n{''.join([e for e in entity_errors if e.startswith('⚠️')])}")
+    else:
+        print(f"  [entity-validator] ✅ Все названия компаний совпадают с источниками")
+    save_state(slug, context, "6.7")
 
     # Шаг 7: diagram-illustrator (пропускается в режиме news)
     if mode == "news":
