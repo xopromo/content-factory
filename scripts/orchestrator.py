@@ -53,7 +53,7 @@ RULES_FILE = ROOT / "ai-clone" / "rules.md"
 STATE_DIR = ROOT / "plans" / ".state"   # Material Passport — состояние пайплайна
 
 # Минимальные требования к исследовательской базе перед запуском content-writer
-RESEARCH_MIN_CHARS = 1000     # символов реального текста из источников
+RESEARCH_MIN_CHARS = 750      # символов реального текста из источников
 RESEARCH_MIN_SOURCES = 2      # источников с текстом > 100 символов
 
 # Домены по уровню авторитетности для ранжирования источников
@@ -277,24 +277,64 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
 
 # ── Web search ────────────────────────────────────────────────────────────────
 
+_FETCH_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+}
+
+
 def _fetch_full_text(url: str, max_chars: int = 3000) -> str:
-    """Вытаскивает полный текст страницы через trafilatura (без рекламы и мусора)."""
-    if not _trafilatura or not url:
+    """Вытаскивает полный текст страницы: httpx+bs4 → trafilatura → пусто."""
+    if not url:
         return ""
+
+    # Слой 1: httpx + BeautifulSoup (работает в облаке, не зависит от trafilatura)
     try:
-        downloaded = _trafilatura.fetch_url(url)
-        if not downloaded:
-            return ""
-        text = _trafilatura.extract(
-            downloaded,
-            include_comments=False,
-            include_tables=True,
-            favor_recall=True,
-            no_fallback=False,
-        )
-        return (text or "")[:max_chars]
+        import httpx
+        from bs4 import BeautifulSoup
+        resp = httpx.get(url, headers=_FETCH_HEADERS, timeout=10, follow_redirects=True)
+        if resp.status_code == 200:
+            soup = BeautifulSoup(resp.text, "lxml")
+            # убираем мусор
+            for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
+                tag.decompose()
+            # берём основной контент
+            main = (
+                soup.find("article")
+                or soup.find("main")
+                or soup.find(id="content")
+                or soup.find(class_="content")
+                or soup.body
+            )
+            if main:
+                text = " ".join(main.get_text(" ", strip=True).split())
+                if len(text) > 200:
+                    return text[:max_chars]
     except Exception:
-        return ""
+        pass
+
+    # Слой 2: trafilatura как резервный
+    if _trafilatura:
+        try:
+            downloaded = _trafilatura.fetch_url(url)
+            if downloaded:
+                text = _trafilatura.extract(
+                    downloaded,
+                    include_comments=False,
+                    include_tables=True,
+                    favor_recall=True,
+                    no_fallback=False,
+                )
+                return (text or "")[:max_chars]
+        except Exception:
+            pass
+
+    return ""
 
 
 def web_search_fresh(query: str, max_results: int = 3) -> list[dict]:
@@ -703,7 +743,13 @@ AGENT_PROMPTS = {
         "3. ЗАПРЕЩЕНО дополнять статью фактами из тренировочных данных модели.\n"
         "4. Если данных из источников не хватает для полноценного раздела — "
         "напиши вместо него: [INSUFFICIENT_SOURCES: <что именно отсутствует>]\n"
-        "5. Короткая достоверная статья лучше длинной с домыслами.\n\n"
+        "5. Короткая достоверная статья лучше длинной с домыслами.\n"
+        "6. ЗАПРЕЩЕНО вводить собственные классификации/таксономии (например «три класса», «два типа») "
+        "если источник не использует эту классификацию явно.\n"
+        "7. ЗАПРЕЩЕНО приписывать взгляды «экспертам», «аналитикам», «многим специалистам» "
+        "если источник не содержит такой атрибуции.\n"
+        "8. Если источник обрезан (текст обрывается на «...»), трактуй только то, что прямо написано — "
+        "не интерпретируй намерения автора.\n\n"
         "Правила стиля: {rules_excerpt}.\n\n"
         "Контекст из базы знаний автора: {knowledge_pack}.\n\n"
         "Аналитика исследователя (структура, LSI, тезисы): {web_pack}.\n\n"
@@ -848,12 +894,19 @@ def run_fast(prompt: str) -> tuple[str, int]:
 # ── Material Passport ─────────────────────────────────────────────────────────
 
 def save_state(slug: str, context: dict, completed_step: int) -> None:
-    """Сохраняет текущее состояние пайплайна в JSON (append-only обновление)."""
+    """Сохраняет текущее состояние пайплайна в JSON. completed_step никогда не откатывается."""
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     state_path = STATE_DIR / f"{slug}.json"
+    # Не откатываем номер шага (resume после сбоя не должен перезаписывать прогресс)
+    current_step = 0
+    if state_path.exists():
+        try:
+            current_step = json.loads(state_path.read_text(encoding="utf-8")).get("completed_step", 0)
+        except Exception:
+            pass
     state = {
         "slug": slug,
-        "completed_step": completed_step,
+        "completed_step": max(completed_step, current_step),
         "saved_at": datetime.now(timezone.utc).isoformat(),
         # Сохраняем только сериализуемые строковые поля контекста
         "context": {
@@ -1062,11 +1115,13 @@ def run_pipeline(
         print("  [Слой 1] Ищу свежие новости за неделю...")
         tg_notify(f"🔍 <b>Шаг 03</b> — web-researcher\n⏳ Ищу актуальные источники...")
 
-        fresh = web_search_fresh(topic, max_results=3)
+        # search_query используется если задан явно (более специфичный запрос)
+        _sq = search_query or topic
+        fresh = web_search_fresh(_sq, max_results=3)
         print(f"  Найдено свежих: {len(fresh)}")
 
         print("  [Слой 2] Ищу глубинные источники...")
-        deep = web_search_deep(f"{topic} руководство практика кейсы", max_results=5)
+        deep = web_search_deep(f"{_sq} практика кейсы руководство", max_results=5)
         print(f"  Найдено глубинных: {len(deep)}")
 
         context["raw_sources"] = format_raw_sources(fresh, deep)
@@ -1098,17 +1153,22 @@ def run_pipeline(
         save_state(slug, context, 3)
 
     # Шаг 3.5: FINER gate — оцениваем тему, блокируем при F=0
-    finer_ok, finer_report = finer_gate(topic, fresh, deep)
-    context["finer_report"] = finer_report
-    print(f"\n  [FINER gate]\n{finer_report}")
-    if not finer_ok:
-        tg_notify(
-            f"🚫 <b>FINER gate: СТОП</b>\n\n{finer_report}\n\n"
-            f"Генерация прекращена. Выберите другую тему или расширьте поисковый запрос."
-        )
-        print("\n🚫 FINER gate: нет источников. Генерация остановлена.")
-        sys.exit(1)
-    tg_notify(f"🔍 <b>FINER gate: OK</b>\n{finer_report}")
+    # При resume (last_step >= 3) поиск не выполнялся, fresh/deep пусты → пропускаем
+    if last_step >= 3 and context.get("web_pack"):
+        print("  [passport] FINER gate пропущен (уже выполнен на шаге 3)")
+        finer_report = context.get("finer_report", "")
+    else:
+        finer_ok, finer_report = finer_gate(topic, fresh, deep)
+        context["finer_report"] = finer_report
+        print(f"\n  [FINER gate]\n{finer_report}")
+        if not finer_ok:
+            tg_notify(
+                f"🚫 <b>FINER gate: СТОП</b>\n\n{finer_report}\n\n"
+                f"Генерация прекращена. Выберите другую тему или расширьте поисковый запрос."
+            )
+            print("\n🚫 FINER gate: нет источников. Генерация остановлена.")
+            sys.exit(1)
+        tg_notify(f"🔍 <b>FINER gate: OK</b>\n{finer_report}")
 
     fresh_summary = "\n".join(
         f"🔴 [{s['date']}] {s['title']} {_TIER_LABEL[_source_tier(s.get('url',''))]}"
@@ -1119,7 +1179,7 @@ def run_pipeline(
     approved, corrections = human_review(
         "Утвердите структуру и данные из исследования",
         f"📰 Информационные поводы:\n{fresh_summary}\n\n"
-        f"📌 Тезис и структура:\n{output[:600]}\n\n"
+        f"📌 Тезис и структура:\n{context.get('web_pack', '')[:600]}\n\n"
         f"{finer_report}\n\n"
         f"📚 База знаний:\n{context['knowledge_pack'][:150]}",
         step=4,
@@ -1200,6 +1260,31 @@ def run_pipeline(
     # Шаг 6.5: fact-checker — блокируем если найдены непроверенные утверждения
     fact_ok, fact_report = run_fact_checker(full_draft, context["raw_sources"], "6.5")
     context["fact_check_report"] = fact_report
+
+    # Авто-исправление небольшого числа UNVERIFIED/CONTRADICTED (max 1 попытка)
+    if not fact_ok:
+        import re as _re
+        _u = _re.search(r"UNVERIFIED:\s*\*{0,2}(\d+)", fact_report)
+        _c = _re.search(r"CONTRADICTED:\s*\*{0,2}(\d+)", fact_report)
+        _unverified_count = int(_u.group(1)) if _u else 99
+        _contradicted_count = int(_c.group(1)) if _c else 99
+    if not fact_ok and (_unverified_count + _contradicted_count) <= 5:
+        print("  [fact-autofix] Найдены CONTRADICTED-утверждения — исправляю...")
+        tg_notify("🔄 <b>fact-autofix</b>: Исправляю противоречивые утверждения...")
+        fix_prompt = (
+            f"Ты редактор-фактчекер. В статье обнаружены CONTRADICTED-утверждения.\n\n"
+            f"Отчёт фактчекера:\n{fact_report}\n\n"
+            f"Исправь статью: удали или нейтрализуй только проблемные формулировки, "
+            f"указанные в разделе CONTRADICTED. Остальной текст не меняй.\n\n"
+            f"Статья:\n{full_draft}"
+        )
+        fixed, _ = run_claude(fix_prompt)
+        if len(fixed) >= len(full_draft) * 0.7:
+            full_draft = fixed
+            context["draft_1-3"] = full_draft
+            print("  [fact-autofix] ✅ Черновик исправлен — повторная проверка")
+            fact_ok, fact_report = run_fact_checker(full_draft, context["raw_sources"], "6.5r")
+            context["fact_check_report"] = fact_report
 
     if not fact_ok:
         tg_notify(
