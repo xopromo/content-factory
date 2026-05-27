@@ -513,6 +513,167 @@ def validate_entity_names(article_text: str, sources_text: str) -> tuple[bool, l
     return is_valid, errors
 
 
+def assess_content_value(article_text: str) -> dict:
+    """
+    Оценивает ценность каждого блока контента в статье (H2 → параграфы).
+    Возвращает {section_index: score, ...} где score 0-10.
+    Используется для удаления низкоценностного контента.
+    """
+    import re
+
+    # Разбиваем статью на секции (H2 + следующие параграфы)
+    h2_pattern = r'^## (.+?)$'
+    sections = re.split(rf'(?m)^##', article_text)
+
+    scores = {}
+
+    # Первая секция (лид) всегда важная
+    if len(sections) > 0:
+        scores[0] = 10
+
+    # Оцениваем каждую H2-секцию
+    for idx, section in enumerate(sections[1:], start=1):
+        heading_match = re.match(r' (.+?)\n', section)
+        if not heading_match:
+            continue
+
+        heading = heading_match.group(1).strip()
+        body = section[heading_match.end():]
+
+        # Красные флаги: низкоценностный контент
+        low_value_keywords = [
+            'дизайн', 'иконка', 'логотип', 'стиль', 'внешний вид',
+            'переименован', 'переименовал', 'обновил иконку',
+            'минималистичный дизайн', 'визуальный'
+        ]
+
+        # Считаем слова и специфичность
+        word_count = len(body.split())
+        has_numbers = bool(re.search(r'\d+', body))
+        has_quotes = '>' in body  # блокквоты
+        has_facts = bool(re.search(r'\[(\d+)\]', body))  # ссылки на источники
+
+        # Логика оценки
+        score = 5  # базовая оценка
+
+        # Штрафы за низкоценность
+        if any(keyword in heading.lower() for keyword in low_value_keywords):
+            score -= 3
+
+        # Бонусы за специфичность
+        if has_numbers:
+            score += 2
+        if has_facts:
+            score += 1
+        if has_quotes:
+            score += 1
+        if word_count > 200:
+            score += 1
+        elif word_count < 50:
+            score -= 2
+
+        # Штраф если заголовок и первое предложение == одно и то же
+        first_sentence = body.split('\n')[0] if body else ""
+        if first_sentence.lower().find(heading.lower()) >= 0:
+            # Заголовок повторяется в тексте
+            score -= 2
+
+        # Убеждаемся что не ниже 0 и не выше 10
+        scores[idx] = max(0, min(10, score))
+
+    return scores
+
+
+def reduce_excessive_headings(article_text: str, max_h2: int = 2, mode: str = "news") -> str:
+    """
+    Для режима NEWS: убирает лишние H2-заголовки если их больше чем max_h2.
+    Низкоценностные блоки удаляются полностью.
+    Высокоценностные блоки сохраняются.
+    """
+    import re
+
+    if mode != "news":
+        return article_text
+
+    # Оцениваем каждый блок
+    scores = assess_content_value(article_text)
+
+    # Если H2 меньше чем максимум — ничего не делаем
+    h2_count = len(re.findall(r'^## ', article_text, re.MULTILINE))
+    if h2_count <= max_h2:
+        return article_text
+
+    # Нужно сократить — удаляем низкоценностные блоки
+    sections = re.split(r'(^## .+?$)', article_text, flags=re.MULTILINE)
+
+    # Структура: [intro, '## heading', body, '## heading', body, ...]
+    result_parts = []
+    idx = 0
+    section_idx = 0
+
+    while idx < len(sections):
+        if idx == 0:
+            # Вводный блок (лид) — всегда сохраняем
+            result_parts.append(sections[idx])
+            idx += 1
+        elif idx < len(sections) - 1 and sections[idx].startswith('##'):
+            # Это заголовок H2
+            heading = sections[idx]
+            body = sections[idx + 1] if idx + 1 < len(sections) else ""
+
+            # Проверяем оценку этого раздела
+            section_idx += 1
+            score = scores.get(section_idx, 5)
+
+            # Пороги: удаляем <3, сохраняем >=3
+            if score >= 3:
+                result_parts.append(heading)
+                result_parts.append(body)
+            # иначе пропускаем этот раздел
+
+            idx += 2
+        else:
+            idx += 1
+
+    cleaned = ''.join(result_parts)
+
+    # Проверяем что не осталось слишком много H2
+    remaining_h2 = len(re.findall(r'^## ', cleaned, re.MULTILINE))
+    if remaining_h2 > max_h2:
+        # Берём только топ-N секций по оценке
+        sections_data = []
+        for i, score in scores.items():
+            if i > 0:  # пропускаем лид (idx=0)
+                sections_data.append((i, score))
+
+        # Берём топ-2 (или max_h2) по оценке
+        top_indices = sorted(sections_data, key=lambda x: x[1], reverse=True)[:max_h2]
+        top_indices_set = {i for i, _ in top_indices}
+
+        # Перестраиваем текст только с топовыми секциями
+        sections = re.split(r'(^## .+?$)', cleaned, flags=re.MULTILINE)
+        result_parts = []
+        section_idx = 0
+        idx = 0
+
+        while idx < len(sections):
+            if idx == 0:
+                result_parts.append(sections[idx])
+                idx += 1
+            elif idx < len(sections) - 1 and sections[idx].startswith('##'):
+                section_idx += 1
+                if section_idx in top_indices_set:
+                    result_parts.append(sections[idx])
+                    result_parts.append(sections[idx + 1] if idx + 1 < len(sections) else "")
+                idx += 2
+            else:
+                idx += 1
+
+        cleaned = ''.join(result_parts)
+
+    return cleaned
+
+
 def web_search_yandex(query: str, search_type: str = "news", max_results: int = 5) -> list[dict]:
     """
     Поиск через Yandex Search API (fallback при ошибках DuckDuckGo).
@@ -1213,22 +1374,30 @@ AGENT_PROMPTS = {
         "4. Если данных не хватает для раздела — напиши: [INSUFFICIENT_SOURCES: <что отсутствует>]\n"
         "5. ЗАПРЕЩЕНО вводить таксономии и классификации, которых нет в источниках.\n"
         "6. ЗАПРЕЩЕНО приписывать взгляды «экспертам», если источник не содержит такой атрибуции.\n\n"
+        "## КРИТИЧЕСКОЕ ПРАВИЛО ДЛЯ ЗАГОЛОВКОВ:\n"
+        "- МАКСИМУМ 2 H2 заголовка (не больше!).\n"
+        "- Каждый H2 должен быть ОТДЕЛЬНЫМ УГЛОМ, не просто пересказом первого предложения параграфа.\n"
+        "- Заголовок и текст под ним НЕ должны быть тем же самым — заголовок = угол, текст = деталь.\n"
+        "- ❌ ПЛОХО: H2 «Новый минималистичный дизайн» с параграфом «Google обновил дизайн, сделав его минималистичным»\n"
+        "- ✅ ХОРОШО: H2 «Главный факт» с первым предложением, а второй и третий параграфы — развитие с новыми фактами\n\n"
         "Структура статьи:\n"
         "# {title}\n"
-        "**Лид** (2-3 предложения — суть события, кто, что, когда, почему важно)\n"
-        "## [H2: главный факт или событие]\n"
-        "## [H2: контекст или последствия]\n"
-        "## [H2: более широкая картина или значимость]\n"
+        "**Лид** (2-3 предложения — суть события, кто, что, когда, почему важно. ВСЕ ключевые факты в первом предложении!)\n"
+        "## [H2: один главный факт или первый угол]\n"
+        "[2-3 параграфа: развитие этого факта с конкретными деталями и контекстом]\n"
+        "## [H2: второй угол или более широкая картина]\n"
+        "[2-3 параграфа: почему это важно читателю, последствия, значимость]\n"
         "**Вывод** (1-2 предложения) — это новый смысл или угол, которого не было явно "
         "в тексте: последствие, неочевидная связь, инсайт для читателя. "
         "Читатель должен унести мысль, а не резюме.\n\n"
         "Дополнительные правила:\n"
-        "- H2-заголовки — тезисы, не вопросы и не обращения. ЗАПРЕЩЕНО: «Что X даёт вам», «Как это изменит вас»\n"
+        "- H2-заголовки — конкретные тезисы, не вопросы и не обращения. ЗАПРЕЩЕНО: «Что X даёт вам», «Как это изменит вас»\n"
         "- Английские технические термины не переводить дословно. vibe coding — не «вибро-кодинг». Писать в оригинале если нет устоявшегося русского термина\n"
-        "- ЗАПРЕЩЕНО обращение «вы/вам/тебе» в заголовках H2/H3\n\n"
+        "- ЗАПРЕЩЕНО обращение «вы/вам/тебе» в заголовках H2/H3\n"
+        "- ЗАПРЕЩЕНО создавать низкоценностные блоки (например о логотипах/иконках) если они не дают новой информации. Сосредоточься на главном.\n\n"
         "Правила стиля: {rules_excerpt}\n\n"
         "## ВЕРИФИЦИРОВАННЫЕ ИСТОЧНИКИ:\n{raw_sources}\n\n"
-        "Напиши статью строго по структуре. Каждое H2 начинается с прямого ответа (AEO)."
+        "Напиши статью строго по структуре. Каждое H2 начинается с прямого ответа (AEO) и развивается в 2-3 параграфах."
     ),
 }
 
@@ -1787,6 +1956,17 @@ def run_pipeline(
             r.finish(output, tokens=tokens)
             save_state(slug, context, 6)
         full_draft = context.get("draft_1-3", "")
+
+        # Шаг 6.3: reduce_excessive_headings для режима NEWS
+        print(f"  [news-optim] Проверяю количество заголовков и ценность блоков...")
+        cleaned = reduce_excessive_headings(full_draft, max_h2=2, mode="news")
+        if len(cleaned) != len(full_draft):
+            print(f"  [news-optim] Оптимизация: удалены низкоценностные блоки")
+            h2_before = len(__import__('re').findall(r'^## ', full_draft, __import__('re').MULTILINE))
+            h2_after = len(__import__('re').findall(r'^## ', cleaned, __import__('re').MULTILINE))
+            print(f"  [news-optim] H2 заголовков: {h2_before} → {h2_after}")
+            full_draft = cleaned
+            context["draft_1-3"] = cleaned
     else:
         for step in (5, 6):
             block = "1-3" if step == 5 else "4-6"
