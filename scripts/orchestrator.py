@@ -270,9 +270,12 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
     # Убираем пустые секции: заголовок H2/H3 сразу за которым следует другой заголовок или конец
     md_text = re.sub(r'\n(#{2,4}[^\n]+)\n+(?=#{1,4}|\Z)', '\n', md_text)
 
+    # Таблицы требуют пустую строку перед первой строкой — добавляем если строка перед | не пустая
+    md_text = re.sub(r'(?m)^([^|\n#][^\n]*)\n(\|)', r'\1\n\n\2', md_text)
+
     body_html = _md.markdown(
         md_text,
-        extensions=["tables", "fenced_code", "toc", "nl2br"],
+        extensions=["tables", "fenced_code", "toc"],
     )
     body_html = _make_code_collapsible(body_html)
 
