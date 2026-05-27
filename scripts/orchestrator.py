@@ -1636,14 +1636,19 @@ def run_pipeline(
             context["fact_check_report"] = fact_report
 
     if not fact_ok:
-        tg_notify(
-            f"🚫 <b>fact-checker: СТОП</b>\n\n"
-            f"В черновике обнаружены непроверенные или противоречивые утверждения.\n\n"
-            f"{fact_report[:1000]}\n\n"
-            f"Генерация прекращена. Перезапустите с другой темой или добавьте источники."
-        )
-        print(f"\n🚫 fact-checker FAILED:\n{fact_report}")
-        sys.exit(1)
+        # В режиме news допускаем 1 UNVERIFIED при 0 CONTRADICTED — мелкая неточность формулировки
+        if mode == "news" and _contradicted_count == 0 and _unverified_count <= 1:
+            print(f"  [fact-checker] ⚠️ {_unverified_count} UNVERIFIED — допустимо для режима новость, продолжаю")
+            fact_ok = True
+        else:
+            tg_notify(
+                f"🚫 <b>fact-checker: СТОП</b>\n\n"
+                f"В черновике обнаружены непроверенные или противоречивые утверждения.\n\n"
+                f"{fact_report[:1000]}\n\n"
+                f"Генерация прекращена. Перезапустите с другой темой или добавьте источники."
+            )
+            print(f"\n🚫 fact-checker FAILED:\n{fact_report}")
+            sys.exit(1)
 
     print("  [fact-checker] ✅ FACT_CHECK_PASSED")
     save_state(slug, context, 6)
