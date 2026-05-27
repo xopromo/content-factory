@@ -35,6 +35,20 @@ except ImportError:
     _gemini_client = None
 
 try:
+    from mistralai.client.sdk import Mistral as _Mistral
+    _mistral_key = os.environ.get("MISTRAL_KEY", "")
+    _mistral_client = _Mistral(api_key=_mistral_key) if _mistral_key else None
+except ImportError:
+    _mistral_client = None
+
+try:
+    from cerebras.cloud.sdk import Cerebras as _Cerebras
+    _cerebras_key = os.environ.get("CEREBRAS_KEY", "")
+    _cerebras_client = _Cerebras(api_key=_cerebras_key) if _cerebras_key else None
+except ImportError:
+    _cerebras_client = None
+
+try:
     from ddgs import DDGS as _DDGS
 except ImportError:
     _DDGS = None
@@ -653,9 +667,31 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
             )
             return resp.text.strip(), tokens
         except Exception as e:
-            print(f"[GEMINI ERROR] {e} — пробую claude CLI")
+            print(f"[GEMINI ERROR] {e} — пробую Mistral")
 
-    # Fallback: claude CLI (без хуков проекта — запуск из /tmp)
+    if _mistral_client:
+        try:
+            resp = _mistral_client.chat.complete(
+                model="mistral-small-latest",
+                messages=[{"role": "user", "content": full_prompt}],
+                max_tokens=8192,
+            )
+            return resp.choices[0].message.content.strip(), tokens
+        except Exception as e:
+            print(f"[MISTRAL ERROR] {e} — пробую Cerebras")
+
+    if _cerebras_client:
+        try:
+            resp = _cerebras_client.chat.completions.create(
+                model="llama-3.3-70b",
+                messages=[{"role": "user", "content": full_prompt}],
+                max_tokens=8192,
+            )
+            return resp.choices[0].message.content.strip(), tokens
+        except Exception as e:
+            print(f"[CEREBRAS ERROR] {e} — пробую claude CLI")
+
+    # Последний резерв: claude CLI
     result = subprocess.run(
         ["claude", "-p", full_prompt, "--output-format", "text"],
         capture_output=True,
@@ -956,6 +992,26 @@ def run_fast(prompt: str) -> tuple[str, int]:
             return resp.text.strip(), tokens
         except Exception as e:
             print(f"[GEMINI FAST ERROR] {e}")
+    if _cerebras_client:
+        try:
+            resp = _cerebras_client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=1024,
+            )
+            return resp.choices[0].message.content.strip(), tokens
+        except Exception as e:
+            print(f"[CEREBRAS FAST ERROR] {e}")
+    if _mistral_client:
+        try:
+            resp = _mistral_client.chat.complete(
+                model="mistral-small-latest",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=1024,
+            )
+            return resp.choices[0].message.content.strip(), tokens
+        except Exception as e:
+            print(f"[MISTRAL FAST ERROR] {e}")
     return "", tokens
 
 
@@ -1243,6 +1299,37 @@ def run_pipeline(
         for s in fresh
     ) if fresh else "⚠️ Свежих новостей нет"
 
+    # Шаг 3.6: Gap Analysis — выявляем обязательных игроков, которых нет в источниках
+    if last_step < 3:
+        gap_prompt = (
+            f"Тема статьи: «{topic}»\n\n"
+            f"Текущие источники охватывают:\n{context.get('raw_sources', '')[:2000]}\n\n"
+            f"Задача: перечисли конкретные инструменты, продукты, компании или технологии, "
+            f"которые ОБЯЗАТЕЛЬНО должны быть упомянуты в полноценной статье на эту тему, "
+            f"но которых НЕТ в текущих источниках. "
+            f"Формат ответа — список на английском, по одному на строку. "
+            f"Если все ключевые игроки присутствуют — напиши: COVERAGE_OK\n"
+            f"Максимум 5 пунктов."
+        )
+        gap_result, _ = run_fast(gap_prompt)
+        if "COVERAGE_OK" not in gap_result:
+            missing = [
+                line.strip("•-* ").strip()
+                for line in gap_result.splitlines()
+                if line.strip() and not line.startswith("#")
+            ][:5]
+            print(f"  [gap-analysis] Недостающие игроки: {missing}")
+            tg_notify(f"🔍 <b>Gap Analysis</b>: доищу {len(missing)} игроков...")
+            for entity in missing:
+                extra = web_search_deep(f"{entity} features pricing 2026", max_results=2)
+                if extra:
+                    # Добавляем новые источники в raw_sources
+                    extra_block = format_raw_sources([], extra)
+                    existing = context.get("raw_sources", "")
+                    context["raw_sources"] = existing + "\n\n---\n\n" + extra_block
+                    print(f"    +{len(extra)} источников для «{entity}»")
+            save_state(slug, context, 3)
+
     # Шаг 4: HUMAN REVIEW структуры (включает FINER-отчёт)
     approved, corrections = human_review(
         "Утвердите структуру и данные из исследования",
@@ -1324,6 +1411,47 @@ def run_pipeline(
                 context["draft_1-3"] = full_draft  # обновляем для последующих шагов
                 print("  [auto-revision] ✅ Черновик исправлен")
             save_state(slug, context, 6)
+
+    # Шаг 6.4: INSUFFICIENT_SOURCES quality gate
+    # Если черновик содержит >1 незаполненной секции — доищем данные и перепишем
+    import re as _re_q
+    _isuf_count = len(_re_q.findall(r'\[INSUFFICIENT_SOURCES:', full_draft))
+    if _isuf_count > 1 and last_step < 6:
+        print(f"  [quality-gate] {_isuf_count} незаполненных секций — ищу дополнительные источники...")
+        tg_notify(f"🔍 <b>Quality Gate</b>: {_isuf_count} пустых секций — дозапрашиваю источники...")
+        # Извлекаем что именно не хватает
+        missing_topics = _re_q.findall(r'\[INSUFFICIENT_SOURCES:\s*([^\]]{10,100})', full_draft)
+        for mt in missing_topics[:3]:
+            # Берём первые значимые слова как поисковый запрос
+            search_q = " ".join(mt.split()[:6]) + " 2026"
+            extra = web_search_deep(search_q, max_results=2)
+            if extra:
+                extra_block = format_raw_sources([], extra)
+                context["raw_sources"] = context.get("raw_sources", "") + "\n\n---\n\n" + extra_block
+                print(f"    +{len(extra)} источников для: {search_q[:50]}")
+        # Перезаписываем черновик с новыми источниками
+        fix_prompt = (
+            AGENT_PROMPTS["content-writer"].format(
+                title=title,
+                rules_excerpt=rules_excerpt,
+                knowledge_pack=context.get("knowledge_pack", ""),
+                web_pack=context.get("web_pack", ""),
+                raw_sources=context.get("raw_sources", ""),
+            )
+            + corrections_block
+            + f"\n\nВ черновике {_isuf_count} незаполненных секций. "
+            + "Перепиши ТОЛЬКО эти секции, используя дополнительно найденные источники. "
+            + "Если данных по-прежнему нет — убери этот раздел из структуры. "
+            + "Остальной текст оставь без изменений.\n\n"
+            + f"Черновик:\n{full_draft}"
+        )
+        fixed, _ = run_claude(fix_prompt, inject_feedback=True)
+        if len(fixed) >= len(full_draft) * 0.5:
+            full_draft = fixed
+            context["draft_1-3"] = full_draft
+            save_state(slug, context, 6)
+            _isuf_remaining = len(_re_q.findall(r'\[INSUFFICIENT_SOURCES:', full_draft))
+            print(f"  [quality-gate] ✅ Осталось незаполненных секций: {_isuf_remaining}")
 
     # Шаг 6.5: fact-checker — блокируем если найдены непроверенные утверждения
     fact_ok, fact_report = run_fact_checker(full_draft, context["raw_sources"], "6.5")
