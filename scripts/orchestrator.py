@@ -720,15 +720,17 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
             print(f"[ОШИБКА CEREBRAS] {e} — пробую OpenRouter")
 
     if _openrouter_client:
-        try:
-            resp = _openrouter_client.chat.completions.create(
-                model="meta-llama/llama-4-maverick:free",
-                messages=[{"role": "user", "content": full_prompt}],
-                max_tokens=8192,
-            )
-            return resp.choices[0].message.content.strip(), tokens
-        except Exception as e:
-            print(f"[ОШИБКА OPENROUTER] {e} — пробую claude CLI")
+        for _or_model in ["deepseek/deepseek-v4-flash:free", "nvidia/nemotron-3-super-120b-a12b:free", "meta-llama/llama-3.3-70b-instruct:free"]:
+            try:
+                resp = _openrouter_client.chat.completions.create(
+                    model=_or_model,
+                    messages=[{"role": "user", "content": full_prompt}],
+                    max_tokens=8192,
+                )
+                return resp.choices[0].message.content.strip(), tokens
+            except Exception as e:
+                print(f"[ОШИБКА OPENROUTER {_or_model}] {e}")
+        print("  [openrouter] все модели недоступны — пробую claude CLI")
 
     # Последний резерв: claude CLI
     result = subprocess.run(
@@ -1083,15 +1085,16 @@ def run_fast(prompt: str) -> tuple[str, int]:
         except Exception as e:
             print(f"[ОШИБКА MISTRAL-FAST] {e}")
     if _openrouter_client:
-        try:
-            resp = _openrouter_client.chat.completions.create(
-                model="deepseek/deepseek-v4-flash:free",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=1024,
-            )
-            return resp.choices[0].message.content.strip(), tokens
-        except Exception as e:
-            print(f"[ОШИБКА OPENROUTER-FAST] {e}")
+        for _or_model in ["deepseek/deepseek-v4-flash:free", "nvidia/nemotron-3-super-120b-a12b:free", "meta-llama/llama-3.3-70b-instruct:free"]:
+            try:
+                resp = _openrouter_client.chat.completions.create(
+                    model=_or_model,
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=1024,
+                )
+                return resp.choices[0].message.content.strip(), tokens
+            except Exception as e:
+                print(f"[ОШИБКА OPENROUTER-FAST {_or_model}] {e}")
     return "", tokens
 
 
@@ -1321,8 +1324,9 @@ def run_pipeline(
         )
         scope_result, _ = run_fast(scope_prompt)
         scope_result = scope_result.strip()
-        if "SCOPE_OK" not in scope_result:
-            narrowed = scope_result.splitlines()[0].strip("•-* \"'`")
+        if not scope_result or "SCOPE_OK" not in scope_result:
+            lines = scope_result.splitlines()
+            narrowed = lines[0].strip("•-* \"'`") if lines else ""
             if narrowed and len(narrowed) > 5:
                 print(f"  [scope] ⚠️ Запрос слишком общий → уточняю: «{narrowed}»")
                 tg_notify(f"🔍 <b>Шаг 1.5 — scope</b>: запрос уточнён\n«{search_query}» → «{narrowed}»")
