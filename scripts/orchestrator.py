@@ -188,12 +188,6 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
     m = re.search(r'<script type="application/ld\+json">([\s\S]*?)</script>', md_text)
     if m:
         jsonld_block = f'<script type="application/ld+json">{m.group(1)}</script>'
-        # Убираем весь раздел вокруг JSON-LD (заголовок "JSON-LD" + примечание)
-        md_text = re.sub(
-            r'\n#{1,3}\s*JSON-LD\s*\n[\s\S]*?(?=\n#{1,3}\s|\Z)',
-            '',
-            md_text,
-        )
         md_text = md_text[:m.start()] + md_text[m.end():]
     elif "```json" in md_text and "@context" in md_text:
         # Формат 2: ```json { ... } ```
@@ -201,6 +195,26 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
         if m2:
             jsonld_block = f'<script type="application/ld+json">{m2.group(1)}</script>'
             md_text = md_text[:m2.start()] + md_text[m2.end():]
+
+    # Убираем служебные секции SEO-оптимизатора — они не часть статьи
+    _seo_sections = [
+        r'## Целевые ключевые слова',
+        r'## Оптимизированный текст',
+        r'## AEO-аудит',
+        r'## Schema\.org JSON-LD',
+        r'## JSON-LD',
+    ]
+    for _pat in _seo_sections:
+        md_text = re.sub(
+            rf'\n{_pat}[^\n]*\n[\s\S]*?(?=\n## |\Z)',
+            '',
+            md_text,
+        )
+    # Убираем blockquote с инструкциями про плейсхолдеры JSON-LD
+    md_text = re.sub(r'\n> \*\*Замените плейсхолдеры\*\*[^\n]*\n?', '', md_text)
+    md_text = re.sub(r'\*\*Замените плейсхолдеры\*\*[^\n]*\n?', '', md_text)
+    # Убираем горизонтальные разделители перед служебными секциями которые остались
+    md_text = re.sub(r'\n---\s*\n\s*$', '', md_text)
 
     # Удаляем маркеры [INSUFFICIENT_SOURCES: ...] — могут содержать вложенные [...] внутри
     # Используем жадный поиск до последней ] на строке (не захватываем через границы абзаца)
