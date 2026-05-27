@@ -727,7 +727,10 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
                     messages=[{"role": "user", "content": full_prompt}],
                     max_tokens=8192,
                 )
-                return resp.choices[0].message.content.strip(), tokens
+                text = resp.choices[0].message.content if resp.choices and resp.choices[0].message.content else ""
+                if text.strip():
+                    return text.strip(), tokens
+                raise ValueError("пустой ответ")
             except Exception as e:
                 print(f"[ОШИБКА OPENROUTER {_or_model}] {e}")
         print("  [openrouter] все модели недоступны — пробую claude CLI")
@@ -1092,7 +1095,10 @@ def run_fast(prompt: str) -> tuple[str, int]:
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=1024,
                 )
-                return resp.choices[0].message.content.strip(), tokens
+                text = resp.choices[0].message.content if resp.choices and resp.choices[0].message.content else ""
+                if text.strip():
+                    return text.strip(), tokens
+                raise ValueError("пустой ответ")
             except Exception as e:
                 print(f"[ОШИБКА OPENROUTER-FAST {_or_model}] {e}")
     return "", tokens
