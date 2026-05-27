@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cognition привлекла $1 млрд при оценке $25 млрд</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #1F2937; --surface: #263348; --surface2: #2d3a50;
+      --border: rgba(255,255,255,0.08); --primary: #818CF8;
+      --text: #F9FAFB; --text-muted: #9CA3AF;
+      --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
+    .nav {
+      display: flex; align-items: center; gap: 24px; padding: 0 32px; height: 52px;
+      border-bottom: 1px solid var(--border); background: rgba(31,41,55,0.95);
+      backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .nav-logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+    .nav-back { margin-left: auto; font-size: 13px; color: var(--text-muted); text-decoration: none; }
+    .nav-back:hover { color: var(--text); }
+    .article-wrap { max-width: 780px; margin: 48px auto; padding: 0 24px 80px; }
+    .article-wrap h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; margin-bottom: 24px; }
+    .article-wrap h2 { font-size: 22px; font-weight: 600; margin: 40px 0 12px; letter-spacing: -0.01em; }
+    .article-wrap h3 { font-size: 17px; font-weight: 600; margin: 28px 0 10px; }
+    .article-wrap h4 { font-size: 15px; font-weight: 600; margin: 20px 0 8px; color: var(--text-muted); }
+    .article-wrap p { margin-bottom: 16px; }
+    .article-wrap ul, .article-wrap ol { margin: 0 0 16px 24px; }
+    .article-wrap li { margin-bottom: 6px; }
+    .article-wrap table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; }
+    .article-wrap th { background: var(--surface2); padding: 10px 14px; text-align: left; font-weight: 600; border: 1px solid var(--border); }
+    .article-wrap td { padding: 9px 14px; border: 1px solid var(--border); }
+    .article-wrap tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .article-wrap code { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: 4px; }
+    .article-wrap pre { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; overflow-x: auto; margin: 20px 0; }
+    .article-wrap pre code { background: none; padding: 0; }
+    .article-wrap blockquote { border-left: 3px solid var(--primary); padding: 12px 20px; margin: 20px 0; background: var(--surface); border-radius: 0 var(--radius-md) var(--radius-md) 0; color: var(--text-muted); }
+    .article-wrap a { color: var(--primary); text-decoration: none; }
+    .article-wrap a:hover { text-decoration: underline; }
+    .article-wrap hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .mermaid { background: var(--surface); border-radius: var(--radius-md); padding: 20px; margin: 20px 0; overflow-x: auto; }
+    .code-wrap { margin: 20px 0; }
+    .code-wrap pre { margin: 0; border-radius: var(--radius-md) var(--radius-md) 0 0; }
+    .code-wrap.collapsed pre { max-height: 104px; overflow: hidden; position: relative; }
+    .code-wrap.collapsed pre::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 48px;
+      background: linear-gradient(transparent, var(--surface)); pointer-events: none;
+    }
+    .code-toggle {
+      display: block; width: 100%; padding: 8px 16px;
+      background: var(--surface2); border: 1px solid var(--border); border-top: none;
+      color: var(--text-muted); cursor: pointer; font-size: 12px;
+      border-radius: 0 0 var(--radius-md) var(--radius-md); text-align: center;
+    }
+    .code-toggle:hover { color: var(--text); }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({startOnLoad:true, theme:'dark'});</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.code-wrap').forEach(function(wrap) {
+        var btn = wrap.querySelector('.code-toggle');
+        if (!btn) return;
+        btn.addEventListener('click', function() {
+          wrap.classList.toggle('collapsed');
+          btn.textContent = wrap.classList.contains('collapsed')
+            ? btn.dataset.expand : btn.dataset.collapse;
+        });
+      });
+    });
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-logo"><div class="nav-logo-dot"></div>Content Factory</div>
+    <a class="nav-back" href="/content-factory/">← Все статьи</a>
+  </nav>
+  <div class="article-wrap">
+    <h1 id="cognition-1-25-devin">Cognition привлекла $1 млрд при оценке $25 млрд: Devin становится стандартом для корпораций</h1>
+<p>Стартап Cognition, разработчик автономного AI-инженера Devin, объявил о привлечении более $1 млрд при предварительной оценке в $25 млрд. Всего восемь месяцев назад компания закрыла раунд на $400 млн с пост-денежной оценкой $10,2 млрд. Инвестиции возглавили Lux Capital и General Catalyst, к ним присоединились новые игроки, включая Ribbit Capital и Layer Global, а также существующие инвесторы Founders Fund и 8VC. Раунд подтверждает интерес венчурных фондов к независимым стартапам в сфере AI-кодирования, несмотря на конкуренцию со стороны крупных игроков [1].</p>
+<h2 id="_1">Рекордный раунд и экспоненциальный рост</h2>
+<p>За последние восемь месяцев оценка Cognition выросла более чем в два раза — с $10,2 млрд до $25 млрд. Компания достигла годового дохода в $492 млн, а использование Devin в корпоративном секторе увеличивается на 50% ежемесячно на протяжении последних шести месяцев. Среди клиентов стартапа значатся Mercedes-Benz, NASA, Goldman Sachs и Santander, что подчеркивает доверие крупных предприятий к технологии [1].</p>
+<p>В раунде участвовали как новые инвесторы, такие как Atreides и Layer Global, так и уже знакомые с компанией фонды. Это свидетельствует о том, что рынок видит потенциал в автономных AI-инструментах для разработки, несмотря на доминирование таких гигантов, как OpenAI и Anthropic [1].</p>
+<h2 id="cognition-ai-">Что означает успех Cognition для рынка AI-кодирования</h2>
+<p>Рынок AI-ассистентов для программирования долгое время считался вотчиной крупных игроков. OpenAI с Codex, Anthropic с Claude Code и Google с агентом Jules активно развивают собственные решения, оставляя мало пространства для независимых стартапов. Однако успех Cognition показывает, что нишевые игроки могут не только выживать, но и становиться лидерами в корпоративном сегменте [1].</p>
+<p>Ключевым фактором роста Devin стало его внедрение в крупных компаниях, где автономность и адаптивность AI-инженера оказались востребованы больше, чем универсальные модели. При этом Cognition не раскрывает детали интеграции, но факт сотрудничества с такими клиентами, как NASA и Goldman Sachs, говорит о высоком уровне доверия к технологии [1].</p>
+<p>Инвестиции в Cognition могут сигнализировать о сдвиге в стратегии венчурных фондов: вместо ставки на универсальные модели они начинают поддерживать узкоспециализированные решения, способные конкурировать с гигантами в конкретных нишах. Это может открыть дорогу для других стартапов, фокусирующихся на автономных AI-системах для бизнеса .</p>
+  </div>
+</body>
+</html>
