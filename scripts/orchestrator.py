@@ -657,7 +657,7 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
-            print(f"[GROQ ERROR] {e} — пробую Gemini")
+            print(f"[ОШИБКА GROQ] {e} — пробую Gemini")
 
     if _gemini_client:
         try:
@@ -667,7 +667,7 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
             )
             return resp.text.strip(), tokens
         except Exception as e:
-            print(f"[GEMINI ERROR] {e} — пробую Mistral")
+            print(f"[ОШИБКА GEMINI] {e} — пробую Mistral")
 
     if _mistral_client:
         try:
@@ -678,7 +678,7 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
-            print(f"[MISTRAL ERROR] {e} — пробую Cerebras")
+            print(f"[ОШИБКА MISTRAL] {e} — пробую Cerebras")
 
     if _cerebras_client:
         try:
@@ -689,7 +689,7 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
-            print(f"[CEREBRAS ERROR] {e} — пробую claude CLI")
+            print(f"[ОШИБКА CEREBRAS] {e} — пробую claude CLI")
 
     # Последний резерв: claude CLI
     result = subprocess.run(
@@ -982,7 +982,7 @@ def run_fast(prompt: str) -> tuple[str, int]:
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
-            print(f"[GROQ FAST ERROR] {e}")
+            print(f"[ОШИБКА GROQ-FAST] {e}")
     if _gemini_client:
         try:
             resp = _gemini_client.models.generate_content(
@@ -991,7 +991,7 @@ def run_fast(prompt: str) -> tuple[str, int]:
             )
             return resp.text.strip(), tokens
         except Exception as e:
-            print(f"[GEMINI FAST ERROR] {e}")
+            print(f"[ОШИБКА GEMINI-FAST] {e}")
     if _cerebras_client:
         try:
             resp = _cerebras_client.chat.completions.create(
@@ -1001,7 +1001,7 @@ def run_fast(prompt: str) -> tuple[str, int]:
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
-            print(f"[CEREBRAS FAST ERROR] {e}")
+            print(f"[ОШИБКА CEREBRAS-FAST] {e}")
     if _mistral_client:
         try:
             resp = _mistral_client.chat.complete(
@@ -1011,7 +1011,7 @@ def run_fast(prompt: str) -> tuple[str, int]:
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
-            print(f"[MISTRAL FAST ERROR] {e}")
+            print(f"[ОШИБКА MISTRAL-FAST] {e}")
     return "", tokens
 
 
@@ -1299,36 +1299,38 @@ def run_pipeline(
         for s in fresh
     ) if fresh else "⚠️ Свежих новостей нет"
 
-    # Шаг 3.6: Gap Analysis — выявляем обязательных игроков, которых нет в источниках
+    # Шаг 3.6: Gap Analysis — определяем что важно для ЭТОЙ темы, но не попало в источники
     if last_step < 3:
         gap_prompt = (
             f"Тема статьи: «{topic}»\n\n"
-            f"Текущие источники охватывают:\n{context.get('raw_sources', '')[:2000]}\n\n"
-            f"Задача: перечисли конкретные инструменты, продукты, компании или технологии, "
-            f"которые ОБЯЗАТЕЛЬНО должны быть упомянуты в полноценной статье на эту тему, "
-            f"но которых НЕТ в текущих источниках. "
-            f"Формат ответа — список на английском, по одному на строку. "
-            f"Если все ключевые игроки присутствуют — напиши: COVERAGE_OK\n"
-            f"Максимум 5 пунктов."
+            f"Найденные источники:\n{context.get('raw_sources', '')[:2000]}\n\n"
+            f"Задача: определи, что ОБЯЗАТЕЛЬНО должна раскрыть полноценная статья на эту тему, "
+            f"но чего НЕТ в найденных источниках.\n\n"
+            f"Это зависит от типа темы:\n"
+            f"- обзор инструментов/продуктов → конкретные инструменты или решения\n"
+            f"- техническая тема → ключевые концепции, алгоритмы, исследования\n"
+            f"- тема о человеке → важные события биографии, работы, цитаты\n"
+            f"- аналитика → данные, исследования, статистика\n\n"
+            f"Формат ответа: список поисковых запросов (1-5 штук), которые найдут недостающее.\n"
+            f"Каждый запрос — отдельная строка, без нумерации и маркеров.\n"
+            f"Если источники достаточно полны — напиши: COVERAGE_OK"
         )
         gap_result, _ = run_fast(gap_prompt)
         if "COVERAGE_OK" not in gap_result:
-            missing = [
+            queries = [
                 line.strip("•-* ").strip()
                 for line in gap_result.splitlines()
-                if line.strip() and not line.startswith("#")
+                if line.strip() and not line.startswith("#") and len(line.strip()) > 5
             ][:5]
-            print(f"  [gap-analysis] Недостающие игроки: {missing}")
-            tg_notify(f"🔍 <b>Gap Analysis</b>: доищу {len(missing)} игроков...")
-            for entity in missing:
-                extra = web_search_deep(f"{entity} features pricing 2026", max_results=2)
+            print(f"  [gap-analysis] Дозапрашиваю по {len(queries)} запросам...")
+            tg_notify(f"🔍 <b>Gap Analysis</b>: дополняю источники по {len(queries)} запросам")
+            for q in queries:
+                extra = web_search_deep(q, max_results=2)
                 if extra:
-                    # Добавляем новые источники в raw_sources
                     extra_block = format_raw_sources([], extra)
-                    existing = context.get("raw_sources", "")
-                    context["raw_sources"] = existing + "\n\n---\n\n" + extra_block
-                    print(f"    +{len(extra)} источников для «{entity}»")
-            save_state(slug, context, 3)
+                    context["raw_sources"] = context.get("raw_sources", "") + "\n\n---\n\n" + extra_block
+                    print(f"    +{len(extra)} источн. → «{q[:55]}»")
+        save_state(slug, context, 3)
 
     # Шаг 4: HUMAN REVIEW структуры (включает FINER-отчёт)
     approved, corrections = human_review(
