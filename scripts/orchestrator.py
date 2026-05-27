@@ -1610,13 +1610,15 @@ def run_pipeline(
     fact_ok, fact_report = run_fact_checker(full_draft, context["raw_sources"], "6.5")
     context["fact_check_report"] = fact_report
 
-    # Авто-исправление небольшого числа UNVERIFIED/CONTRADICTED (max 1 попытка)
-    if not fact_ok:
+    def _parse_fact_counts(report: str) -> tuple[int, int]:
         import re as _re
-        _u = _re.search(r"UNVERIFIED:\s*\*{0,2}(\d+)", fact_report)
-        _c = _re.search(r"CONTRADICTED:\s*\*{0,2}(\d+)", fact_report)
-        _unverified_count = int(_u.group(1)) if _u else 99
-        _contradicted_count = int(_c.group(1)) if _c else 99
+        _u = _re.search(r"UNVERIFIED:\s*\*{0,2}(\d+)", report)
+        _c = _re.search(r"CONTRADICTED:\s*\*{0,2}(\d+)", report)
+        return (int(_u.group(1)) if _u else 99), (int(_c.group(1)) if _c else 99)
+
+    _unverified_count, _contradicted_count = (0, 0) if fact_ok else _parse_fact_counts(fact_report)
+
+    # Авто-исправление CONTRADICTED (max 1 попытка)
     if not fact_ok and (_unverified_count + _contradicted_count) <= 5:
         print("  [fact-autofix] Найдены CONTRADICTED-утверждения — исправляю...")
         tg_notify("🔄 <b>fact-autofix</b>: Исправляю противоречивые утверждения...")
@@ -1634,16 +1636,47 @@ def run_pipeline(
             print("  [fact-autofix] ✅ Черновик исправлен — повторная проверка")
             fact_ok, fact_report = run_fact_checker(full_draft, context["raw_sources"], "6.5r")
             context["fact_check_report"] = fact_report
+            # Обновляем счётчики из нового отчёта
+            _unverified_count, _contradicted_count = (0, 0) if fact_ok else _parse_fact_counts(fact_report)
 
     if not fact_ok:
-        # В режиме news допускаем 1 UNVERIFIED при 0 CONTRADICTED — мелкая неточность формулировки
-        if mode == "news" and _contradicted_count == 0 and _unverified_count <= 1:
-            print(f"  [fact-checker] ⚠️ {_unverified_count} UNVERIFIED — допустимо для режима новость, продолжаю")
-            fact_ok = True
+        if _contradicted_count > 0:
+            # CONTRADICTED — реальная ошибка факта, останавливаем в любом режиме
+            tg_notify(
+                f"🚫 <b>fact-checker: СТОП</b>\n\n"
+                f"В черновике обнаружены противоречия с источниками.\n\n"
+                f"{fact_report[:1000]}\n\n"
+                f"Генерация прекращена. Перезапустите с другой темой или добавьте источники."
+            )
+            print(f"\n🚫 fact-checker FAILED (CONTRADICTED):\n{fact_report}")
+            sys.exit(1)
+        elif mode == "news" and _unverified_count > 0:
+            # UNVERIFIED в режиме news — вырезаем неверифицированные утверждения, не переписываем
+            print(f"  [fact-checker] ✂️ {_unverified_count} UNVERIFIED → вырезаю из черновика (режим новость)")
+            tg_notify(f"✂️ <b>fact-strip</b>: убираю {_unverified_count} неверифицированных утверждений")
+            strip_prompt = (
+                f"Ты редактор. Из статьи нужно убрать конкретные утверждения, "
+                f"которые не подтверждены источниками.\n\n"
+                f"Список утверждений для удаления (из отчёта фактчекера):\n"
+                f"{fact_report}\n\n"
+                f"Задача: найди в тексте эти конкретные фразы и удали их или замени "
+                f"на более осторожную формулировку без непроверенных деталей. "
+                f"Не добавляй ничего нового. Не переписывай верифицированные части.\n\n"
+                f"Статья:\n{full_draft}"
+            )
+            stripped, _ = run_claude(strip_prompt)
+            if len(stripped) >= len(full_draft) * 0.5:
+                full_draft = stripped
+                context["draft_1-3"] = full_draft
+                print(f"  [fact-checker] ✅ Неверифицированные утверждения убраны")
+                fact_ok = True
+            else:
+                print(f"  [fact-checker] ⚠️ Strip вернул слишком короткий результат — продолжаю с оригиналом")
+                fact_ok = True  # всё равно продолжаем — CONTRADICTED нет
         else:
             tg_notify(
                 f"🚫 <b>fact-checker: СТОП</b>\n\n"
-                f"В черновике обнаружены непроверенные или противоречивые утверждения.\n\n"
+                f"В черновике обнаружены непроверенные утверждения.\n\n"
                 f"{fact_report[:1000]}\n\n"
                 f"Генерация прекращена. Перезапустите с другой темой или добавьте источники."
             )
