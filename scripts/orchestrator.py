@@ -452,6 +452,17 @@ def validate_entity_names(article_text: str, sources_text: str) -> tuple[bool, l
 
     errors = []
 
+    # Служебные слова и метаметки которые игнорируем
+    ignore_list = {
+        'The', 'By', 'In', 'For', 'And', 'Or', 'As', 'Is', 'Was', 'Are', 'Be',
+        'Have', 'Has', 'Do', 'Does', 'Did', 'Will', 'Would', 'Should', 'Could',
+        'May', 'Might', 'Must', 'Can', 'Let', 'Make', 'Get', 'Put', 'Set', 'Go',
+        # Служебные слова из отчётов
+        'VERIFIED', 'UNVERIFIED', 'CONTRADICTED', 'FACT_CHECK_PASSED', 'FACT_CHECK_FAILED',
+        'CRITICAL', 'ERROR', 'WARNING', 'PASSED', 'FAILED', 'OK', 'ИТОГ',
+        # ALL_CAPS слова вообще игнорируем (это обычно аббревиатуры)
+    }
+
     # Ищем известные компании/продукты в статье (капитализированные слова и фразы)
     # Паттерны типа: CompanyName, Product Name, "кавычки"
     entity_patterns = [
@@ -469,8 +480,8 @@ def validate_entity_names(article_text: str, sources_text: str) -> tuple[bool, l
     # Проверяем каждую найденную сущность
     # Если сущность есть в статье, она ДОЛЖНА быть в источниках (примерно)
     for entity in sorted(found_entities):
-        # Пропускаем обычные слова которые случайно капитализированы
-        if entity in ['The', 'By', 'In', 'For', 'And', 'Or', 'As', 'Is', 'Was']:
+        # Пропускаем служебные слова и ALL_CAPS
+        if entity in ignore_list or entity.isupper():
             continue
 
         # Ищем вариации этого имени в источниках
@@ -1989,7 +2000,7 @@ def run_pipeline(
             tg_notify(f"⚠️ <b>entity-validator: предупреждения</b>\n\n{''.join([e for e in entity_errors if e.startswith('⚠️')])}")
     else:
         print(f"  [entity-validator] ✅ Все названия компаний совпадают с источниками")
-    save_state(slug, context, "6.7")
+    # save_state вызывается в следующем шаге (7)
 
     # Шаг 7: diagram-illustrator (пропускается в режиме news)
     if mode == "news":
