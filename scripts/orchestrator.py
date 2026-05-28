@@ -599,6 +599,83 @@ def assess_content_value(article_text: str) -> dict:
     return scores
 
 
+def detect_semantic_duplicates(article_text: str) -> tuple[bool, str]:
+    """
+    Находит H2-секции с повторяющимися тезисами (>50% смыслового пересечения).
+    Возвращает (has_duplicates, report_str).
+    """
+    import re
+    h2_sections = re.findall(r'^## .+?$', article_text, re.MULTILINE)
+    if len(h2_sections) < 3:
+        return False, "Секций слишком мало для проверки дубликатов"
+
+    prompt = (
+        f"Ты редактор. Проверь, нет ли смысловых повторов между разделами статьи.\n\n"
+        f"Разделы H2:\n" + '\n'.join(f"  - {s[3:]}" for s in h2_sections) + "\n\n"
+        f"Полный текст:\n{article_text[:6000]}\n\n"
+        f"Найди пары разделов, которые говорят об одном и том же (>50% совпадение тезисов).\n\n"
+        f"Если дубликатов нет → ответь одной строкой: DEDUP_OK\n"
+        f"Если есть → ответь: DEDUP_FOUND\n"
+        f"Затем для каждой пары:\n"
+        f"MERGE: «заголовок A» + «заголовок B» → оставить «A» (или «B»), убрать другой\n"
+        f"REASON: [одна строка почему они дублируют друг друга]"
+    )
+    result, _ = run_fast(prompt)
+    return "DEDUP_FOUND" in result, result
+
+
+def strengthen_weak_sections(article_text: str, sources: str) -> str:
+    """
+    Усиливает разделы с низкой информационной ценностью (score < 3).
+    Добавляет конкретику или удаляет пустые блоки.
+    """
+    scores = assess_content_value(article_text)
+    weak = {idx: s for idx, s in scores.items() if s < 4}
+    if not weak:
+        return article_text
+
+    prompt = (
+        f"Ты редактор. Усиль слабые разделы статьи — добавь конкретику или удали пустые.\n\n"
+        f"Правила:\n"
+        f"- Если раздел < 50 слов и нет фактов → удали его целиком\n"
+        f"- Если раздел без цифр/примеров → добавь конкретику ИЗ источников\n"
+        f"- НЕ придумывай данные которых нет в источниках\n"
+        f"- НЕ трогай разделы с оценкой ≥ 4\n\n"
+        f"Слабые разделы (индекс: оценка): {weak}\n\n"
+        f"Источники:\n{sources[:2000]}\n\n"
+        f"Статья:\n{article_text}"
+    )
+    result, _ = run_claude(prompt)
+    return result if len(result) >= len(article_text) * 0.7 else article_text
+
+
+def improve_readability_seo(article_text: str) -> str:
+    """
+    Улучшает читаемость SEO-статьи:
+    - Разбивает абзацы длиннее 5 предложений
+    - Убирает слова-паразиты
+    - Делает первые предложения H2 прямыми ответами на вопрос заголовка
+    - Устраняет однотипные структуры предложений подряд
+    """
+    prompt = (
+        f"Ты редактор с фокусом на читаемость. Улучши статью строго по правилам:\n\n"
+        f"1. АБЗАЦЫ: абзац длиннее 5 предложений — раздели на 2 по смыслу\n"
+        f"2. ПЕРВЫЕ ПРЕДЛОЖЕНИЯ H2: должны содержать главный факт/тезис, а не вступление\n"
+        f"   Плохо: «Рассмотрим, как работает Dynamic Workflows.»\n"
+        f"   Хорошо: «Dynamic Workflows запускает до сотен субагентов параллельно в одной сессии.»\n"
+        f"3. СЛОВА-ПАРАЗИТЫ: убери — данный, является, осуществляет, в рамках, в целях, "
+        f"следует отметить, таким образом, в настоящее время\n"
+        f"4. ПОВТОРЯЮЩАЯСЯ СТРУКТУРА: не более 2 предложений подряд с одинаковым началом "
+        f"(«Это позволяет...», «Это даёт...», «Это означает...» — чередуй)\n"
+        f"5. ВВОДНЫЕ КЛИШЕ: убери «В этой статье мы рассмотрим», «Давайте разберёмся», «Не секрет что»\n\n"
+        f"Важно: не добавляй новых фактов — только улучшай стиль и структуру.\n"
+        f"Возвращай полный текст статьи.\n\n"
+        f"Статья:\n{article_text}"
+    )
+    result, _ = run_claude(prompt)
+    return result if len(result) >= len(article_text) * 0.65 else article_text
+
+
 def verify_article_logic(article_text: str, removed_sections: list[str] = None) -> tuple[bool, str]:
     """
     Проверяет логику и целостность статьи после удаления блоков.
@@ -2314,6 +2391,63 @@ def run_pipeline(
     else:
         print(f"  [entity-validator] ✅ Все названия компаний совпадают с источниками")
     # save_state вызывается в следующем шаге (7)
+
+    # ── SEO-качество: три дополнительных прохода (только для seo/full) ──────────────
+    if mode != "news":
+        # Шаг 6.8: Semantic dedup — убираем смысловые повторы между H2
+        print("  [semantic-dedup] Ищу смысловые повторы между секциями...")
+        has_dups, dedup_report = detect_semantic_duplicates(full_draft)
+        if has_dups:
+            tg_notify("🔄 <b>semantic-dedup</b>: Найдены повторы — объединяю секции...")
+            merge_prompt = (
+                f"Ты редактор. Объедини или удали дублирующиеся разделы статьи по отчёту.\n\n"
+                f"Отчёт:\n{dedup_report}\n\n"
+                f"Правило: при объединении сохраняй все уникальные факты из обоих разделов. "
+                f"Не удаляй утверждения с ссылками [1], [2] и т.д. "
+                f"Верни полный текст статьи.\n\n"
+                f"Статья:\n{full_draft}"
+            )
+            merged, _ = run_claude(merge_prompt)
+            if len(merged) >= len(full_draft) * 0.6:
+                full_draft = merged
+                context["draft_1-3"] = full_draft
+                print("  [semantic-dedup] ✅ Дубликаты устранены")
+            else:
+                print("  [semantic-dedup] ⚠️ Результат слишком короткий — пропускаю")
+        else:
+            print("  [semantic-dedup] ✅ Смысловых повторов нет")
+        tg_notify(f"🔍 <b>semantic-dedup</b>: {'повторы найдены и устранены' if has_dups else 'OK — повторов нет'}")
+
+        # Шаг 6.9: Content value — усиляем слабые блоки
+        print("  [content-value] Оцениваю ценность блоков...")
+        scores = assess_content_value(full_draft)
+        weak_count = sum(1 for s in scores.values() if s < 4)
+        if weak_count > 0:
+            print(f"  [content-value] ⚠️ Найдено {weak_count} слабых блоков — усиляю...")
+            tg_notify(f"🔄 <b>content-value</b>: {weak_count} слабых блоков — усиляю")
+            strengthened = strengthen_weak_sections(full_draft, context.get("raw_sources", ""))
+            if strengthened != full_draft:
+                full_draft = strengthened
+                context["draft_1-3"] = full_draft
+                print("  [content-value] ✅ Слабые блоки усилены")
+            else:
+                print("  [content-value] ⚠️ Без изменений (источники не позволяют добавить конкретику)")
+        else:
+            print("  [content-value] ✅ Все блоки достаточно ценные")
+
+        # Шаг 6.10: Readability — читаемость и устранение паразитов
+        print("  [readability] Улучшаю читаемость и устраняю слова-паразиты...")
+        tg_notify("✍️ <b>readability</b>: улучшаю читаемость...")
+        improved = improve_readability_seo(full_draft)
+        if improved != full_draft:
+            full_draft = improved
+            context["draft_1-3"] = full_draft
+            print("  [readability] ✅ Читаемость улучшена")
+        else:
+            print("  [readability] ⚠️ Без изменений")
+
+        save_state(slug, context, 6)
+    # ─────────────────────────────────────────────────────────────────────────────────
 
     # Шаг 7: diagram-illustrator (пропускается в режиме news)
     if mode == "news":
