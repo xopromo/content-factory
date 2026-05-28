@@ -24,8 +24,10 @@ except ImportError:
 try:
     from groq import Groq as _Groq
     _groq_client = _Groq(api_key=os.environ.get("GROQ_KEY", "")) if os.environ.get("GROQ_KEY") else None
+    _groq_client2 = _Groq(api_key=os.environ.get("GROQ_KEY_2", "")) if os.environ.get("GROQ_KEY_2") else None
 except ImportError:
     _groq_client = None
+    _groq_client2 = None
 
 try:
     from google import genai as _genai
@@ -597,6 +599,41 @@ def assess_content_value(article_text: str) -> dict:
         scores[idx] = max(0, min(10, score))
 
     return scores
+
+
+def validate_numbers(article_text: str, sources: str) -> tuple[bool, str]:
+    """
+    Проверяет числа, цифры и проценты в статье по трём уровням:
+    - Тип A: изобретённые числа (нет в источниках)
+    - Тип B: математически неверный перевод (в N раз → проценты)
+    - Тип C: неверная единица измерения
+    - Тип D: число без контекста/базы сравнения
+    Возвращает (ok, report).
+    """
+    prompt = (
+        "Ты математический редактор. Проверь все числа, цифры и проценты в статье.\n\n"
+        "## Правила проверки:\n\n"
+        "**Тип A — Изобретённые числа:** число есть в тексте, но отсутствует в источниках\n"
+        "**Тип B — Неверный перевод кратности:**\n"
+        "  - «в N раз меньше» = снижение на (1 − 1/N)×100%, НЕ на N×100%\n"
+        "  - «в N раз больше» = рост на (N−1)×100%, НЕ на N×100%\n"
+        "  - Примеры ошибок: «в 4 раза меньше» → «на 400% меньше» ❌ (верно: на 75%)\n"
+        "  -                  «в 2 раза больше» → «на 200% больше» ❌ (верно: на 100%)\n"
+        "**Тип C — Неверная единица:** число правильное, единица другая\n"
+        "**Тип D — Число без базы:** «на X% быстрее» без указания по сравнению с чем\n\n"
+        "## Источники:\n"
+        f"{sources[:2000]}\n\n"
+        "## Статья:\n"
+        f"{article_text}\n\n"
+        "## Формат ответа:\n"
+        "Если ошибок нет → одна строка: NUMBERS_OK\n"
+        "Если есть → NUMBERS_FAIL, затем список:\n"
+        "ТИП [A/B/C/D]: «цитата из текста» → ПРОБЛЕМА: объяснение → ИСПРАВИТЬ: правильный вариант\n"
+        "Перечисляй только реальные ошибки, не придирайся к стилю."
+    )
+    result, _ = run_fast(prompt)
+    ok = "NUMBERS_OK" in result and "NUMBERS_FAIL" not in result
+    return ok, result
 
 
 def detect_semantic_duplicates(article_text: str) -> tuple[bool, str]:
@@ -1180,9 +1217,11 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
     full_prompt = "\n\n".join(p for p in parts if p.strip())
     tokens = len(full_prompt.split()) * 2
 
-    if _groq_client:
+    for _gq_idx, _gq in enumerate([_groq_client, _groq_client2]):
+        if not _gq:
+            continue
         try:
-            resp = _groq_client.chat.completions.create(
+            resp = _gq.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[{"role": "user", "content": full_prompt}],
                 max_tokens=8192,
@@ -1190,7 +1229,9 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
-            print(f"[ОШИБКА GROQ] {e} — пробую Gemini")
+            label = "GROQ" if _gq_idx == 0 else "GROQ-2"
+            next_label = "GROQ-2" if (_gq_idx == 0 and _groq_client2) else "Gemini"
+            print(f"[ОШИБКА {label}] {e} — пробую {next_label}")
 
     if _gemini_client:
         try:
@@ -1618,9 +1659,11 @@ def run_fast(prompt: str) -> tuple[str, int]:
     Использует llama-3.1-8b-instant (Groq) вместо 70b — экономия ~4x токенов.
     """
     tokens = len(prompt.split()) * 2
-    if _groq_client:
+    for _gq_idx, _gq in enumerate([_groq_client, _groq_client2]):
+        if not _gq:
+            continue
         try:
-            resp = _groq_client.chat.completions.create(
+            resp = _gq.chat.completions.create(
                 model="llama-3.1-8b-instant",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=1024,
@@ -1628,7 +1671,8 @@ def run_fast(prompt: str) -> tuple[str, int]:
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
-            print(f"[ОШИБКА GROQ-FAST] {e}")
+            label = "GROQ-FAST" if _gq_idx == 0 else "GROQ2-FAST"
+            print(f"[ОШИБКА {label}] {e}")
     if _gemini_client:
         try:
             resp = _gemini_client.models.generate_content(
@@ -2390,6 +2434,33 @@ def run_pipeline(
             tg_notify(f"⚠️ <b>entity-validator: предупреждения</b>\n\n{''.join([e for e in entity_errors if e.startswith('⚠️')])}")
     else:
         print(f"  [entity-validator] ✅ Все названия компаний совпадают с источниками")
+
+    # Шаг 6.75: number-validator — проверка чисел, процентов, единиц измерения
+    print(f"  [number-validator] Проверяю числа и проценты...")
+    num_ok, num_report = validate_numbers(full_draft, context.get("raw_sources", ""))
+    if not num_ok:
+        tg_notify(f"🔢 <b>number-validator</b>: найдены числовые ошибки\n\n{num_report[:800]}")
+        print(f"  [number-validator] ⚠️ Найдены числовые ошибки — исправляю...")
+        fix_prompt = (
+            f"Ты редактор. Исправь числовые ошибки в статье согласно отчёту.\n\n"
+            f"Отчёт:\n{num_report}\n\n"
+            f"Правила исправления:\n"
+            f"- Тип A (изобретённые числа): удали число или замени на качественное описание\n"
+            f"- Тип B (неверный перевод): исправь по формуле «в N раз меньше» = на (1-1/N)×100%\n"
+            f"- Тип C (неверная единица): исправь единицу по источнику\n"
+            f"- Тип D (нет базы): добавь «по сравнению с [X]» или удали процент\n"
+            f"Не трогай числа без замечаний. Верни полный текст статьи.\n\n"
+            f"Статья:\n{full_draft}"
+        )
+        fixed, _ = run_claude(fix_prompt)
+        if len(fixed) >= len(full_draft) * 0.7:
+            full_draft = fixed
+            context["draft_1-3"] = full_draft
+            print(f"  [number-validator] ✅ Числовые ошибки исправлены")
+        else:
+            print(f"  [number-validator] ⚠️ Автофикс вернул короткий результат — пропускаю")
+    else:
+        print(f"  [number-validator] ✅ Все числа корректны")
     # save_state вызывается в следующем шаге (7)
 
     # ── SEO-качество: три дополнительных прохода (только для seo/full) ──────────────
