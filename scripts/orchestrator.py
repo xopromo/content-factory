@@ -225,6 +225,8 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
     md_text = re.sub(r'\*\*Замените плейсхолдеры\*\*[^\n]*\n?', '', md_text)
     # Убираем горизонтальные разделители перед служебными секциями которые остались
     md_text = re.sub(r'\n---\s*\n\s*$', '', md_text)
+    # Убираем дублирующиеся горизонтальные разделители (--- подряд несколько раз)
+    md_text = re.sub(r'(\n---\s*){2,}', '\n---\n', md_text)
 
     # Удаляем маркеры [INSUFFICIENT_SOURCES: ...] — могут содержать вложенные [...] внутри
     # Используем жадный поиск до последней ] на строке (не захватываем через границы абзаца)
@@ -278,6 +280,19 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
     md_text = re.sub(r'^\*\*Вывод\*\*\s*\n?', '', md_text, flags=re.MULTILINE)
     md_text = re.sub(r'^#+\s+\*?\*?Лид\*?\*?\s*\n?', '', md_text, flags=re.MULTILINE)
     md_text = re.sub(r'^#+\s+\*?\*?Вывод\*?\*?\s*\n?', '', md_text, flags=re.MULTILINE)
+
+    # Убираем заголовок Schema.org JSON-LD (он виден в тексте, но не нужен)
+    # Используем [^\n]* чтобы захватить всю строку целиком (.*? останавливался на Schema.org)
+    md_text = re.sub(r'^#+\s+[^\n]*Schema\.org[^\n]*\n?', '', md_text, flags=re.MULTILINE | re.IGNORECASE)
+
+    # Убираем блок Примечания SEO-оптимизатора (утечка внутренних заметок в статью)
+    md_text = re.sub(r'\*?\*?Примечания:\*?\*?.*$', '', md_text, flags=re.DOTALL)
+
+    # Убираем <script> теги внутри ```json блоков (JSON-LD уже извлечён отдельно)
+    md_text = re.sub(r'<script[^>]*>|</script>', '', md_text)
+
+    # Убираем пустые ```json``` блоки (остаются после извлечения JSON-LD из <script> внутри блока)
+    md_text = re.sub(r'```json\s*```', '', md_text, flags=re.DOTALL)
 
     # Убираем жирное форматирование из текста (заменяем **text** на text)
     md_text = re.sub(r'\*\*(.*?)\*\*', r'\1', md_text)
