@@ -2350,11 +2350,8 @@ def run_pipeline(
         update_step(plan_path, 10)
         r.finish(output, tokens=tokens)
 
-    # Шаг 11: editor-critic (пропускается в режиме news)
-    if mode == "news":
-        print("  [news] Editor-critic пропущен (режим новость)")
-        context.setdefault("editor_report", "")
-    elif last_step >= 11 and context.get("editor_report"):
+    # Шаг 11: editor-critic (работает в том числе в режиме news)
+    if last_step >= 11 and context.get("editor_report"):
         print("  [passport] Шаг 11 пропущен (уже выполнен)")
     else:
         r = StepResult(11, "editor-critic")
