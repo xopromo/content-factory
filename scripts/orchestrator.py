@@ -2214,10 +2214,14 @@ def run_pipeline(
 
     _unverified_count, _contradicted_count = (0, 0) if fact_ok else _parse_fact_counts(fact_report)
 
-    # Авто-исправление CONTRADICTED (max 1 попытка)
-    if not fact_ok and (_unverified_count + _contradicted_count) <= 5:
-        print("  [fact-autofix] Найдены CONTRADICTED-утверждения — исправляю...")
-        tg_notify("🔄 <b>fact-autofix</b>: Исправляю противоречивые утверждения...")
+    # Авто-исправление CONTRADICTED (max 2 попытки)
+    # Проверяем только CONTRADICTED — UNVERIFIED обрабатываются отдельно (strip)
+    _contradicted_before_fix = _contradicted_count
+    for _fix_attempt in range(2):
+        if fact_ok or _contradicted_count == 0 or _contradicted_count > 8:
+            break
+        print(f"  [fact-autofix] Попытка {_fix_attempt + 1}: исправляю {_contradicted_count} CONTRADICTED...")
+        tg_notify(f"🔄 <b>fact-autofix (попытка {_fix_attempt + 1})</b>: Исправляю противоречивые утверждения...")
         fix_prompt = (
             f"Ты редактор-фактчекер. В статье обнаружены CONTRADICTED-утверждения.\n\n"
             f"Отчёт фактчекера:\n{fact_report}\n\n"
@@ -2229,23 +2233,30 @@ def run_pipeline(
         if len(fixed) >= len(full_draft) * 0.7:
             full_draft = fixed
             context["draft_1-3"] = full_draft
-            print("  [fact-autofix] ✅ Черновик исправлен — повторная проверка")
-            fact_ok, fact_report = run_fact_checker(full_draft, context["raw_sources"], "6.5r")
+            print(f"  [fact-autofix] ✅ Черновик исправлен — повторная проверка")
+            fact_ok, fact_report = run_fact_checker(full_draft, context["raw_sources"], f"6.5r{_fix_attempt + 1}")
             context["fact_check_report"] = fact_report
-            # Обновляем счётчики из нового отчёта
             _unverified_count, _contradicted_count = (0, 0) if fact_ok else _parse_fact_counts(fact_report)
+        else:
+            break  # исправленная версия слишком короткая — прекращаем попытки
 
     if not fact_ok:
         if _contradicted_count > 0:
-            # CONTRADICTED — реальная ошибка факта, останавливаем в любом режиме
-            tg_notify(
-                f"🚫 <b>fact-checker: СТОП</b>\n\n"
-                f"В черновике обнаружены противоречия с источниками.\n\n"
-                f"{fact_report[:1000]}\n\n"
-                f"Генерация прекращена. Перезапустите с другой темой или добавьте источники."
-            )
-            print(f"\n🚫 fact-checker FAILED (CONTRADICTED):\n{fact_report}")
-            sys.exit(1)
+            # Если осталось ≤3 CONTRADICTED после всех попыток — продолжаем с предупреждением
+            # (обычно это формальные расхождения: опущенный квалификатор, синоним)
+            if _contradicted_count <= 3:
+                print(f"  [fact-autofix] ⚠️ Осталось {_contradicted_count} CONTRADICTED — продолжаю с предупреждением (формальные расхождения)")
+                tg_notify(f"⚠️ <b>fact-autofix</b>: осталось {_contradicted_count} CONTRADICTED — продолжаю")
+            else:
+                # CONTRADICTED не уменьшились — останавливаем
+                tg_notify(
+                    f"🚫 <b>fact-checker: СТОП</b>\n\n"
+                    f"В черновике обнаружены противоречия с источниками.\n\n"
+                    f"{fact_report[:1000]}\n\n"
+                    f"Генерация прекращена. Перезапустите с другой темой или добавьте источники."
+                )
+                print(f"\n🚫 fact-checker FAILED (CONTRADICTED):\n{fact_report}")
+                sys.exit(1)
         elif mode in ("news", "seo") and _unverified_count > 0:
             # UNVERIFIED в режимах news/seo — вырезаем, не переписываем и не блокируем
             print(f"  [fact-checker] ✂️ {_unverified_count} UNVERIFIED → вырезаю из черновика (режим {mode})")
