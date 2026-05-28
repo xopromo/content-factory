@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Авито Реклама запустила публичный API для управления кампаниями</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://example.com/avito-reklama-api"
+  },
+  "headline": "Авито Реклама запустила публичный API для управления кампаниями в онлайн-рекламе",
+  "description": "Публичный API Авито Рекламы позволяет автоматизировать управление рекламными кампаниями в цифровой рекламе",
+  "image": {
+    "@type": "ImageObject",
+    "url": "https://example.com/image.jpg",
+    "width": 800,
+    "height": 600
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Имя Автора"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Название Организации",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://example.com/logo.jpg",
+      "width": 200,
+      "height": 100
+    }
+  },
+  "datePublished": "2023-12-01T12:00:00+03:00",
+  "dateModified": "2023-12-01T12:00:00+03:00"
+}</script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #1F2937; --surface: #263348; --surface2: #2d3a50;
+      --border: rgba(255,255,255,0.08); --primary: #818CF8;
+      --text: #F9FAFB; --text-muted: #9CA3AF;
+      --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
+    .nav {
+      display: flex; align-items: center; gap: 24px; padding: 0 32px; height: 52px;
+      border-bottom: 1px solid var(--border); background: rgba(31,41,55,0.95);
+      backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .nav-logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+    .nav-back { margin-left: auto; font-size: 13px; color: var(--text-muted); text-decoration: none; }
+    .nav-back:hover { color: var(--text); }
+    .article-wrap { max-width: 780px; margin: 48px auto; padding: 0 24px 80px; }
+    .article-wrap h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; margin-bottom: 24px; }
+    .article-wrap h2 { font-size: 22px; font-weight: 600; margin: 40px 0 12px; letter-spacing: -0.01em; }
+    .article-wrap h3 { font-size: 17px; font-weight: 600; margin: 28px 0 10px; }
+    .article-wrap h4 { font-size: 15px; font-weight: 600; margin: 20px 0 8px; color: var(--text-muted); }
+    .article-wrap p { margin-bottom: 16px; }
+    .article-wrap ul, .article-wrap ol { margin: 0 0 16px 24px; }
+    .article-wrap li { margin-bottom: 6px; }
+    .article-wrap table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; }
+    .article-wrap th { background: var(--surface2); padding: 10px 14px; text-align: left; font-weight: 600; border: 1px solid var(--border); }
+    .article-wrap td { padding: 9px 14px; border: 1px solid var(--border); }
+    .article-wrap tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .article-wrap code { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: 4px; }
+    .article-wrap pre { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; overflow-x: auto; margin: 20px 0; }
+    .article-wrap pre code { background: none; padding: 0; }
+    .article-wrap blockquote { border-left: 3px solid var(--primary); padding: 12px 20px; margin: 20px 0; background: var(--surface); border-radius: 0 var(--radius-md) var(--radius-md) 0; color: var(--text-muted); }
+    .article-wrap a { color: var(--primary); text-decoration: none; }
+    .article-wrap a:hover { text-decoration: underline; }
+    .article-wrap hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .mermaid { background: var(--surface); border-radius: var(--radius-md); padding: 20px; margin: 20px 0; overflow-x: auto; }
+    .code-wrap { margin: 20px 0; }
+    .code-wrap pre { margin: 0; border-radius: var(--radius-md) var(--radius-md) 0 0; }
+    .code-wrap.collapsed pre { max-height: 104px; overflow: hidden; position: relative; }
+    .code-wrap.collapsed pre::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 48px;
+      background: linear-gradient(transparent, var(--surface)); pointer-events: none;
+    }
+    .code-toggle {
+      display: block; width: 100%; padding: 8px 16px;
+      background: var(--surface2); border: 1px solid var(--border); border-top: none;
+      color: var(--text-muted); cursor: pointer; font-size: 12px;
+      border-radius: 0 0 var(--radius-md) var(--radius-md); text-align: center;
+    }
+    .code-toggle:hover { color: var(--text); }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({startOnLoad:true, theme:'dark'});</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.code-wrap').forEach(function(wrap) {
+        var btn = wrap.querySelector('.code-toggle');
+        if (!btn) return;
+        btn.addEventListener('click', function() {
+          wrap.classList.toggle('collapsed');
+          btn.textContent = wrap.classList.contains('collapsed')
+            ? btn.dataset.expand : btn.dataset.collapse;
+        });
+      });
+    });
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-logo"><div class="nav-logo-dot"></div>Content Factory</div>
+    <a class="nav-back" href="/content-factory/">← Все статьи</a>
+  </nav>
+  <div class="article-wrap">
+    <h1 id="api-">Авито Реклама запустила публичный API для управления кампаниями в онлайн-рекламе</h1>
+<p>Авито Реклама представила публичный API, который позволяет автоматизировать управление рекламными кампаниями в цифровой рекламе, даёт возможность синхронизировать метрики со сквозной аналитикой, исключая необходимость ручного сбора данных. Это решение предназначено для бизнеса любого масштаба — от небольших стартапов до крупных агрегаторов в области интернет-рекламы и маркетинга в социальных сетях.</p>
+<h2 id="api-_1">API решает проблему ручного сбора данных в онлайн-рекламе</h2>
+<p>Публичный API Авито Рекламы устраняет ключевую проблему традиционных рекламных систем — ручной сбор и обработку данных в контексте онлайн-маркетинга. Ранее рекламодателям приходилось вручную экспортировать отчёты, сверять метрики и вносить коррективы в кампании через личный кабинет, теряя время на рутинных операциях в управлении рекламными кампаниями. Новый инструмент позволяет интегрировать данные напрямую в аналитические платформы или CRM-системы, экономя время на рутинных операциях и повышая эффективность цифрового маркетинга.</p>
+<p>Интеграция работает через REST-архитектуру с поддержкой стандартных форматов данных (JSON). API предоставляет доступ к ключевым метрикам: показы, клики, конверсии, стоимость лида. Это критически важно для бизнеса, который масштабирует рекламные кампании на нескольких платформах онлайн-рекламы одновременно.</p>
+<h2 id="_1">Подходит для компаний любого размера</h2>
+<p>Решение от Авито Рекламы универсально: его могут использовать как небольшие компании с ограниченными ресурсами, так и крупные холдинги с десятками брендов в онлайн-бизнесе. Для стартапов API снижает порог входа в платную онлайн-рекламу, так как не требует найма специалиста по настройке кампаний. Крупные компании получают инструмент для централизованного управления рекламой через единый интерфейс, избегая фрагментации данных между разными системами в цифровом маркетинге.</p>
+<p>Подключение происходит через личный кабинет Авито Рекламы: достаточно создать ключ доступа и интегрировать его в аналитическую платформу. Важно, что запросы по API расходуют баланс баллов, привязанный к аккаунту, а не взимают отдельную плату.</p>
+  </div>
+</body>
+</html>
