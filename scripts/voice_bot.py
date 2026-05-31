@@ -14,7 +14,7 @@ Voice Bot — голосовые заметки + распаковка эксп�
   GITHUB_TOKEN, GITHUB_REPO, GITHUB_BRANCH  (опционально, для облачного режима)
 """
 
-import os, re, sys, base64, logging, tempfile, urllib.request, urllib.parse, json
+import os, re, sys, base64, logging, tempfile, urllib.request, urllib.parse, json, asyncio
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
@@ -647,6 +647,12 @@ async def menu_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 # ── Запуск ────────────────────────────────────────────────────────────────────
 
 def main() -> None:
+    try:
+        asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
     if not (token := os.getenv("TG_BOT_TOKEN")):
         sys.exit("Нет TG_BOT_TOKEN")
     if not os.getenv("GROQ_KEY"):
