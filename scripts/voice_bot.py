@@ -539,9 +539,43 @@ def is_article_url(url: str) -> bool:
         path = parsed.path.strip("/")
         if not path:
             return False
-        # Исключаем короткие пути вроде /ru, /en, /pricing и т.д.
-        if len(path) < 5 or path in ("ru", "en", "catalog", "pricing", "login", "register"):
+            
+        # 1. Исключаем общие служебные и разделы/каталоги
+        lower_path = parsed.path.lower()
+        exclude_patterns = [
+            '/tag/', '/tags/', '/category/', '/categories/', 
+            '/archive/', '/archives/', '/author/', '/authors/',
+            '/page/', '/search/', '/catalog/', '/pricing/', 
+            '/login/', '/register/', '/signup/', '/signin/',
+            '/contacts', '/about', '/privacy', '/terms'
+        ]
+        if any(pat in lower_path for pat in exclude_patterns):
             return False
+            
+        # Разделяем на сегменты
+        segments = [s for s in path.split("/") if s]
+        if not segments:
+            return False
+            
+        # 2. Если всего один сегмент (например, domain.com/something)
+        if len(segments) == 1:
+            seg = segments[0]
+            if len(seg) < 8:
+                return False
+            has_separator = '-' in seg or '_' in seg
+            has_digit = any(c.isdigit() for c in seg)
+            if not (has_separator or has_digit):
+                return False
+                
+        # 3. Для многосегментных путей отсекаем страницы подразделов без новостного слага/ID
+        last_seg = segments[-1]
+        has_separator = '-' in last_seg or '_' in last_seg
+        has_digit = any(c.isdigit() for c in last_seg)
+        ends_with_ext = any(last_seg.endswith(ext) for ext in ['.html', '.htm', '.phtml', '.php', '.shtml'])
+        
+        if not (has_separator or has_digit or ends_with_ext) and len(last_seg) < 10:
+            return False
+            
         return True
     except Exception:
         return False
@@ -588,17 +622,23 @@ async def menu_news(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
     ctx.user_data["news_items"] = items
     lines = []
+    import html
     for i, item in enumerate(items, 1):
         emoji = ["1️⃣", "2️⃣", "3️⃣"][i - 1]
-        lines.append(f"{emoji} *{item.get('title', '—')}*\n_{item.get('source', '')}_ • {item.get('date', '')[:10]}")
+        title_escaped = html.escape(item.get('title', '—'))
+        source_escaped = html.escape(item.get('source', ''))
+        url = item.get('url', '')
+        
+        lines.append(f"{emoji} <b>{title_escaped}</b>\n🔗 <a href=\"{url}\">Читать новость</a>\n<i>{source_escaped}</i> • {item.get('date', '')[:10]}")
         if item.get("body"):
-            lines.append(f"↳ {item['body'][:120]}…")
+            body_escaped = html.escape(item['body'][:120])
+            lines.append(f"↳ {body_escaped}…")
         lines.append("")
 
     await update.message.reply_text(
-        "📰 *Свежие новости по VK-рекламе:*\n\n" + "\n".join(lines).strip()
+        "📰 <b>Свежие новости по VK-рекламе:</b>\n\n" + "\n".join(lines).strip()
         + "\n\nВыбери новость и запиши свой комментарий эксперта:",
-        parse_mode="Markdown",
+        parse_mode="HTML",
         reply_markup=ReplyKeyboardMarkup(
             [["1️⃣", "2️⃣", "3️⃣"],
              ["🔄 Новые новости"],
@@ -621,9 +661,12 @@ async def news_pick(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         ctx.user_data["news_item"] = item
         title = item.get("title", "")
         url = item.get("url", "")
+        
+        import html
+        title_escaped = html.escape(title)
         await update.message.reply_text(
-            f"🎙 *{title}*\n\nЗапиши свой комментарий: что думаешь, согласен или нет, как это работает на практике?",
-            parse_mode="Markdown",
+            f"🎙 <b>{title_escaped}</b>\n\n🔗 <b>Ссылка на новость:</b> {url}\n\nЗапиши свой комментарий: что думаешь, согласен или нет, как это работает на практике?",
+            parse_mode="HTML",
             reply_markup=NAV_KEYBOARD,
         )
         return WAIT_NEWS_VOICE
