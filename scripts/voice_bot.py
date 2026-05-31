@@ -40,6 +40,9 @@ WAIT_AUD_ANSWER   = 6
 WAIT_AUD_CONFIRM  = 7
 WAIT_NEWS_PICK    = 8
 WAIT_NEWS_VOICE   = 9
+WAIT_CUSTOM_CATEGORY = 10
+WAIT_NEWS_TOPIC    = 11
+WAIT_NEWS_QUERY    = 12
 
 # ── Константы ─────────────────────────────────────────────────────────────────
 CATEGORIES = ["💼 Кейс", "💡 Инсайт", "📋 Гайд", "🎯 Стратегия", "❓ Гипотеза", "📝 Мысль"]
@@ -65,6 +68,12 @@ MAIN_KEYBOARD = ReplyKeyboardMarkup(
 )
 
 NEWS_QUERY = "нейросети искусственный интеллект маркетинг 2026"
+
+NEWS_TOPICS = {
+    "🎯 VK-реклама": "VK-реклама таргетинг продвижение новости",
+    "🤖 Нейросети и ИИ": "нейросети искусственный интеллект маркетинг 2026",
+    "🪙 Криптовалюта": "криптовалюта биткоин трейдинг новости",
+}
 
 NAV_KEYBOARD = ReplyKeyboardMarkup(
     [["🏠 Главное меню"]],
@@ -312,7 +321,7 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
     await send_transcript(update, text)
 
-    keyboard = [[cat] for cat in CATEGORIES] + [["🏠 Главное меню"]]
+    keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠 Главное меню"]]
     await update.message.reply_text(
         "Выбери категорию:",
         reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
@@ -320,6 +329,32 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     return WAIT_CATEGORY
 
 async def handle_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    category = update.message.text.strip()
+    note_text = ctx.user_data.get("text", "")
+    duration = ctx.user_data.get("duration", 0)
+
+    if category == "➕ Своя категория":
+        await update.message.reply_text(
+            "Введите название вашей категории:",
+            reply_markup=NAV_KEYBOARD
+        )
+        return WAIT_CUSTOM_CATEGORY
+
+    if not note_text:
+        await update.message.reply_text("Что-то пошло не так, попробуй ещё раз.", reply_markup=MAIN_KEYBOARD)
+        return ConversationHandler.END
+
+    await update.message.reply_text("Сохраняю...", reply_markup=ReplyKeyboardRemove())
+    try:
+        filename, content = format_voice_note(note_text, category, duration)
+        gh_write(f"knowledge/voice/{filename}", content, f"voice: {filename}")
+        await update.message.reply_text(f"✅ Сохранено: `{filename}`", parse_mode="Markdown", reply_markup=MAIN_KEYBOARD)
+    except Exception as e:
+        await update.message.reply_text(f"Ошибка сохранения: {e}", reply_markup=MAIN_KEYBOARD)
+
+    return ConversationHandler.END
+
+async def handle_custom_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     category = update.message.text.strip()
     note_text = ctx.user_data.get("text", "")
     duration = ctx.user_data.get("duration", 0)
@@ -332,7 +367,7 @@ async def handle_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int
     try:
         filename, content = format_voice_note(note_text, category, duration)
         gh_write(f"knowledge/voice/{filename}", content, f"voice: {filename}")
-        await update.message.reply_text(f"✅ Сохранено: `{filename}`", parse_mode="Markdown", reply_markup=MAIN_KEYBOARD)
+        await update.message.reply_text(f"✅ Сохранено в категорию «{category}»: `{filename}`", parse_mode="Markdown", reply_markup=MAIN_KEYBOARD)
     except Exception as e:
         await update.message.reply_text(f"Ошибка сохранения: {e}", reply_markup=MAIN_KEYBOARD)
 
@@ -386,7 +421,7 @@ async def expert_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
     await send_transcript(update, text)
 
-    keyboard = [[cat] for cat in CATEGORIES] + [["🏠 Главное меню"]]
+    keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠 Главное меню"]]
     await update.message.reply_text(
         "Выбери категорию:",
         reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
@@ -582,44 +617,95 @@ def is_article_url(url: str) -> bool:
 
 def fetch_news(query: str, max_results: int = 15) -> list[dict]:
     """Ищет свежие новости через DuckDuckGo, возвращает list[{title, url, body}]."""
+    articles = []
+    seen_urls = set()
+    
+    # 1. Пробуем новостной поиск
     try:
-        # Запрашиваем больше результатов, чтобы после фильтрации получить хороший пул статей
         results = list(DDGS().news(query, max_results=max_results * 2))
-        filtered = [r for r in results if is_article_url(r.get("url", ""))]
-        if filtered:
-            return filtered[:max_results]
+        for r in results:
+            url = r.get("url", "")
+            if url and url not in seen_urls and is_article_url(url):
+                articles.append(r)
+                seen_urls.add(url)
     except Exception as e:
         log.warning("News fetch error (news): %s", e)
-    # Fallback: текстовый поиск
-    try:
-        results = list(DDGS().text(query, max_results=max_results * 2, region="ru-ru"))
-        filtered = []
-        for r in results:
-            url = r.get("href", "")
-            if is_article_url(url):
-                filtered.append({
-                    "title": r.get("title", ""),
-                    "url": url,
-                    "body": r.get("body", ""),
-                    "source": "",
-                    "date": ""
-                })
-        if filtered:
-            return filtered[:max_results]
-    except Exception as e:
-        log.warning("News fetch error (text): %s", e)
-    return []
+        
+    # 2. Добираем через текстовый поиск, если нашли мало статей
+    if len(articles) < 5:
+        try:
+            results = list(DDGS().text(query, max_results=max_results * 2, region="ru-ru"))
+            for r in results:
+                url = r.get("href", "")
+                if url and url not in seen_urls and is_article_url(url):
+                    articles.append({
+                        "title": r.get("title", ""),
+                        "url": url,
+                        "body": r.get("body", ""),
+                        "source": "",
+                        "date": ""
+                    })
+                    seen_urls.add(url)
+        except Exception as e:
+            log.warning("News fetch error (text): %s", e)
+            
+    return articles[:max_results]
 
-async def menu_news(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text("⏳ Ищу свежие новости по VK-рекламе...")
-    pool = fetch_news(NEWS_QUERY, max_results=15)
+async def choose_news_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    keyboard = [
+        ["🎯 VK-реклама", "🤖 Нейросети и ИИ"],
+        ["🪙 Криптовалюта", "➕ Другая тема"],
+        ["🏠 Главное меню"]
+    ]
+    await update.message.reply_text(
+        "Выбери тему новостей или нажми «➕ Другая тема», чтобы ввести свой запрос:",
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
+    return WAIT_NEWS_TOPIC
+
+async def handle_news_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    text = update.message.text.strip()
+    
+    if text == "➕ Другая тема":
+        await update.message.reply_text(
+            "Введите ваш поисковый запрос для поиска новостей:",
+            reply_markup=NAV_KEYBOARD
+        )
+        return WAIT_NEWS_QUERY
+        
+    if text in NEWS_TOPICS:
+        ctx.user_data["news_query"] = NEWS_TOPICS[text]
+        ctx.user_data["news_topic_name"] = text
+        return await start_news_search(update, ctx)
+        
+    # Если ввели что-то другое, трактуем как кастомный запрос
+    ctx.user_data["news_query"] = text
+    ctx.user_data["news_topic_name"] = text
+    return await start_news_search(update, ctx)
+
+async def handle_news_query(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    text = update.message.text.strip()
+    ctx.user_data["news_query"] = text
+    ctx.user_data["news_topic_name"] = f"Запрос: {text}"
+    return await start_news_search(update, ctx)
+
+async def start_news_search(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    query = ctx.user_data.get("news_query", NEWS_QUERY)
+    topic_name = ctx.user_data.get("news_topic_name", "VK-реклама")
+    
+    await update.message.reply_text(f"⏳ Ищу свежие новости по теме «{topic_name}»...")
+    pool = fetch_news(query, max_results=15)
 
     if not pool:
         await update.message.reply_text(
-            "Не удалось найти новости. Попробуй позже.",
-            reply_markup=MAIN_KEYBOARD,
+            f"Не удалось найти новости по теме «{topic_name}». Попробуй другой запрос.",
+            reply_markup=ReplyKeyboardMarkup([
+                ["🎯 VK-реклама", "🤖 Нейросети и ИИ"],
+                ["🪙 Криптовалюта", "➕ Другая тема"],
+                ["🏠 Главное меню"]
+            ], resize_keyboard=True)
         )
-        return ConversationHandler.END
+        return WAIT_NEWS_TOPIC
 
     # Выбираем случайные 3 из пула
     import random
@@ -641,7 +727,6 @@ async def menu_news(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
             lines.append(f"↳ {body_escaped}…")
         lines.append("")
 
-    # Динамически строим кнопки выбора номеров
     keyboard_rows = []
     if items:
         number_buttons = ["1️⃣", "2️⃣", "3️⃣"][:len(items)]
@@ -650,7 +735,7 @@ async def menu_news(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     keyboard_rows.append(["🏠 Главное меню"])
 
     await update.message.reply_text(
-        "📰 <b>Свежие новости по VK-рекламе:</b>\n\n" + "\n".join(lines).strip()
+        f"📰 <b>Свежие новости по теме «{topic_name}»:</b>\n\n" + "\n".join(lines).strip()
         + "\n\nВыбери новость и запиши свой комментарий эксперта:",
         parse_mode="HTML",
         reply_markup=ReplyKeyboardMarkup(
@@ -665,7 +750,7 @@ async def news_pick(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     items = ctx.user_data.get("news_items", [])
 
     if text == "🔄 Новые новости":
-        return await menu_news(update, ctx)
+        return await start_news_search(update, ctx)
 
     idx = NUMS.get(text)
     if idx is not None and idx < len(items):
@@ -761,12 +846,16 @@ def main() -> None:
             MessageHandler(filters.Regex("^💼 Бизнес$"), menu_business),
             MessageHandler(filters.Regex("^🎯 Аудитория$"), menu_audience),
             MessageHandler(filters.Regex("^📋 Заметки$"), menu_list),
-            MessageHandler(filters.Regex("^📰 Новости ниши$"), menu_news),
+            MessageHandler(filters.Regex("^📰 Новости ниши$"), choose_news_topic),
         ],
         states={
             WAIT_CATEGORY: [
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_category),
+            ],
+            WAIT_CUSTOM_CATEGORY: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_custom_category),
             ],
             WAIT_EXPERT_PICK: [
                 MessageHandler(home_filter, go_home),
@@ -791,6 +880,14 @@ def main() -> None:
             WAIT_AUD_CONFIRM: [
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, audience_confirm),
+            ],
+            WAIT_NEWS_TOPIC: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_news_topic),
+            ],
+            WAIT_NEWS_QUERY: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_news_query),
             ],
             WAIT_NEWS_PICK: [
                 MessageHandler(home_filter, go_home),
