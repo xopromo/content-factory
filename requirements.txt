@@ -1,6 +1,6 @@
 python-telegram-bot==21.6
 groq==0.11.0
-ddgs==6.3.0
+ddgs==9.8.0
 requests==2.32.3
 trafilatura==1.12.2
 htmldate==1.9.2
