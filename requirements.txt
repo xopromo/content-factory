@@ -1,4 +1,4 @@
-python-telegram-bot==21.6
+python-telegram-bot[webhooks]==21.6
 groq==0.11.0
 ddgs==9.8.0
 requests>=2.32.3
