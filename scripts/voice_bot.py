@@ -713,7 +713,23 @@ def main() -> None:
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(conv)
 
-    app.run_polling(drop_pending_updates=True)
+    if port_str := os.getenv("PORT"):
+        port = int(port_str)
+        external_url = os.getenv("RENDER_EXTERNAL_URL")
+        if not external_url:
+            sys.exit("Error: RENDER_EXTERNAL_URL is not set in environment variables")
+        
+        print(f"Starting webhook on port {port} with URL {external_url}")
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=port,
+            url_path=token,
+            webhook_url=f"{external_url.rstrip('/')}/{token}",
+            drop_pending_updates=True
+        )
+    else:
+        print("Starting polling...")
+        app.run_polling(drop_pending_updates=True)
 
 
 if __name__ == "__main__":
