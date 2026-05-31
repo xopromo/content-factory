@@ -532,21 +532,48 @@ async def audience_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> in
 
 # ── Режим: Новости ниши ───────────────────────────────────────────────────────
 
+def is_article_url(url: str) -> bool:
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        path = parsed.path.strip("/")
+        if not path:
+            return False
+        # Исключаем короткие пути вроде /ru, /en, /pricing и т.д.
+        if len(path) < 5 or path in ("ru", "en", "catalog", "pricing", "login", "register"):
+            return False
+        return True
+    except Exception:
+        return False
+
 def fetch_news(query: str, max_results: int = 3) -> list[dict]:
     """Ищет свежие новости через DuckDuckGo, возвращает list[{title, url, body}]."""
     try:
-        results = list(DDGS().news(query, max_results=max_results))
-        if results:
-            return results
+        results = list(DDGS().news(query, max_results=max_results * 2))
+        filtered = [r for r in results if is_article_url(r.get("url", ""))]
+        if filtered:
+            return filtered[:max_results]
     except Exception as e:
         log.warning("News fetch error (news): %s", e)
     # Fallback: текстовый поиск
     try:
-        results = list(DDGS().text(query, max_results=max_results, region="ru-ru"))
-        return [{"title": r.get("title", ""), "url": r.get("href", ""), "body": r.get("body", ""), "source": "", "date": ""} for r in results]
+        results = list(DDGS().text(query, max_results=max_results * 3, region="ru-ru"))
+        filtered = []
+        for r in results:
+            url = r.get("href", "")
+            if is_article_url(url):
+                filtered.append({
+                    "title": r.get("title", ""),
+                    "url": url,
+                    "body": r.get("body", ""),
+                    "source": "",
+                    "date": ""
+                })
+        if filtered:
+            return filtered[:max_results]
     except Exception as e:
         log.warning("News fetch error (text): %s", e)
-        return []
+    return []
 
 async def menu_news(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text("⏳ Ищу свежие новости по VK-рекламе...")
