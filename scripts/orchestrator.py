@@ -585,7 +585,7 @@ class StepResult:
 def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: bool = False) -> tuple[str, int]:
     """
     Вызывает LLM для выполнения задачи агента.
-    Использует Groq (llama-3.3-70b) если есть GROQ_KEY, иначе claude CLI.
+    Использует Groq (llama-3.3-70b) если есть GROQ_KEY, иначе Gemini, иначе claude CLI.
     Возвращает (output, estimated_tokens).
     inject_feedback=True только для content-writer (остальным не нужно).
     """
@@ -604,6 +604,8 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
     full_prompt = "\n\n".join(p for p in parts if p.strip())
     tokens = len(full_prompt.split()) * 2
 
+    errors = []
+
     if _groq_client:
         try:
             resp = _groq_client.chat.completions.create(
@@ -614,7 +616,9 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
-            print(f"[GROQ ERROR] {e} — пробую Gemini")
+            err_msg = f"Groq Error: {e}"
+            print(f"[GROQ ERROR] {e}")
+            errors.append(err_msg)
 
     if _gemini_client:
         try:
@@ -624,17 +628,32 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
             )
             return resp.text.strip(), tokens
         except Exception as e:
-            print(f"[GEMINI ERROR] {e} — пробую claude CLI")
+            err_msg = f"Gemini Error: {e}"
+            print(f"[GEMINI ERROR] {e}")
+            errors.append(err_msg)
 
-    # Fallback: claude CLI (без хуков проекта — запуск из /tmp)
-    result = subprocess.run(
-        ["claude", "-p", full_prompt, "--output-format", "text"],
-        capture_output=True,
-        text=True,
-        cwd="/tmp",
+    # Fallback: claude CLI
+    try:
+        import tempfile
+        tmp_dir = tempfile.gettempdir()
+        result = subprocess.run(
+            ["claude", "-p", full_prompt, "--output-format", "text"],
+            capture_output=True,
+            text=True,
+            cwd=tmp_dir,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip(), tokens
+        else:
+            errors.append(f"claude CLI Error: {result.stderr.strip()}")
+    except Exception as e:
+        errors.append(f"claude CLI execution error: {e}")
+
+    # Если ни один провайдер не сработал
+    detailed_errors = "\n".join(f"- {err}" for err in errors)
+    raise RuntimeError(
+        f"Не удалось выполнить запрос к LLM. Все доступные провайдеры вернули ошибку:\n{detailed_errors}"
     )
-    output = result.stdout.strip() if result.returncode == 0 else result.stderr.strip()
-    return output, tokens
 
 
 # ── Human-in-the-Loop ─────────────────────────────────────────────────────────
@@ -949,6 +968,7 @@ def run_fast(prompt: str) -> tuple[str, int]:
     Использует llama-3.1-8b-instant (Groq) вместо 70b — экономия ~4x токенов.
     """
     tokens = len(prompt.split()) * 2
+    errors = []
     if _groq_client:
         try:
             resp = _groq_client.chat.completions.create(
@@ -959,6 +979,7 @@ def run_fast(prompt: str) -> tuple[str, int]:
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
+            errors.append(f"Groq Fast Error: {e}")
             print(f"[GROQ FAST ERROR] {e}")
     if _gemini_client:
         try:
@@ -968,8 +989,13 @@ def run_fast(prompt: str) -> tuple[str, int]:
             )
             return resp.text.strip(), tokens
         except Exception as e:
+            errors.append(f"Gemini Fast Error: {e}")
             print(f"[GEMINI FAST ERROR] {e}")
-    return "", tokens
+
+    detailed_errors = "\n".join(f"- {err}" for err in errors)
+    raise RuntimeError(
+        f"Не удалось выполнить быстрый запрос к LLM. Все провайдеры вернули ошибку:\n{detailed_errors}"
+    )
 
 
 # ── Material Passport ─────────────────────────────────────────────────────────
@@ -1606,6 +1632,20 @@ def run_pipeline(
         ["git", "commit", "-m", f"feat: article '{title}' [{slug}]"],
         cwd=ROOT, capture_output=True, text=True
     )
+
+    # git push with GITHUB_TOKEN
+    token = os.getenv("GITHUB_TOKEN")
+    repo = os.getenv("GITHUB_REPO", "xopromo/content-factory")
+    branch = os.getenv("GITHUB_BRANCH", "claude/vigilant-einstein-hPa8u")
+    if token:
+        try:
+            auth_url = f"https://x-access-token:{token}@github.com/{repo}.git"
+            subprocess.run(["git", "remote", "set-url", "origin", auth_url], cwd=ROOT, capture_output=True)
+            subprocess.run(["git", "push", "origin", branch], cwd=ROOT, capture_output=True)
+            print("  [deployer-publisher] Изменения успешно отправлены на GitHub")
+        except Exception as e:
+            print(f"  [deployer-publisher] [WARN] Ошибка отправки на GitHub: {e}")
+
     update_step(plan_path, 14)
 
     pages_url = f"https://xopromo.github.io/content-factory/articles/{slug}.html"
@@ -1634,12 +1674,23 @@ if __name__ == "__main__":
     parser.add_argument("--resume", action="store_true", help="Возобновить с последнего сохранённого шага")
     args = parser.parse_args()
 
-    run_pipeline(
-        topic=args.topic,
-        title=args.title,
-        slug=args.slug,
-        search_query=args.query,
-        auto_approve=args.auto_approve,
-        resume=args.resume,
-        mode=args.mode,
-    )
+    try:
+        run_pipeline(
+            topic=args.topic,
+            title=args.title,
+            slug=args.slug,
+            search_query=args.query,
+            auto_approve=args.auto_approve,
+            resume=args.resume,
+            mode=args.mode,
+        )
+    except Exception as e:
+        import traceback
+        err_msg = f"❌ <b>Критическая ошибка пайплайна!</b>\n\nТема: <code>{args.topic}</code>\nОшибка: <code>{e}</code>\n\nВы можете попробовать возобновить генерацию с последнего шага."
+        print(f"[FATAL ERROR] {e}")
+        traceback.print_exc()
+        try:
+            tg_notify(err_msg)
+        except Exception as tg_err:
+            print(f"[TG NOTIFY ERROR] {tg_err}")
+        sys.exit(1)
