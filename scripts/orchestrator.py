@@ -1177,8 +1177,11 @@ def run_hallucination_detector(draft: str, raw_sources: str) -> tuple[bool, str]
     def extract_entities(text):
         entities = set()
         for word in re.findall(r'\b[A-Z][a-zA-Z]*(?:\s+[A-Z][a-zA-Z]*)*\b', text):
-            if len(word) > 2 and word not in common_terms:
-                entities.add(word)
+            if len(word) > 2:
+                # Игнорируем сущность, если хотя бы одно слово из нее есть в common_terms
+                parts = word.split()
+                if not any(p in common_terms for p in parts) and word not in common_terms:
+                    entities.add(word)
         return entities
 
     source_entities = extract_entities(raw_sources)
