@@ -971,7 +971,7 @@ def fetch_news(query: str, max_results: int = 15) -> list[dict]:
         if len(articles) >= max_results:
             break
         try:
-            results = list(DDGS().news(query, max_results=max_results * 3, timelimit=limit))
+            results = list(DDGS().news(query, max_results=max_results * 3, timelimit=limit, region="ru-ru"))
             for r in results:
                 add_article(
                     title=r.get("title", ""),

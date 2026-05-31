@@ -373,7 +373,7 @@ def web_search_fresh(query: str, max_results: int = 3) -> list[dict]:
         return []
     for timelimit in ("w", "m"):  # неделя → если пусто, месяц
         try:
-            items = list(_DDGS().news(query, max_results=max_results, timelimit=timelimit))
+            items = list(_DDGS().news(query, max_results=max_results, timelimit=timelimit, region="ru-ru"))
             if not items:
                 continue
             results = []
@@ -402,7 +402,7 @@ def web_search_deep(query: str, max_results: int = 5) -> list[dict]:
     if not _DDGS:
         return []
     try:
-        items = list(_DDGS().text(query, max_results=max_results))
+        items = list(_DDGS().text(query, max_results=max_results, region="ru-ru"))
         results = []
         for item in items:
             url = item.get("href", "")
