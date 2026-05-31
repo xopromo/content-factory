@@ -1517,14 +1517,22 @@ def run_pipeline(
     context["hallucination_report"] = halluc_report
 
     if not halluc_ok:
-        tg_notify(
-            f"🚫 <b>hallucination-detector: СТОП</b>\n\n"
-            f"В черновике найдены введённые сущности, отсутствующие в источниках.\n\n"
-            f"{halluc_report[:1000]}\n\n"
-            f"Генерация прекращена. Проверьте исходные источники или переформулируйте запрос."
-        )
-        print(f"\n🚫 hallucination-detector FAILED:\n{halluc_report}")
-        sys.exit(1)
+        if auto_approve:
+            print(f"\n⚠️ [auto-approve] hallucination-detector FAILED, но продолжаем выполнение из-за --auto-approve:\n{halluc_report}")
+            tg_notify(
+                f"⚠️ <b>hallucination-detector: ПРЕДУПРЕЖДЕНИЕ</b>\n\n"
+                f"В черновике найдены неизвестные сущности, но генерация продолжается из-за --auto-approve.\n\n"
+                f"{halluc_report[:600]}"
+            )
+        else:
+            tg_notify(
+                f"🚫 <b>hallucination-detector: СТОП</b>\n\n"
+                f"В черновике найдены введённые сущности, отсутствующие в источниках.\n\n"
+                f"{halluc_report[:1000]}\n\n"
+                f"Генерация прекращена. Проверьте исходные источники или переформулируйте запрос."
+            )
+            print(f"\n🚫 hallucination-detector FAILED:\n{halluc_report}")
+            sys.exit(1)
 
     print("  [hallucination-detector] ✅ Галлюцинаций не обнаружено")
 
@@ -1558,14 +1566,22 @@ def run_pipeline(
             context["fact_check_report"] = fact_report
 
     if not fact_ok:
-        tg_notify(
-            f"🚫 <b>fact-checker: СТОП</b>\n\n"
-            f"В черновике обнаружены непроверенные или противоречивые утверждения.\n\n"
-            f"{fact_report[:1000]}\n\n"
-            f"Генерация прекращена. Перезапустите с другой темой или добавьте источники."
-        )
-        print(f"\n🚫 fact-checker FAILED:\n{fact_report}")
-        sys.exit(1)
+        if auto_approve:
+            print(f"\n⚠️ [auto-approve] fact-checker FAILED, но продолжаем выполнение из-за --auto-approve:\n{fact_report}")
+            tg_notify(
+                f"⚠️ <b>fact-checker: ПРЕДУПРЕЖДЕНИЕ</b>\n\n"
+                f"В черновике обнаружены непроверенные утверждения, но генерация продолжается из-за --auto-approve.\n\n"
+                f"{fact_report[:600]}"
+            )
+        else:
+            tg_notify(
+                f"🚫 <b>fact-checker: СТОП</b>\n\n"
+                f"В черновике обнаружены непроверенные или противоречивые утверждения.\n\n"
+                f"{fact_report[:1000]}\n\n"
+                f"Генерация прекращена. Перезапустите с другой темой или добавьте источники."
+            )
+            print(f"\n🚫 fact-checker FAILED:\n{fact_report}")
+            sys.exit(1)
 
     print("  [fact-checker] ✅ FACT_CHECK_PASSED")
     save_state(slug, context, 6)
