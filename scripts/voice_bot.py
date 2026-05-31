@@ -43,6 +43,12 @@ WAIT_NEWS_VOICE   = 9
 WAIT_CUSTOM_CATEGORY = 10
 WAIT_NEWS_TOPIC    = 11
 WAIT_NEWS_QUERY    = 12
+WAIT_EXPERT_TOPIC  = 13
+WAIT_EXPERT_QUERY  = 14
+WAIT_BIZ_TOPIC     = 15
+WAIT_BIZ_QUERY     = 16
+WAIT_AUD_TOPIC     = 17
+WAIT_AUD_QUERY     = 18
 
 # ── Константы ─────────────────────────────────────────────────────────────────
 CATEGORIES = ["💼 Кейс", "💡 Инсайт", "📋 Гайд", "🎯 Стратегия", "❓ Гипотеза", "📝 Мысль"]
@@ -183,40 +189,40 @@ def llm_chat(prompt: str, system: str = "") -> str:
 
 # ── Генерация вопросов ────────────────────────────────────────────────────────
 
-def gen_expert_questions(context: str) -> list[str]:
-    existing = f"Уже есть в базе знаний:\n{context}" if context.strip() else "База знаний пока пуста."
+def gen_expert_questions(topic: str, context: str) -> list[str]:
+    existing = f"Уже есть в базе знаний по этой теме:\n{context}" if context.strip() else "База знаний пока пуста."
     result = llm_chat(
         f"""{existing}
 
-Придумай ровно 3 вопроса для распаковки экспертизы таргетолога ВКонтакте.
+Придумай ровно 3 глубоких вопроса для распаковки практического опыта эксперта в теме: «{topic}».
 Требования:
 - Спрашивай про конкретные ситуации, провалы, неочевидные паттерны, инсайты из практики
 - НЕ спрашивай «какие у тебя достижения» — это скучно, человек не будет отвечать
 - Вопросы должны провоцировать истории, а не общие ответы
 - Пример хорошего вопроса: «Расскажи про клиента, которому ты отказал — почему?»
 - Только 3 вопроса, каждый на отдельной строке, без нумерации и маркеров""",
-        "Ты помогаешь эксперту распаковать знания для наполнения контент-базы.",
+        f"Ты помогаешь эксперту распаковать знания в теме «{topic}» для наполнения контент-базы.",
     )
     questions = [q.strip() for q in result.splitlines() if q.strip() and not q.strip().startswith("#")]
     return questions[:3]
 
-def gen_business_questions(existing: str) -> list[str]:
-    context = f"Уже описано:\n{existing[:1500]}" if existing.strip() and existing.strip() != "# Продукты и услуги" else "Описания пока нет."
+def gen_business_questions(topic: str, existing: str) -> list[str]:
+    context = f"Уже описано для направления «{topic}»:\n{existing[:1500]}" if existing.strip() and existing.strip() != "# Продукты и услуги" else "Описания пока нет."
     result = llm_chat(
         f"""{context}
 
-Придумай ровно 3 вопроса для описания продуктов и услуг.
-Спрашивай то, чего ещё нет выше: конкретные офферы, цены, результаты клиентов, УТП, гарантии.
+Придумай ровно 3 вопроса для описания продуктов, услуг и офферов в теме/направлении: «{topic}».
+Спрашивай то, чего ещё нет выше: конкретные офферы, цены, тарифы, результаты клиентов, УТП, гарантии.
 Только 3 вопроса, каждый на отдельной строке, без нумерации.""",
-        "Ты помогаешь заполнить описание бизнеса для системы контент-маркетинга.",
+        f"Ты помогаешь заполнить описание бизнеса в направлении «{topic}» для контент-маркетинга.",
     )
     questions = [q.strip() for q in result.splitlines() if q.strip() and not q.strip().startswith("#")]
     return questions[:3]
 
-def gen_audience_profile(answers: list[tuple[str, str]]) -> str:
+def gen_audience_profile(topic: str, answers: list[tuple[str, str]]) -> str:
     qa_text = "\n\n".join(f"Вопрос: {q}\nОтвет: {a}" for q, a in answers)
     return llm_chat(
-        f"""На основе ответов эксперта составь профиль целевой аудитории в Markdown:
+        f"""На основе ответов эксперта составь профиль целевой аудитории для проекта «{topic}» в Markdown:
 
 {qa_text}
 
@@ -228,10 +234,21 @@ def gen_audience_profile(answers: list[tuple[str, str]]) -> str:
 ## Ключевые возражения
 ## Желаемый результат
 ## Поисковые запросы (5–7 фраз)""",
-        "Ты маркетолог, составляешь профиль ЦА для контент-стратегии эксперта.",
+        f"Ты маркетолог, составляешь профиль ЦА в проекте «{topic}» для контент-стратегии эксперта.",
     )
 
 # ── Вспомогательные ───────────────────────────────────────────────────────────
+
+def get_topic_slug(topic: str) -> str:
+    cyr = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+    lat = "a b v g d e yo zh z i j k l m n o p r s t u f kh ts ch sh shch '' y ' e yu ya".split()
+    tr = {c: l for c, l in zip(cyr, lat)}
+    
+    s = topic.lower().strip()
+    s_tr = "".join(tr.get(c, c) for c in s)
+    s_clean = re.sub(r"[^a-z0-9_\-]", "_", s_tr)
+    s_clean = re.sub(r"_+", "_", s_clean).strip("_")
+    return s_clean or "general"
 
 def format_voice_note(text: str, category: str, duration: int = 0) -> tuple[str, str]:
     now = datetime.now(timezone.utc)
@@ -375,15 +392,46 @@ async def handle_custom_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
 
 # ── Режим: Экспертиза ─────────────────────────────────────────────────────────
 
-async def menu_expert(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text("⏳ Читаю базу знаний и генерирую вопросы...")
+async def choose_expert_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    keyboard = [
+        ["🎯 VK-реклама", "🤖 Нейросети и ИИ"],
+        ["🪙 Криптовалюта", "➕ Другая тема"],
+        ["🏠 Главное меню"]
+    ]
+    await update.message.reply_text(
+        "Выбери тему для генерации вопросов экспертизы или нажми «➕ Другая тема»:",
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
+    return WAIT_EXPERT_TOPIC
+
+async def handle_expert_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    text = update.message.text.strip()
+    if text == "➕ Другая тема":
+        await update.message.reply_text("Введите тему вашей экспертизы:", reply_markup=NAV_KEYBOARD)
+        return WAIT_EXPERT_QUERY
+        
+    if text in NEWS_TOPICS:
+        ctx.user_data["expert_topic"] = text
+        return await start_expert_questions(update, ctx)
+        
+    ctx.user_data["expert_topic"] = text
+    return await start_expert_questions(update, ctx)
+
+async def handle_expert_query(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    text = update.message.text.strip()
+    ctx.user_data["expert_topic"] = text
+    return await start_expert_questions(update, ctx)
+
+async def start_expert_questions(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    topic = ctx.user_data.get("expert_topic", "VK-реклама")
+    await update.message.reply_text(f"⏳ Читаю базу знаний и генерирую вопросы по теме «{topic}»...")
     files = gh_list("knowledge/voice")[:5]
     context_parts = [gh_read(f"knowledge/voice/{f}")[:400] for f in files if f]
     context = "\n---\n".join(context_parts)
-    questions = gen_expert_questions(context)
+    questions = gen_expert_questions(topic, context)
     ctx.user_data["expert_questions"] = questions
     await update.message.reply_text(
-        f"💡 *Выбери тему для записи:*\n\n{fmt_questions(questions)}",
+        f"💡 *Выбери тему для записи:* (Направление: {topic})\n\n{fmt_questions(questions)}",
         parse_mode="Markdown",
         reply_markup=questions_keyboard(questions),
     )
@@ -394,7 +442,7 @@ async def expert_pick(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     questions = ctx.user_data.get("expert_questions", [])
 
     if text == "🔄 Новые вопросы":
-        return await menu_expert(update, ctx)
+        return await start_expert_questions(update, ctx)
 
     idx = NUMS.get(text)
     if idx is not None and idx < len(questions):
@@ -430,13 +478,48 @@ async def expert_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
 # ── Режим: Бизнес ─────────────────────────────────────────────────────────────
 
-async def menu_business(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text("⏳ Смотрю что уже есть и генерирую вопросы...")
-    existing = gh_read("business/products.md")
-    questions = gen_business_questions(existing)
+# ── Режим: Бизнес ─────────────────────────────────────────────────────────────
+
+async def choose_biz_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    keyboard = [
+        ["🎯 VK-реклама", "🤖 Нейросети и ИИ"],
+        ["🪙 Криптовалюта", "➕ Другая тема"],
+        ["🏠 Главное меню"]
+    ]
+    await update.message.reply_text(
+        "Выбери направление бизнеса для генерации вопросов или нажми «➕ Другая тема»:",
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
+    return WAIT_BIZ_TOPIC
+
+async def handle_biz_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    text = update.message.text.strip()
+    if text == "➕ Другая тема":
+        await update.message.reply_text("Введите направление/тему бизнеса:", reply_markup=NAV_KEYBOARD)
+        return WAIT_BIZ_QUERY
+        
+    if text in NEWS_TOPICS:
+        ctx.user_data["biz_topic"] = text
+        return await start_business_questions(update, ctx)
+        
+    ctx.user_data["biz_topic"] = text
+    return await start_business_questions(update, ctx)
+
+async def handle_biz_query(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    text = update.message.text.strip()
+    ctx.user_data["biz_topic"] = text
+    return await start_business_questions(update, ctx)
+
+async def start_business_questions(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    topic = ctx.user_data.get("biz_topic", "VK-реклама")
+    slug = get_topic_slug(topic)
+    
+    await update.message.reply_text(f"⏳ Смотрю что уже есть по теме «{topic}» и генерирую вопросы...")
+    existing = gh_read(f"business/products_{slug}.md")
+    questions = gen_business_questions(topic, existing)
     ctx.user_data["biz_questions"] = questions
     await update.message.reply_text(
-        f"💼 *Вопросы про бизнес:*\n\n{fmt_questions(questions)}",
+        f"💼 *Вопросы про бизнес:* (Направление: {topic})\n\n{fmt_questions(questions)}",
         parse_mode="Markdown",
         reply_markup=questions_keyboard(questions),
     )
@@ -447,7 +530,7 @@ async def biz_pick(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     questions = ctx.user_data.get("biz_questions", [])
 
     if text == "🔄 Новые вопросы":
-        return await menu_business(update, ctx)
+        return await start_business_questions(update, ctx)
 
     idx = NUMS.get(text)
     if idx is not None and idx < len(questions):
@@ -467,20 +550,22 @@ async def biz_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         return WAIT_BIZ_VOICE
 
     question = ctx.user_data.get("biz_question", "")
+    topic = ctx.user_data.get("biz_topic", "VK-реклама")
+    slug = get_topic_slug(topic)
     now = datetime.now(timezone.utc)
 
     await update.message.reply_text(f"📝 *Транскрипт:*\n\n{text[:500]}", parse_mode="Markdown")
 
-    existing = gh_read("business/products.md")
+    existing = gh_read(f"business/products_{slug}.md")
     entry = f"\n\n## {now.strftime('%d.%m.%Y')} — {question}\n\n{text}\n"
     if not existing.strip() or existing.strip() == "# Продукты и услуги":
-        new_content = f"# Продукты и услуги\n{entry}"
+        new_content = f"# Продукты и услуги ({topic})\n{entry}"
     else:
         new_content = existing.rstrip() + entry
 
     try:
-        gh_write("business/products.md", new_content, f"business: {now.strftime('%Y-%m-%d')}")
-        await update.message.reply_text("✅ Добавлено в business/products.md", reply_markup=MAIN_KEYBOARD)
+        gh_write(f"business/products_{slug}.md", new_content, f"business: {now.strftime('%Y-%m-%d')} ({slug})")
+        await update.message.reply_text(f"✅ Добавлено в business/products_{slug}.md", reply_markup=MAIN_KEYBOARD)
     except Exception as e:
         await update.message.reply_text(f"Ошибка сохранения: {e}", reply_markup=MAIN_KEYBOARD)
 
@@ -488,12 +573,43 @@ async def biz_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
 # ── Режим: Аудитория ──────────────────────────────────────────────────────────
 
-async def menu_audience(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+async def choose_aud_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    keyboard = [
+        ["🎯 VK-реклама", "🤖 Нейросети и ИИ"],
+        ["🪙 Криптовалюта", "➕ Другая тема"],
+        ["🏠 Главное меню"]
+    ]
+    await update.message.reply_text(
+        "Выбери направление для анализа целевой аудитории или нажми «➕ Другая тема»:",
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
+    return WAIT_AUD_TOPIC
+
+async def handle_aud_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    text = update.message.text.strip()
+    if text == "➕ Другая тема":
+        await update.message.reply_text("Введите направление/тему проекта:", reply_markup=NAV_KEYBOARD)
+        return WAIT_AUD_QUERY
+        
+    if text in NEWS_TOPICS:
+        ctx.user_data["aud_topic"] = text
+        return await start_audience_unpack(update, ctx)
+        
+    ctx.user_data["aud_topic"] = text
+    return await start_audience_unpack(update, ctx)
+
+async def handle_aud_query(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    text = update.message.text.strip()
+    ctx.user_data["aud_topic"] = text
+    return await start_audience_unpack(update, ctx)
+
+async def start_audience_unpack(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    topic = ctx.user_data.get("aud_topic", "VK-реклама")
     ctx.user_data["aud_answers"] = []
     ctx.user_data["aud_index"] = 0
     total = len(AUDIENCE_QUESTIONS)
     await update.message.reply_text(
-        f"🎯 *Распаковка аудитории* (вопрос 1 из {total})\n\n{AUDIENCE_QUESTIONS[0]}\n\n_Отвечай голосовым_",
+        f"🎯 *Распаковка аудитории для темы «{topic}»* (вопрос 1 из {total})\n\n{AUDIENCE_QUESTIONS[0]}\n\n_Отвечай голосовым_",
         parse_mode="Markdown",
         reply_markup=NAV_KEYBOARD,
     )
@@ -519,12 +635,13 @@ async def audience_answer(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int
         )
         return WAIT_AUD_ANSWER
 
+    topic = ctx.user_data.get("aud_topic", "VK-реклама")
     await update.message.reply_text("⏳ Все ответы собраны. Генерирую профиль ЦА...")
-    profile = gen_audience_profile(answers)
+    profile = gen_audience_profile(topic, answers)
     ctx.user_data["aud_profile"] = profile
 
     await update.message.reply_text(
-        f"📊 *Профиль целевой аудитории:*\n\n{profile}",
+        f"📊 *Профиль целевой аудитории для темы «{topic}»:*\n\n{profile}",
         parse_mode="Markdown",
         reply_markup=ReplyKeyboardMarkup(
             [["✅ Сохранить"], ["🔄 Уточнить"], ["🏠 Главное меню"]],
@@ -538,15 +655,17 @@ async def audience_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> in
 
     if text == "✅ Сохранить":
         profile = ctx.user_data.get("aud_profile", "")
+        topic = ctx.user_data.get("aud_topic", "VK-реклама")
+        slug = get_topic_slug(topic)
         now = datetime.now(timezone.utc)
         content = (
-            f"# Профиль целевой аудитории\n\n"
+            f"# Профиль целевой аудитории — {topic}\n\n"
             f"> Сгенерирован {now.strftime('%d.%m.%Y')} на основе ответов автора.\n\n"
             f"{profile}\n"
         )
         try:
-            gh_write("business/audience.md", content, f"audience: профиль ЦА {now.strftime('%Y-%m-%d')}")
-            await update.message.reply_text("✅ Профиль ЦА сохранён в business/audience.md", reply_markup=MAIN_KEYBOARD)
+            gh_write(f"business/audience_{slug}.md", content, f"audience: профиль ЦА {now.strftime('%Y-%m-%d')} ({slug})")
+            await update.message.reply_text(f"✅ Профиль ЦА сохранён в business/audience_{slug}.md", reply_markup=MAIN_KEYBOARD)
         except Exception as e:
             await update.message.reply_text(f"Ошибка сохранения: {e}", reply_markup=MAIN_KEYBOARD)
         ctx.user_data.clear()
@@ -557,9 +676,6 @@ async def audience_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> in
             "Что нужно уточнить? Ответь голосовым, добавлю в профиль:",
             reply_markup=NAV_KEYBOARD,
         )
-        # Добавляем уточняющий вопрос и собираем ещё один ответ
-        idx = ctx.user_data.get("aud_index", len(AUDIENCE_QUESTIONS))
-        AUDIENCE_QUESTIONS_EXTRA = "Что хочешь уточнить или добавить к профилю аудитории?"
         ctx.user_data["aud_extra"] = True
         return WAIT_AUD_ANSWER
 
@@ -842,9 +958,9 @@ def main() -> None:
     conv = ConversationHandler(
         entry_points=[
             MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
-            MessageHandler(filters.Regex("^💡 Экспертиза$"), menu_expert),
-            MessageHandler(filters.Regex("^💼 Бизнес$"), menu_business),
-            MessageHandler(filters.Regex("^🎯 Аудитория$"), menu_audience),
+            MessageHandler(filters.Regex("^💡 Экспертиза$"), choose_expert_topic),
+            MessageHandler(filters.Regex("^💼 Бизнес$"), choose_biz_topic),
+            MessageHandler(filters.Regex("^🎯 Аудитория$"), choose_aud_topic),
             MessageHandler(filters.Regex("^📋 Заметки$"), menu_list),
             MessageHandler(filters.Regex("^📰 Новости ниши$"), choose_news_topic),
         ],
@@ -857,6 +973,14 @@ def main() -> None:
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_custom_category),
             ],
+            WAIT_EXPERT_TOPIC: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_expert_topic),
+            ],
+            WAIT_EXPERT_QUERY: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_expert_query),
+            ],
             WAIT_EXPERT_PICK: [
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, expert_pick),
@@ -865,6 +989,14 @@ def main() -> None:
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.VOICE | filters.AUDIO, expert_voice),
             ],
+            WAIT_BIZ_TOPIC: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_biz_topic),
+            ],
+            WAIT_BIZ_QUERY: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_biz_query),
+            ],
             WAIT_BIZ_PICK: [
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, biz_pick),
@@ -872,6 +1004,14 @@ def main() -> None:
             WAIT_BIZ_VOICE: [
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.VOICE | filters.AUDIO, biz_voice),
+            ],
+            WAIT_AUD_TOPIC: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_aud_topic),
+            ],
+            WAIT_AUD_QUERY: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_aud_query),
             ],
             WAIT_AUD_ANSWER: [
                 MessageHandler(home_filter, go_home),
