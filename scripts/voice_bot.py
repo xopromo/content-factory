@@ -728,6 +728,13 @@ async def menu_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
 # ── Запуск ────────────────────────────────────────────────────────────────────
 
+async def post_init(application: Application) -> None:
+    from telegram import BotCommand
+    await application.bot.set_my_commands([
+        BotCommand("start", "Главное меню / Запуск"),
+        BotCommand("cancel", "Сбросить текущий режим / Отмена")
+    ])
+
 def main() -> None:
     try:
         asyncio.get_event_loop()
@@ -743,7 +750,7 @@ def main() -> None:
     mode = "GitHub API" if os.getenv("GITHUB_TOKEN") else "локальный диск"
     print(f"Бот запущен | Сохранение: {mode}")
 
-    app = Application.builder().token(token).build()
+    app = Application.builder().token(token).post_init(post_init).build()
 
     home_filter = filters.Regex("^🏠 Главное меню$")
 
