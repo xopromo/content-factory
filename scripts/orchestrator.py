@@ -51,6 +51,13 @@ try:
 except ImportError:
     _trafilatura = None
 
+try:
+    from mistralai import Mistral as _Mistral
+    _mistral_key = os.environ.get("MISTRAL_KEY", "")
+    _mistral_client = _Mistral(api_key=_mistral_key) if _mistral_key else None
+except ImportError:
+    _mistral_client = None
+
 ROOT = Path(__file__).parent.parent
 PLANS_DIR = ROOT / "plans"
 RETRO_DIR = ROOT / "retrospectives"
@@ -614,17 +621,35 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
     errors = []
 
     if _groq_client:
+        for model_name in ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "llama-3.1-8b-instant"]:
+            try:
+                resp = _groq_client.chat.completions.create(
+                    model=model_name,
+                    messages=[{"role": "user", "content": full_prompt}],
+                    max_tokens=8192,
+                    temperature=0.7,
+                )
+                return resp.choices[0].message.content.strip(), tokens
+            except Exception as e:
+                err_msg = f"Groq Error ({model_name}): {e}"
+                print(f"[GROQ ERROR - {model_name}] {e}")
+                errors.append(err_msg)
+                # Если превышена квота или лимит токенов, переходим к следующей модели Groq
+                if "limit" in str(e).lower() or "tpm" in str(e).lower() or "rate" in str(e).lower():
+                    continue
+                else:
+                    break
+
+    if _mistral_client:
         try:
-            resp = _groq_client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+            resp = _mistral_client.chat.complete(
+                model="mistral-large-latest",
                 messages=[{"role": "user", "content": full_prompt}],
-                max_tokens=8192,
-                temperature=0.7,
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
-            err_msg = f"Groq Error: {e}"
-            print(f"[GROQ ERROR] {e}")
+            err_msg = f"Mistral Error: {e}"
+            print(f"[MISTRAL ERROR] {e}")
             errors.append(err_msg)
 
     if _gemini_client:
