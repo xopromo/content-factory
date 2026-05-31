@@ -13,6 +13,13 @@ import subprocess
 import urllib.request
 from pathlib import Path
 from datetime import datetime, timezone
+
+if sys.platform.startswith("win"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass
 from typing import Optional
 
 try:
