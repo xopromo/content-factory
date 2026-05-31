@@ -52,6 +52,7 @@ WAIT_ARTICLE_TOPIC = 19
 WAIT_ARTICLE_CONFIRM = 20
 WAIT_ARTICLE_MODE = 21
 WAIT_FORWARD_ACTION = 22
+WAIT_VOICE_NOTE = 23
 
 # ── Константы ─────────────────────────────────────────────────────────────────
 CATEGORIES = ["💼 Кейс", "💡 Инсайт", "📋 Гайд", "🎯 Стратегия", "❓ Гипотеза", "📝 Мысль"]
@@ -1621,6 +1622,16 @@ async def handle_forward_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) 
         await update.message.reply_text("Неверный выбор. Пожалуйста, используйте кнопки на клавиатуре.")
         return WAIT_FORWARD_ACTION
 
+async def handle_voice_note_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.message.reply_text(
+        "🎙 <b>Запись голосовой заметки</b>\n\n"
+        "Отправьте или запишите голосовое сообщение (аудиозаметку) прямо в этот чат.\n"
+        "Я автоматически переведу его в текст, помогу выбрать категорию и сохраню в базу знаний.",
+        parse_mode="HTML",
+        reply_markup=NAV_KEYBOARD
+    )
+    return WAIT_VOICE_NOTE
+
 # ── Список заметок ────────────────────────────────────────────────────────────
 
 async def menu_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
@@ -1689,6 +1700,7 @@ def main() -> None:
             MessageHandler(filters.Regex("^📋 Заметки$"), menu_list),
             MessageHandler(filters.Regex("^📰 Новости ниши$"), choose_news_topic),
             MessageHandler(filters.Regex("^🚀 Создать статью$"), choose_article_mode),
+            MessageHandler(filters.Regex("^🎤 Голосовая заметка$"), handle_voice_note_button),
             MessageHandler(filters.FORWARDED, handle_forwarded_message),
             MessageHandler(filters.REPLY & ~filters.COMMAND, handle_reply_entry),
         ],
@@ -1781,6 +1793,10 @@ def main() -> None:
             WAIT_FORWARD_ACTION: [
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_forward_action),
+            ],
+            WAIT_VOICE_NOTE: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
             ],
         },
         fallbacks=[CommandHandler("cancel", cmd_cancel)],
