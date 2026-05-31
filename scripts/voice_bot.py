@@ -21,7 +21,7 @@ from typing import Optional
 
 from groq import Groq
 from ddgs import DDGS
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, MessageHandler,
     ContextTypes, ConversationHandler, filters,
@@ -51,6 +51,7 @@ WAIT_AUD_QUERY     = 18
 WAIT_ARTICLE_TOPIC = 19
 WAIT_ARTICLE_CONFIRM = 20
 WAIT_ARTICLE_MODE = 21
+WAIT_FORWARD_ACTION = 22
 
 # ── Константы ─────────────────────────────────────────────────────────────────
 CATEGORIES = ["💼 Кейс", "💡 Инсайт", "📋 Гайд", "🎯 Стратегия", "❓ Гипотеза", "📝 Мысль"]
@@ -133,6 +134,39 @@ def gh_write(path: str, content: str, message: str) -> str:
     payload: dict = {
         "message": message,
         "content": base64.b64encode(content.encode()).decode(),
+        "branch": branch,
+    }
+    if sha:
+        payload["sha"] = sha
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode(),
+        headers={**_gh_headers(), "Content-Type": "application/json"},
+        method="PUT",
+    )
+    with urllib.request.urlopen(req, timeout=15) as r:
+        result = json.loads(r.read())
+        return result.get("content", {}).get("html_url", path)
+
+def gh_write_bin(path: str, data: bytes, message: str) -> str:
+    if not os.environ.get("GITHUB_TOKEN"):
+        p = Path(__file__).parent.parent / path
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_bytes(data)
+        return str(p)
+    repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
+    branch = os.environ.get("GITHUB_BRANCH", "claude/vigilant-einstein-hPa8u")
+    url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}"
+    sha = None
+    try:
+        req = urllib.request.Request(url + f"?ref={branch}", headers=_gh_headers())
+        with urllib.request.urlopen(req, timeout=10) as r:
+            sha = json.loads(r.read()).get("sha")
+    except Exception:
+        pass
+    payload: dict = {
+        "message": message,
+        "content": base64.b64encode(data).decode(),
         "branch": branch,
     }
     if sha:
@@ -412,18 +446,42 @@ async def handle_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int
         )
         return WAIT_CUSTOM_CATEGORY
 
+    if not note_text and ctx.user_data.get("forward_buffer"):
+        note_text = "\n\n---\n\n".join(ctx.user_data["forward_buffer"])
+
     if not note_text:
         await update.message.reply_text("Что-то пошло не так, попробуй ещё раз.", reply_markup=MAIN_KEYBOARD)
         return ConversationHandler.END
 
-    await update.message.reply_text("Сохраняю...", reply_markup=ReplyKeyboardRemove())
+    status_msg = await update.message.reply_text("Сохраняю...", reply_markup=ReplyKeyboardRemove())
     try:
         filename, content = format_voice_note(note_text, category, duration)
-        gh_write(f"knowledge/voice/{filename}", content, f"voice: {filename}")
-        await update.message.reply_text(f"✅ Сохранено: `{filename}`", parse_mode="Markdown", reply_markup=MAIN_KEYBOARD)
+        url_or_path = gh_write(f"knowledge/voice/{filename}", content, f"voice: {filename}")
+        
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
+
+        keyboard = []
+        if url_or_path.startswith("http"):
+            keyboard.append([InlineKeyboardButton("🔍 Проверить на GitHub", url=url_or_path)])
+        reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
+        
+        await update.message.reply_text(
+            f"✅ Сохранено: `{filename}`", 
+            parse_mode="Markdown", 
+            reply_markup=reply_markup
+        )
+        await update.message.reply_text("Возвращаюсь в главное меню:", reply_markup=MAIN_KEYBOARD)
     except Exception as e:
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
         await update.message.reply_text(f"Ошибка сохранения: {e}", reply_markup=MAIN_KEYBOARD)
 
+    ctx.user_data.clear()
     return ConversationHandler.END
 
 async def handle_custom_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
@@ -431,18 +489,42 @@ async def handle_custom_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
     note_text = ctx.user_data.get("text", "")
     duration = ctx.user_data.get("duration", 0)
 
+    if not note_text and ctx.user_data.get("forward_buffer"):
+        note_text = "\n\n---\n\n".join(ctx.user_data["forward_buffer"])
+
     if not note_text:
         await update.message.reply_text("Что-то пошло не так, попробуй ещё раз.", reply_markup=MAIN_KEYBOARD)
         return ConversationHandler.END
 
-    await update.message.reply_text("Сохраняю...", reply_markup=ReplyKeyboardRemove())
+    status_msg = await update.message.reply_text("Сохраняю...", reply_markup=ReplyKeyboardRemove())
     try:
         filename, content = format_voice_note(note_text, category, duration)
-        gh_write(f"knowledge/voice/{filename}", content, f"voice: {filename}")
-        await update.message.reply_text(f"✅ Сохранено в категорию «{category}»: `{filename}`", parse_mode="Markdown", reply_markup=MAIN_KEYBOARD)
+        url_or_path = gh_write(f"knowledge/voice/{filename}", content, f"voice: {filename}")
+        
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
+
+        keyboard = []
+        if url_or_path.startswith("http"):
+            keyboard.append([InlineKeyboardButton("🔍 Проверить на GitHub", url=url_or_path)])
+        reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
+
+        await update.message.reply_text(
+            f"✅ Сохранено в категорию «{category}»: `{filename}`", 
+            parse_mode="Markdown", 
+            reply_markup=reply_markup
+        )
+        await update.message.reply_text("Возвращаюсь в главное меню:", reply_markup=MAIN_KEYBOARD)
     except Exception as e:
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
         await update.message.reply_text(f"Ошибка сохранения: {e}", reply_markup=MAIN_KEYBOARD)
 
+    ctx.user_data.clear()
     return ConversationHandler.END
 
 # ── Режим: Экспертиза ─────────────────────────────────────────────────────────
@@ -1075,24 +1157,52 @@ async def news_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     item = ctx.user_data.get("news_item", {})
     title = item.get("title", "Новость")
     url = item.get("url", "")
+    body_text = item.get("body", "")
     now = datetime.now(timezone.utc)
 
     await send_transcript(update, text)
 
     filename = f"{now.strftime('%Y-%m-%d_%H-%M')}_новость.md"
+    url_line = f"[{title}]({url})" if url else title
     content = (
         f"# 💡 Комментарий к новости — {now.strftime('%d.%m.%Y %H:%M')}\n\n"
         f"> *Голосовой комментарий эксперта | UTC*\n\n"
-        f"**Новость:** [{title}]({url})\n\n"
+        f"**Новость:** {url_line}\n\n"
+    )
+    if body_text:
+        content += f"{body_text}\n\n"
+    content += (
         f"**Мой комментарий:**\n\n{text}\n\n"
         f"---\n*Источник: voice_bot | {now.isoformat()}*\n"
     )
+
+    status_msg = await update.message.reply_text("Сохраняю...", reply_markup=ReplyKeyboardRemove())
     try:
-        gh_write(f"knowledge/voice/{filename}", content, f"voice: комментарий к новости {now.strftime('%Y-%m-%d')}")
-        await update.message.reply_text(f"✅ Сохранено: `{filename}`", parse_mode="Markdown", reply_markup=MAIN_KEYBOARD)
+        url_or_path = gh_write(f"knowledge/voice/{filename}", content, f"voice: комментарий к новости {now.strftime('%Y-%m-%d')}")
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
+
+        keyboard = []
+        if url_or_path.startswith("http"):
+            keyboard.append([InlineKeyboardButton("🔍 Проверить на GitHub", url=url_or_path)])
+        reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
+
+        await update.message.reply_text(
+            f"✅ Сохранено: `{filename}`", 
+            parse_mode="Markdown", 
+            reply_markup=reply_markup
+        )
+        await update.message.reply_text("Возвращаюсь в главное меню:", reply_markup=MAIN_KEYBOARD)
     except Exception as e:
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
         await update.message.reply_text(f"Ошибка сохранения: {e}", reply_markup=MAIN_KEYBOARD)
 
+    ctx.user_data.clear()
     return ConversationHandler.END
 
 # ── Режим: Создание статьи ───────────────────────────────────────────────────
@@ -1119,6 +1229,38 @@ async def handle_article_mode(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         return WAIT_ARTICLE_MODE
     
     ctx.user_data["article_mode"] = mode
+    
+    if ctx.user_data.get("article_topic"):
+        topic = ctx.user_data["article_topic"]
+        status_msg = await update.message.reply_text("⏳ Генерирую метаданные статьи с помощью Llama...")
+        title, slug, query = gen_article_metadata(topic, mode)
+        ctx.user_data["article_title"] = title
+        ctx.user_data["article_slug"] = slug
+        ctx.user_data["article_query"] = query
+
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
+
+        keyboard = [
+            ["✅ Подтвердить и запустить"],
+            ["🔄 Сгенерировать заново"],
+            ["🏠"]
+        ]
+        await update.message.reply_text(
+            f"📋 <b>Черновик настроек статьи:</b>\n\n"
+            f"⚙️ <b>Формат:</b> {mode}\n"
+            f"💡 <b>Тема:</b> {topic}\n"
+            f"📝 <b>Заголовок H1:</b> {title}\n"
+            f"🔗 <b>Slug:</b> {slug}\n"
+            f"🔍 <b>Поисковый запрос:</b> {query}\n\n"
+            f"Подтвердите запуск генерации роем агентов:",
+            parse_mode="HTML",
+            reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+        )
+        return WAIT_ARTICLE_CONFIRM
+
     await update.message.reply_text(
         f"Выбран формат: <b>{mode}</b>\n\n"
         f"Отправьте тему статьи текстовым сообщением или запишите голосовое с подробным описанием идеи:",
@@ -1263,6 +1405,222 @@ async def handle_article_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
 
     return WAIT_ARTICLE_CONFIRM
 
+async def _transcribe_voice_msg(message, ctx: ContextTypes.DEFAULT_TYPE) -> Optional[str]:
+    voice = message.voice or message.audio
+    if not voice:
+        return None
+    file = await ctx.bot.get_file(voice.file_id)
+    with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+    await file.download_to_drive(tmp_path)
+    try:
+        return transcribe(tmp_path)
+    except Exception as e:
+        log.error("Transcription error: %s", e)
+        return None
+    finally:
+        tmp_path.unlink(missing_ok=True)
+
+async def handle_reply_entry(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    original_msg = update.message.reply_to_message
+    if not original_msg:
+        await update.message.reply_text("Этот метод работает только как ответ (Reply) на сообщение.")
+        return ConversationHandler.END
+
+    original_text = ""
+    if original_msg.text:
+        original_text = original_msg.text
+    elif original_msg.caption:
+        original_text = original_msg.caption
+    elif original_msg.voice or original_msg.audio:
+        status_msg = await update.message.reply_text("Транскрибирую исходное голосовое сообщение...")
+        original_text = await _transcribe_voice_msg(original_msg, ctx)
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
+
+    reply_text = ""
+    if update.message.text:
+        reply_text = update.message.text.strip()
+    elif update.message.voice or update.message.audio:
+        reply_text = await _transcribe_voice(update, ctx)
+
+    if not reply_text:
+        await update.message.reply_text("Не удалось распознать текст вашего ответа.")
+        return ConversationHandler.END
+
+    topic = f"Контекст: {original_text}\nИнструкция: {reply_text}" if original_text else reply_text
+    
+    ctx.user_data.clear()
+    ctx.user_data["article_topic"] = topic
+
+    keyboard = [
+        ["🎯 Статья для SEO и GEO"],
+        ["🔬 Статья-исследование"],
+        ["📰 Новостной обзор"],
+        ["🏠"]
+    ]
+    await update.message.reply_text(
+        f"🚀 <b>Создание задачи из Reply</b>\n\n"
+        f"Тема сформирована из ответа на сообщение.\n"
+        f"Выберите формат статьи:",
+        parse_mode="HTML",
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
+    return WAIT_ARTICLE_MODE
+
+async def handle_forwarded_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    if "forward_buffer" not in ctx.user_data:
+        ctx.user_data["forward_buffer"] = []
+        ctx.user_data["forward_media"] = []
+
+    text = update.message.text or update.message.caption or ""
+    text = text.strip()
+
+    photo = update.message.photo
+    if photo:
+        status_msg = await update.message.reply_text("Скачиваю медиа из пересланного сообщения...")
+        file = await ctx.bot.get_file(photo[-1].file_id)
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+            tmp_path = Path(tmp.name)
+        await file.download_to_drive(tmp_path)
+        try:
+            photo_bytes = tmp_path.read_bytes()
+            now = datetime.now(timezone.utc)
+            import random
+            rand_id = random.randint(1000, 9999)
+            filename = f"{now.strftime('%Y%m%d_%H%M%S')}_{rand_id}.jpg"
+            rel_path = f"docs/articles/media/{filename}"
+            
+            # Сохраняем медиафайл
+            gh_write_bin(rel_path, photo_bytes, f"media: {filename}")
+            
+            markdown_link = f"\n\n[Медиа](media/{filename})\n\n"
+            if text:
+                text = text + markdown_link
+            else:
+                text = markdown_link
+                
+            ctx.user_data["forward_media"].append(rel_path)
+        except Exception as e:
+            log.error("Failed to download media: %s", e)
+            await update.message.reply_text(f"Ошибка загрузки медиа: {e}")
+        finally:
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            tmp_path.unlink(missing_ok=True)
+
+    if not text and not photo:
+        await update.message.reply_text("Поддерживаются только текстовые сообщения и фотографии.")
+        return WAIT_FORWARD_ACTION
+
+    if text:
+        ctx.user_data["forward_buffer"].append(text)
+
+    # Удаляем предыдущее сообщение о буфере для чистоты чата
+    if "forward_status_msg_id" in ctx.user_data:
+        try:
+            await ctx.bot.delete_message(chat_id=update.effective_chat.id, message_id=ctx.user_data["forward_status_msg_id"])
+        except Exception:
+            pass
+
+    keyboard = [
+        ["📰 Создать новость", "🚀 Создать статью"],
+        ["📚 Добавить в базу знаний", "🧹 Очистить буфер"],
+        ["🏠"]
+    ]
+    count = len(ctx.user_data["forward_buffer"])
+    msg = await update.message.reply_text(
+        f"📥 Сообщение добавлено в буфер (всего собранных сообщений: {count}).\n\n"
+        f"Вы можете переслать ещё сообщения или выбрать действие на клавиатуре:",
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
+    ctx.user_data["forward_status_msg_id"] = msg.message_id
+    return WAIT_FORWARD_ACTION
+
+async def handle_forward_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    action = update.message.text.strip()
+    buffer = ctx.user_data.get("forward_buffer", [])
+
+    if "forward_status_msg_id" in ctx.user_data:
+        try:
+            await ctx.bot.delete_message(chat_id=update.effective_chat.id, message_id=ctx.user_data["forward_status_msg_id"])
+        except Exception:
+            pass
+        ctx.user_data.pop("forward_status_msg_id", None)
+
+    if not buffer and action != "🧹 Очистить буфер":
+        await update.message.reply_text("Буфер пересланных сообщений пуст.", reply_markup=MAIN_KEYBOARD)
+        return ConversationHandler.END
+
+    combined_text = "\n\n---\n\n".join(buffer)
+
+    if action == "🧹 Очистить буфер":
+        ctx.user_data.pop("forward_buffer", None)
+        ctx.user_data.pop("forward_media", None)
+        await update.message.reply_text("🧹 Буфер пересланных сообщений очищен.", reply_markup=MAIN_KEYBOARD)
+        return ConversationHandler.END
+
+    elif action == "📚 Добавить в базу знаний":
+        ctx.user_data["text"] = combined_text
+        ctx.user_data["duration"] = 0
+        
+        ctx.user_data.pop("forward_buffer", None)
+        ctx.user_data.pop("forward_media", None)
+
+        keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
+        await update.message.reply_text(
+            "Выбери категорию для базы знаний:",
+            reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+        )
+        return WAIT_CATEGORY
+
+    elif action == "🚀 Создать статью":
+        ctx.user_data["article_topic"] = combined_text
+        
+        ctx.user_data.pop("forward_buffer", None)
+        ctx.user_data.pop("forward_media", None)
+
+        keyboard = [
+            ["🎯 Статья для SEO и GEO"],
+            ["🔬 Статья-исследование"],
+            ["📰 Новостной обзор"],
+            ["🏠"]
+        ]
+        await update.message.reply_text(
+            f"🚀 <b>Создание задачи из репостов</b>\n\n"
+            f"Тема сформирована из пересланных сообщений.\n"
+            f"Выберите формат статьи:",
+            parse_mode="HTML",
+            reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+        )
+        return WAIT_ARTICLE_MODE
+
+    elif action == "📰 Создать новость":
+        ctx.user_data["news_item"] = {
+            "title": "Материалы из репоста",
+            "body": combined_text,
+            "url": ""
+        }
+        
+        ctx.user_data.pop("forward_buffer", None)
+        ctx.user_data.pop("forward_media", None)
+
+        await update.message.reply_text(
+            f"🎙 <b>Материалы из репоста</b>\n\n"
+            f"Запишите ваш экспертный комментарий к этим материалам: что думаете, согласны или нет, как это работает на практике?",
+            parse_mode="HTML",
+            reply_markup=NAV_KEYBOARD,
+        )
+        return WAIT_NEWS_VOICE
+
+    else:
+        await update.message.reply_text("Неверный выбор. Пожалуйста, используйте кнопки на клавиатуре.")
+        return WAIT_FORWARD_ACTION
+
 # ── Список заметок ────────────────────────────────────────────────────────────
 
 async def menu_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
@@ -1331,6 +1689,8 @@ def main() -> None:
             MessageHandler(filters.Regex("^📋 Заметки$"), menu_list),
             MessageHandler(filters.Regex("^📰 Новости ниши$"), choose_news_topic),
             MessageHandler(filters.Regex("^🚀 Создать статью$"), choose_article_mode),
+            MessageHandler(filters.FORWARDED, handle_forwarded_message),
+            MessageHandler(filters.REPLY & ~filters.COMMAND, handle_reply_entry),
         ],
         states={
             WAIT_CATEGORY: [
@@ -1417,6 +1777,10 @@ def main() -> None:
             WAIT_ARTICLE_CONFIRM: [
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_article_confirm),
+            ],
+            WAIT_FORWARD_ACTION: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_forward_action),
             ],
         },
         fallbacks=[CommandHandler("cancel", cmd_cancel)],
