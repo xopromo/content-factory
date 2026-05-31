@@ -4,3 +4,7 @@ ddgs
 requests>=2.32.3
 trafilatura
 htmldate
+markdown
+beautifulsoup4
+lxml
+httpx

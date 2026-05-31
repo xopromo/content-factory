@@ -84,7 +84,7 @@ NEWS_TOPICS = {
 }
 
 NAV_KEYBOARD = ReplyKeyboardMarkup(
-    [["🏠 Главное меню"]],
+    [["🏠"]],
     resize_keyboard=True,
 )
 
@@ -312,7 +312,7 @@ def questions_keyboard(questions: list[str]) -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         [["1️⃣", "2️⃣", "3️⃣"],
          ["🔄 Новые вопросы"],
-         ["🏠 Главное меню"]],
+         ["🏠"]],
         resize_keyboard=True,
     )
 
@@ -327,15 +327,24 @@ async def _transcribe_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> O
     voice = update.message.voice or update.message.audio
     if not voice:
         return None
-    await update.message.reply_text("Транскрибирую...")
+    status_msg = await update.message.reply_text("Транскрибирую...")
     file = await ctx.bot.get_file(voice.file_id)
     with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
         tmp_path = Path(tmp.name)
     await file.download_to_drive(tmp_path)
     try:
-        return transcribe(tmp_path)
+        res = transcribe(tmp_path)
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
+        return res
     except Exception as e:
         log.error("Transcription error: %s", e)
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
         await update.message.reply_text(f"Ошибка транскрипции: {e}", reply_markup=MAIN_KEYBOARD)
         return None
     finally:
@@ -384,7 +393,7 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
     await send_transcript(update, text)
 
-    keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠 Главное меню"]]
+    keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
     await update.message.reply_text(
         "Выбери категорию:",
         reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
@@ -442,7 +451,7 @@ async def choose_expert_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
     keyboard = [
         ["🎯 VK-реклама", "🤖 Нейросети и ИИ"],
         ["🪙 Криптовалюта", "➕ Другая тема"],
-        ["🏠 Главное меню"]
+        ["🏠"]
     ]
     await update.message.reply_text(
         "Выбери тему для генерации вопросов экспертизы или нажми «➕ Другая тема»:",
@@ -470,12 +479,16 @@ async def handle_expert_query(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
 
 async def start_expert_questions(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     topic = ctx.user_data.get("expert_topic", "VK-реклама")
-    await update.message.reply_text(f"⏳ Читаю базу знаний и генерирую вопросы по теме «{topic}»...")
+    status_msg = await update.message.reply_text(f"⏳ Читаю базу знаний и генерирую вопросы по теме «{topic}»...")
     files = gh_list("knowledge/voice")[:5]
     context_parts = [gh_read(f"knowledge/voice/{f}")[:400] for f in files if f]
     context = "\n---\n".join(context_parts)
     questions = gen_expert_questions(topic, context)
     ctx.user_data["expert_questions"] = questions
+    try:
+        await status_msg.delete()
+    except Exception:
+        pass
     await update.message.reply_text(
         f"💡 *Выбери тему для записи:* (Направление: {topic})\n\n{fmt_questions(questions)}",
         parse_mode="Markdown",
@@ -515,7 +528,7 @@ async def expert_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
     await send_transcript(update, text)
 
-    keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠 Главное меню"]]
+    keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
     await update.message.reply_text(
         "Выбери категорию:",
         reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
@@ -530,7 +543,7 @@ async def choose_biz_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> in
     keyboard = [
         ["🎯 VK-реклама", "🤖 Нейросети и ИИ"],
         ["🪙 Криптовалюта", "➕ Другая тема"],
-        ["🏠 Главное меню"]
+        ["🏠"]
     ]
     await update.message.reply_text(
         "Выбери направление бизнеса для генерации вопросов или нажми «➕ Другая тема»:",
@@ -560,10 +573,14 @@ async def start_business_questions(update: Update, ctx: ContextTypes.DEFAULT_TYP
     topic = ctx.user_data.get("biz_topic", "VK-реклама")
     slug = get_topic_slug(topic)
     
-    await update.message.reply_text(f"⏳ Смотрю что уже есть по теме «{topic}» и генерирую вопросы...")
+    status_msg = await update.message.reply_text(f"⏳ Смотрю что уже есть по теме «{topic}» и генерирую вопросы...")
     existing = gh_read(f"business/products_{slug}.md")
     questions = gen_business_questions(topic, existing)
     ctx.user_data["biz_questions"] = questions
+    try:
+        await status_msg.delete()
+    except Exception:
+        pass
     await update.message.reply_text(
         f"💼 *Вопросы про бизнес:* (Направление: {topic})\n\n{fmt_questions(questions)}",
         parse_mode="Markdown",
@@ -623,7 +640,7 @@ async def choose_aud_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> in
     keyboard = [
         ["🎯 VK-реклама", "🤖 Нейросети и ИИ"],
         ["🪙 Криптовалюта", "➕ Другая тема"],
-        ["🏠 Главное меню"]
+        ["🏠"]
     ]
     await update.message.reply_text(
         "Выбери направление для анализа целевой аудитории или нажми «➕ Другая тема»:",
@@ -682,15 +699,19 @@ async def audience_answer(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int
         return WAIT_AUD_ANSWER
 
     topic = ctx.user_data.get("aud_topic", "VK-реклама")
-    await update.message.reply_text("⏳ Все ответы собраны. Генерирую профиль ЦА...")
+    status_msg = await update.message.reply_text("⏳ Все ответы собраны. Генерирую профиль ЦА...")
     profile = gen_audience_profile(topic, answers)
     ctx.user_data["aud_profile"] = profile
+    try:
+        await status_msg.delete()
+    except Exception:
+        pass
 
     await update.message.reply_text(
         f"📊 *Профиль целевой аудитории для темы «{topic}»:*\n\n{profile}",
         parse_mode="Markdown",
         reply_markup=ReplyKeyboardMarkup(
-            [["✅ Сохранить"], ["🔄 Уточнить"], ["🏠 Главное меню"]],
+            [["✅ Сохранить"], ["🔄 Уточнить"], ["🏠"]],
             resize_keyboard=True,
         ),
     )
@@ -902,7 +923,7 @@ async def choose_news_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> i
     keyboard = [
         ["🎯 VK-реклама", "🤖 Нейросети и ИИ"],
         ["🪙 Криптовалюта", "➕ Другая тема"],
-        ["🏠 Главное меню"]
+        ["🏠"]
     ]
     await update.message.reply_text(
         "Выбери тему новостей или нажми «➕ Другая тема», чтобы ввести свой запрос:",
@@ -940,8 +961,13 @@ async def start_news_search(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> i
     query = ctx.user_data.get("news_query", NEWS_QUERY)
     topic_name = ctx.user_data.get("news_topic_name", "VK-реклама")
     
-    await update.message.reply_text(f"⏳ Ищу свежие новости по теме «{topic_name}»...")
+    status_msg = await update.message.reply_text(f"⏳ Ищу свежие новости по теме «{topic_name}»...")
     pool = fetch_news(query, max_results=15)
+
+    try:
+        await status_msg.delete()
+    except Exception:
+        pass
 
     if not pool:
         await update.message.reply_text(
@@ -949,7 +975,7 @@ async def start_news_search(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> i
             reply_markup=ReplyKeyboardMarkup([
                 ["🎯 VK-реклама", "🤖 Нейросети и ИИ"],
                 ["🪙 Криптовалюта", "➕ Другая тема"],
-                ["🏠 Главное меню"]
+                ["🏠"]
             ], resize_keyboard=True)
         )
         return WAIT_NEWS_TOPIC
@@ -1000,12 +1026,13 @@ async def show_news_page(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         number_buttons = ["1️⃣", "2️⃣", "3️⃣"][:len(items)]
         keyboard_rows.append(number_buttons)
     keyboard_rows.append(["🔄 Новые новости"])
-    keyboard_rows.append(["🏠 Главное меню"])
+    keyboard_rows.append(["🏠"])
 
     await update.message.reply_text(
         f"📰 <b>Свежие новости по теме «{topic_name}» (страница {index//3 + 1}):</b>\n\n" + "\n".join(lines).strip()
         + "\n\nВыбери новость и запиши свой комментарий эксперта:",
         parse_mode="HTML",
+        disable_web_page_preview=True,
         reply_markup=ReplyKeyboardMarkup(
             keyboard_rows,
             resize_keyboard=True,
@@ -1033,6 +1060,7 @@ async def news_pick(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         await update.message.reply_text(
             f"🎙 <b>{title_escaped}</b>\n\n🔗 <b>Ссылка на новость:</b> {url}\n\nЗапиши свой комментарий: что думаешь, согласен или нет, как это работает на практике?",
             parse_mode="HTML",
+            disable_web_page_preview=True,
             reply_markup=NAV_KEYBOARD,
         )
         return WAIT_NEWS_VOICE
@@ -1074,7 +1102,7 @@ async def choose_article_mode(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         ["🎯 Статья для SEO и GEO"],
         ["🔬 Статья-исследование"],
         ["📰 Новостной обзор"],
-        ["🏠 Главное меню"]
+        ["🏠"]
     ]
     await update.message.reply_text(
         "🚀 <b>Создание статьи с помощью AI-агентов</b>\n\n"
@@ -1122,7 +1150,7 @@ async def handle_article_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
         return WAIT_ARTICLE_TOPIC
 
     ctx.user_data["article_topic"] = text
-    await update.message.reply_text("⏳ Генерирую метаданные статьи с помощью Llama...")
+    status_msg = await update.message.reply_text("⏳ Генерирую метаданные статьи с помощью Llama...")
     
     # Generate metadata
     mode = ctx.user_data.get("article_mode", "🎯 Статья для SEO и GEO")
@@ -1131,10 +1159,15 @@ async def handle_article_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
     ctx.user_data["article_slug"] = slug
     ctx.user_data["article_query"] = query
 
+    try:
+        await status_msg.delete()
+    except Exception:
+        pass
+
     keyboard = [
         ["✅ Подтвердить и запустить"],
         ["🔄 Сгенерировать заново"],
-        ["🏠 Главное меню"]
+        ["🏠"]
     ]
     await update.message.reply_text(
         f"📋 <b>Черновик настроек статьи:</b>\n\n"
@@ -1157,16 +1190,21 @@ async def handle_article_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
         if not topic:
             await update.message.reply_text("Что-то пошло не так, вернитесь в главное меню.", reply_markup=MAIN_KEYBOARD)
             return ConversationHandler.END
-        await update.message.reply_text("⏳ Генерирую новые метаданные...")
+        status_msg = await update.message.reply_text("⏳ Генерирую новые метаданные...")
         title, slug, query = gen_article_metadata(topic, mode)
         ctx.user_data["article_title"] = title
         ctx.user_data["article_slug"] = slug
         ctx.user_data["article_query"] = query
         
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
+
         keyboard = [
             ["✅ Подтвердить и запустить"],
             ["🔄 Сгенерировать заново"],
-            ["🏠 Главное меню"]
+            ["🏠"]
         ]
         await update.message.reply_text(
             f"📋 <b>Новый черновик настроек статьи:</b>\n\n"
@@ -1214,7 +1252,9 @@ async def handle_article_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
         log.info("Starting orchestrator in background: %s", cmd)
         try:
             project_root = Path(__file__).parent.parent
-            subprocess.Popen(cmd, cwd=project_root)
+            log_file_path = project_root / "orchestrator.log"
+            log_file = open(log_file_path, "a", encoding="utf-8")
+            subprocess.Popen(cmd, cwd=project_root, stdout=log_file, stderr=log_file)
         except Exception as e:
             log.error("Failed to start orchestrator: %s", e)
             await update.message.reply_text(f"❌ Ошибка запуска: {e}", reply_markup=MAIN_KEYBOARD)
@@ -1280,7 +1320,7 @@ def main() -> None:
 
     app = Application.builder().token(token).post_init(post_init).build()
 
-    home_filter = filters.Regex("^🏠 Главное меню$")
+    home_filter = filters.Regex("^(🏠|🏠 Главное меню)$")
 
     conv = ConversationHandler(
         entry_points=[

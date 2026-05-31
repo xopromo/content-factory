@@ -78,8 +78,35 @@ def tg_notify(text: str) -> None:
     if not token or not chat_id:
         print(f"[TG SKIP] {text}")
         return
+    
+    # Авто-определение шага для отображения прогресс-бара
+    import re
+    step_match = re.search(r"Шаг\s*0*(\d+)", text, re.IGNORECASE)
+    if step_match:
+        try:
+            step = int(step_match.group(1))
+            if 1 <= step <= 14:
+                filled = "■" * step
+                empty = "□" * (14 - step)
+                percent = int((step / 14) * 100)
+                progress = f"\n<code>[{filled}{empty}]</code> <b>{percent}%</b>\n"
+                # Вставляем прогресс-бар после первой строки для красоты
+                lines = text.split("\n")
+                if len(lines) > 0:
+                    lines.insert(1, progress.strip())
+                    text = "\n".join(lines)
+                else:
+                    text = text + "\n" + progress
+        except Exception:
+            pass
+
     import urllib.request, urllib.parse
-    payload = json.dumps({"chat_id": chat_id, "text": text, "parse_mode": "HTML"})
+    payload = json.dumps({
+        "chat_id": chat_id, 
+        "text": text, 
+        "parse_mode": "HTML",
+        "link_preview_options": {"is_disabled": True}
+    })
     req = urllib.request.Request(
         f"https://api.telegram.org/bot{token}/sendMessage",
         data=payload.encode(),
