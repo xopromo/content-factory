@@ -14,7 +14,7 @@ Voice Bot — голосовые заметки + распаковка эксп�
   GITHUB_TOKEN, GITHUB_REPO, GITHUB_BRANCH  (опционально, для облачного режима)
 """
 
-import os, re, sys, base64, logging, tempfile, urllib.request, urllib.parse, json, asyncio, time
+import os, re, sys, base64, logging, tempfile, urllib.request, urllib.parse, json, asyncio, time, subprocess
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
@@ -50,6 +50,7 @@ WAIT_AUD_TOPIC     = 17
 WAIT_AUD_QUERY     = 18
 WAIT_ARTICLE_TOPIC = 19
 WAIT_ARTICLE_CONFIRM = 20
+WAIT_ARTICLE_MODE = 21
 
 # ── Константы ─────────────────────────────────────────────────────────────────
 CATEGORIES = ["💼 Кейс", "💡 Инсайт", "📋 Гайд", "🎯 Стратегия", "❓ Гипотеза", "📝 Мысль"]
@@ -238,12 +239,20 @@ def gen_audience_profile(topic: str, answers: list[tuple[str, str]]) -> str:
         f"Ты маркетолог, составляешь профиль ЦА в проекте «{topic}» для контент-стратегии эксперта.",
     )
 
-def gen_article_metadata(topic: str) -> tuple[str, str, str]:
-    prompt = f"""На основе темы «{topic}» предложи метаданные для генерации SEO/GEO статьи.
+def gen_article_metadata(topic: str, mode: str) -> tuple[str, str, str]:
+    mode_desc = ""
+    if mode == "🔬 Статья-исследование":
+        mode_desc = "Формат: глубокое аналитическое исследование с разбором данных, кейсов, технической аналитикой."
+    elif mode == "📰 Новостной обзор":
+        mode_desc = "Формат: обзор последних новостей, трендов и свежих событий за короткий период."
+    else:
+        mode_desc = "Формат: пошаговое руководство, практический SEO/GEO оптимизированный гайд."
+
+    prompt = f"""На основе темы «{topic}» и формата «{mode}» ({mode_desc}) предложи метаданные для генерации статьи.
 Ты должен вернуть строго JSON с тремя ключами:
-"title" (привлекательный кликабельный заголовок H1 на русском языке),
-"slug" (латинский URL-slug, например: "seo-guide-2026"),
-"query" (оптимальный поисковый запрос для DuckDuckGo на русском или английском для сбора свежей информации по этой теме).
+"title" (привлекательный кликабельный заголовок H1 на русском языке, точно отражающий формат и тему),
+"slug" (латинский URL-slug, например: "ai-research-2026"),
+"query" (оптимальный поисковый запрос для DuckDuckGo на русском или английском для сбора свежей и глубокой информации по этой теме).
 
 Верни ТОЛЬКО валидный JSON без разметки markdown и без каких-либо комментариев."""
     
@@ -768,41 +777,126 @@ def is_article_url(url: str) -> bool:
     except Exception:
         return False
 
+_TIER1_DOMAINS = {
+    "arxiv.org", "github.com", "anthropic.com", "openai.com", "deepmind.com",
+    "huggingface.co", "pytorch.org", "tensorflow.org", "paperswithcode.com",
+    "proceedings.mlr.press", "aclanthology.org", "research.google",
+    "ai.meta.com", "mistral.ai", "docs.python.org", "developer.mozilla.org",
+}
+_TIER2_DOMAINS = {
+    "techcrunch.com", "venturebeat.com", "wired.com", "theverge.com",
+    "arstechnica.com", "zdnet.com", "towardsdatascience.com", "substack.com",
+    "mit.edu", "stanford.edu", "harvard.edu", "medium.com", "habr.com",
+}
+
+def load_exclusions() -> dict:
+    excl_path = Path(__file__).parent.parent / "exclusions.json"
+    if excl_path.exists():
+        try:
+            return json.loads(excl_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {
+        "domains": [],
+        "title_phrases": ["топ-15", "топ-10", "топ-12", "топ-5", "топ-20", "лучших нейросетей", "лучших сервисов", "лучшие нейросети", "лучших инструмент", "рейтинг нейросет"],
+        "url_keywords": ["luchshie", "luchshih", "top-15", "top-10", "top-12", "top-5", "rejting", "rating"],
+        "snippet_phrases": ["подборка", "рейтинг лучших", "топ нейросетей для бизнеса"]
+    }
+
+def is_excluded(title: str, url: str, snippet: str, exclusions: dict) -> bool:
+    title_lower = title.lower()
+    url_lower = url.lower()
+    snippet_lower = snippet.lower()
+    
+    try:
+        from urllib.parse import urlparse
+        domain = urlparse(url).netloc.lower().removeprefix("www.")
+        if any(d == domain or domain.endswith("." + d) for d in exclusions.get("domains", [])):
+            return True
+    except Exception:
+        pass
+        
+    if any(phrase in title_lower for phrase in exclusions.get("title_phrases", [])):
+        return True
+    if any(keyword in url_lower for keyword in exclusions.get("url_keywords", [])):
+        return True
+    if any(phrase in snippet_lower for phrase in exclusions.get("snippet_phrases", [])):
+        return True
+    return False
+
+def get_source_tier(url: str) -> int:
+    if not url:
+        return 3
+    try:
+        from urllib.parse import urlparse
+        domain = urlparse(url).netloc.lower().removeprefix("www.")
+        if any(d in domain for d in _TIER1_DOMAINS):
+            return 1
+        if any(d in domain for d in _TIER2_DOMAINS):
+            return 2
+    except Exception:
+        pass
+    return 3
+
 def fetch_news(query: str, max_results: int = 15) -> list[dict]:
-    """Ищет свежие новости через DuckDuckGo, возвращает list[{title, url, body}]."""
+    """Ищет свежие новости через DuckDuckGo с качественной фильтрацией по exclusions и ранжированием по TIER."""
     articles = []
     seen_urls = set()
+    exclusions = load_exclusions()
     
-    # 1. Пробуем новостной поиск
-    try:
-        results = list(DDGS().news(query, max_results=max_results * 2))
-        for r in results:
-            url = r.get("url", "")
-            if url and url not in seen_urls and is_article_url(url):
-                articles.append(r)
-                seen_urls.add(url)
-    except Exception as e:
-        log.warning("News fetch error (news): %s", e)
+    def add_article(title: str, url: str, snippet: str, date: str = "", source: str = ""):
+        if not url or url in seen_urls:
+            return
+        if not is_article_url(url):
+            return
+        if is_excluded(title, url, snippet, exclusions):
+            return
+        
+        tier = get_source_tier(url)
+        articles.append({
+            "title": title,
+            "url": url,
+            "body": snippet,
+            "date": date,
+            "source": source,
+            "tier": tier
+        })
+        seen_urls.add(url)
+
+    # 1. Пробуем новостной поиск с фильтром по времени (сначала за неделю, потом за месяц)
+    for limit in ("w", "m"):
+        if len(articles) >= max_results:
+            break
+        try:
+            results = list(DDGS().news(query, max_results=max_results * 3, timelimit=limit))
+            for r in results:
+                add_article(
+                    title=r.get("title", ""),
+                    url=r.get("url", ""),
+                    snippet=r.get("body", ""),
+                    date=r.get("date", ""),
+                    source=r.get("source", "")
+                )
+        except Exception as e:
+            log.warning("News fetch error (news with timelimit=%s): %s", limit, e)
         
     # 2. Добираем через текстовый поиск, если нашли мало статей
-    if len(articles) < 5:
+    if len(articles) < 10:
         try:
-            results = list(DDGS().text(query, max_results=max_results * 2, region="ru-ru"))
+            results = list(DDGS().text(query, max_results=max_results * 3, region="ru-ru"))
             for r in results:
-                url = r.get("href", "")
-                if url and url not in seen_urls and is_article_url(url):
-                    articles.append({
-                        "title": r.get("title", ""),
-                        "url": url,
-                        "body": r.get("body", ""),
-                        "source": "",
-                        "date": ""
-                    })
-                    seen_urls.add(url)
+                add_article(
+                    title=r.get("title", ""),
+                    url=r.get("href", ""),
+                    snippet=r.get("body", ""),
+                    source=""
+                )
         except Exception as e:
             log.warning("News fetch error (text): %s", e)
             
-    return articles[:max_results]
+    # Сортируем по авторитетности (tier 1 -> tier 2 -> tier 3)
+    articles.sort(key=lambda x: x["tier"])
+    return articles
 
 async def choose_news_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     keyboard = [
@@ -860,21 +954,42 @@ async def start_news_search(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> i
         )
         return WAIT_NEWS_TOPIC
 
-    # Выбираем случайные 3 из пула
-    import random
-    random.shuffle(pool)
-    items = pool[:3]
+    ctx.user_data["news_pool"] = pool
+    ctx.user_data["news_index"] = 0
+    return await show_news_page(update, ctx)
 
+async def show_news_page(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    pool = ctx.user_data.get("news_pool", [])
+    index = ctx.user_data.get("news_index", 0)
+    topic_name = ctx.user_data.get("news_topic_name", "VK-реклама")
+
+    if not pool:
+        await update.message.reply_text("Новостной пул пуст. Попробуйте выбрать тему заново.", reply_markup=MAIN_KEYBOARD)
+        return ConversationHandler.END
+
+    if index >= len(pool):
+        index = 0
+        ctx.user_data["news_index"] = 0
+        await update.message.reply_text("Вы просмотрели все новости. Показываю сначала (по второму кругу).")
+
+    items = pool[index:index + 3]
     ctx.user_data["news_items"] = items
+
     lines = []
     import html
+    tier_labels = {1: "⭐⭐⭐", 2: "⭐⭐", 3: "⭐"}
     for i, item in enumerate(items, 1):
         emoji = ["1️⃣", "2️⃣", "3️⃣"][i - 1]
         title_escaped = html.escape(item.get('title', '—'))
         source_escaped = html.escape(item.get('source', ''))
         url = item.get('url', '')
+        tier_star = tier_labels.get(item.get("tier", 3), "⭐")
         
-        lines.append(f"{emoji} <b>{title_escaped}</b>\n🔗 <a href=\"{url}\">Читать новость</a>\n<i>{source_escaped}</i> • {item.get('date', '')[:10]}")
+        lines.append(
+            f"{emoji} <b>{title_escaped}</b>\n"
+            f"🔗 <a href=\"{url}\">Читать новость</a>\n"
+            f"<i>{source_escaped}</i> • {item.get('date', '')[:10]} • Качество: {tier_star}"
+        )
         if item.get("body"):
             body_escaped = html.escape(item['body'][:120])
             lines.append(f"↳ {body_escaped}…")
@@ -888,7 +1003,7 @@ async def start_news_search(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> i
     keyboard_rows.append(["🏠 Главное меню"])
 
     await update.message.reply_text(
-        f"📰 <b>Свежие новости по теме «{topic_name}»:</b>\n\n" + "\n".join(lines).strip()
+        f"📰 <b>Свежие новости по теме «{topic_name}» (страница {index//3 + 1}):</b>\n\n" + "\n".join(lines).strip()
         + "\n\nВыбери новость и запиши свой комментарий эксперта:",
         parse_mode="HTML",
         reply_markup=ReplyKeyboardMarkup(
@@ -903,7 +1018,8 @@ async def news_pick(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     items = ctx.user_data.get("news_items", [])
 
     if text == "🔄 Новые новости":
-        return await start_news_search(update, ctx)
+        ctx.user_data["news_index"] = ctx.user_data.get("news_index", 0) + 3
+        return await show_news_page(update, ctx)
 
     idx = NUMS.get(text)
     if idx is not None and idx < len(items):
@@ -953,6 +1069,36 @@ async def news_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
 # ── Режим: Создание статьи ───────────────────────────────────────────────────
 
+async def choose_article_mode(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    keyboard = [
+        ["🎯 Статья для SEO и GEO"],
+        ["🔬 Статья-исследование"],
+        ["📰 Новостной обзор"],
+        ["🏠 Главное меню"]
+    ]
+    await update.message.reply_text(
+        "🚀 <b>Создание статьи с помощью AI-агентов</b>\n\n"
+        "Выберите формат статьи:",
+        parse_mode="HTML",
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
+    return WAIT_ARTICLE_MODE
+
+async def handle_article_mode(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    mode = update.message.text.strip()
+    if mode not in ["🎯 Статья для SEO и GEO", "🔬 Статья-исследование", "📰 Новостной обзор"]:
+        await update.message.reply_text("Пожалуйста, выберите формат из предложенных кнопок.")
+        return WAIT_ARTICLE_MODE
+    
+    ctx.user_data["article_mode"] = mode
+    await update.message.reply_text(
+        f"Выбран формат: <b>{mode}</b>\n\n"
+        f"Отправьте тему статьи текстовым сообщением или запишите голосовое с подробным описанием идеи:",
+        parse_mode="HTML",
+        reply_markup=NAV_KEYBOARD
+    )
+    return WAIT_ARTICLE_TOPIC
+
 async def choose_article_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text(
         "🚀 <b>Создание статьи с помощью AI-агентов</b>\n\n"
@@ -979,7 +1125,8 @@ async def handle_article_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
     await update.message.reply_text("⏳ Генерирую метаданные статьи с помощью Llama...")
     
     # Generate metadata
-    title, slug, query = gen_article_metadata(text)
+    mode = ctx.user_data.get("article_mode", "🎯 Статья для SEO и GEO")
+    title, slug, query = gen_article_metadata(text, mode)
     ctx.user_data["article_title"] = title
     ctx.user_data["article_slug"] = slug
     ctx.user_data["article_query"] = query
@@ -991,6 +1138,7 @@ async def handle_article_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
     ]
     await update.message.reply_text(
         f"📋 <b>Черновик настроек статьи:</b>\n\n"
+        f"⚙️ <b>Формат:</b> {mode}\n"
         f"💡 <b>Тема:</b> {text}\n"
         f"📝 <b>Заголовок H1:</b> {title}\n"
         f"🔗 <b>Slug:</b> {slug}\n"
@@ -1003,13 +1151,14 @@ async def handle_article_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
 
 async def handle_article_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     text = update.message.text.strip()
+    mode = ctx.user_data.get("article_mode", "🎯 Статья для SEO и GEO")
     if text == "🔄 Сгенерировать заново":
         topic = ctx.user_data.get("article_topic")
         if not topic:
             await update.message.reply_text("Что-то пошло не так, вернитесь в главное меню.", reply_markup=MAIN_KEYBOARD)
             return ConversationHandler.END
         await update.message.reply_text("⏳ Генерирую новые метаданные...")
-        title, slug, query = gen_article_metadata(topic)
+        title, slug, query = gen_article_metadata(topic, mode)
         ctx.user_data["article_title"] = title
         ctx.user_data["article_slug"] = slug
         ctx.user_data["article_query"] = query
@@ -1021,6 +1170,7 @@ async def handle_article_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
         ]
         await update.message.reply_text(
             f"📋 <b>Новый черновик настроек статьи:</b>\n\n"
+            f"⚙️ <b>Формат:</b> {mode}\n"
             f"💡 <b>Тема:</b> {topic}\n"
             f"📝 <b>Заголовок H1:</b> {title}\n"
             f"🔗 <b>Slug:</b> {slug}\n"
@@ -1043,6 +1193,7 @@ async def handle_article_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
 
         await update.message.reply_text(
             f"🚀 <b>Запускаю конвейер генерации статьи!</b>\n\n"
+            f"⚙️ <b>Формат:</b> {mode}\n"
             f"Рой из 9 агентов начал работу в фоновом режиме.\n"
             f"Я буду присылать уведомления о каждом шаге и запрошу подтверждение на шаге 4 (исследование) и шаге 12 (публикация).",
             parse_mode="HTML",
@@ -1050,13 +1201,15 @@ async def handle_article_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
         )
 
         # Run orchestrator.py in background
+        import subprocess
         cmd = [
             sys.executable,
             "scripts/orchestrator.py",
             "--topic", topic,
             "--title", title,
             "--slug", slug,
-            "--query", query
+            "--query", query,
+            "--mode", mode
         ]
         log.info("Starting orchestrator in background: %s", cmd)
         try:
@@ -1137,7 +1290,7 @@ def main() -> None:
             MessageHandler(filters.Regex("^🎯 Аудитория$"), choose_aud_topic),
             MessageHandler(filters.Regex("^📋 Заметки$"), menu_list),
             MessageHandler(filters.Regex("^📰 Новости ниши$"), choose_news_topic),
-            MessageHandler(filters.Regex("^🚀 Создать статью$"), choose_article_topic),
+            MessageHandler(filters.Regex("^🚀 Создать статью$"), choose_article_mode),
         ],
         states={
             WAIT_CATEGORY: [
@@ -1211,6 +1364,10 @@ def main() -> None:
             WAIT_NEWS_VOICE: [
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.VOICE | filters.AUDIO, news_voice),
+            ],
+            WAIT_ARTICLE_MODE: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_article_mode),
             ],
             WAIT_ARTICLE_TOPIC: [
                 MessageHandler(home_filter, go_home),

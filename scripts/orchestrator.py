@@ -1199,6 +1199,7 @@ def run_fact_checker(draft: str, raw_sources: str, step_label: str) -> tuple[boo
 def run_pipeline(
     topic: str, title: str, slug: str, search_query: str,
     auto_approve: bool = False, resume: bool = False,
+    mode: str = "🎯 Статья для SEO и GEO",
 ) -> None:
     # ── Resume: загружаем сохранённое состояние ──────────────────────────────
     last_step, saved_ctx = load_state(slug) if resume else (0, {})
@@ -1207,7 +1208,7 @@ def run_pipeline(
         tg_notify(f"▶️ <b>Возобновление пайплайна</b>\nСлуг: {slug}\nПродолжаем с шага {last_step + 1}")
     else:
         print(f"\n🚀 Content Factory — запуск генерации: {title}")
-        tg_notify(f"🚀 <b>Запуск генерации</b>\n📝 {title}\n🔍 {topic}")
+        tg_notify(f"🚀 <b>Запуск генерации</b>\n📝 {title}\n🔍 {topic}\n⚙️ Формат: {mode}")
 
     plan_path = create_plan(title, slug) if last_step == 0 else (PLANS_DIR / f"*_{slug}.md")
     # Если resume и план уже существует — найти его
@@ -1215,7 +1216,7 @@ def run_pipeline(
         matches = list(PLANS_DIR.glob(f"*_{slug}.md"))
         plan_path = matches[0] if matches else create_plan(title, slug)
 
-    context: dict = {"topic": topic, "title": title, "search_query": search_query}
+    context: dict = {"topic": topic, "title": title, "search_query": search_query, "mode": mode}
     context.update(saved_ctx)  # восстанавливаем сохранённые данные
 
     # Шаг 1: Оркестратор читает feedback
@@ -1333,6 +1334,33 @@ def run_pipeline(
     # Шаги 5-6: content-writer (с обязательным grounding по верифицированным источникам)
     rules_excerpt = RULES_FILE.read_text(encoding="utf-8")[:800] if RULES_FILE.exists() else ""
     corrections_block = f"\n\n## ПРАВКИ И УТОЧНЕНИЯ ОТ АВТОРА:\n{context['corrections']}" if context.get("corrections") else ""
+    
+    current_mode = context.get("mode", "🎯 Статья для SEO и GEO")
+    if current_mode == "🔬 Статья-исследование":
+        mode_instructions = (
+            "\n\n## ФОРМАТ: СТАТЬЯ-ИССЛЕДОВАНИЕ (Technical Deep Dive / Research Paper)\n"
+            "- Фокусируйся на глубоком техническом анализе, бенчмарках, архитектуре решений и деталях реализации.\n"
+            "- Приводи точные цифры, сравнительные таблицы, примеры кода или конфигураций из источников.\n"
+            "- Избегай общих фраз и поверхностных инструкций. Давай академический и экспертный разбор.\n"
+            "- Обязательно укажи ограничения текущих решений и потенциальные направления развития.\n"
+        )
+    elif current_mode == "📰 Новостной обзор":
+        mode_instructions = (
+            "\n\n## ФОРМАТ: НОВОСТНОЙ ОБЗОР (News Analysis / Industry Update)\n"
+            "- Сфокусируйся на свежем инфоповоде. Опиши главное событие последних дней/недели.\n"
+            "- Сравни реакцию разных источников, мнения экспертов и представителей индустрии.\n"
+            "- Опиши практические последствия новости: как это повлияет на рынок, разработчиков и бизнес.\n"
+            "- Делай повествование динамичным, актуальным и структурированным по ключевым аспектам события.\n"
+        )
+    else:
+        mode_instructions = (
+            "\n\n## ФОРМАТ: СТАТЬЯ ДЛЯ SEO И GEO (SEO/GEO-optimized Guide / Tutorial)\n"
+            "- Пиши в стиле пошагового практического руководства или подробного гайда.\n"
+            "- Структурируй текст так, чтобы читатель мог легко повторить описанные шаги.\n"
+            "- Естественно интегрируй LSI-ключи и следи, чтобы первые предложения H2 давали прямой ответ на вопросы (AEO).\n"
+            "- Используй простые аналогии и форматируй списки для легкого сканирования глазами.\n"
+        )
+
     for step in (5, 6):
         block = "1-3" if step == 5 else "4-6"
         if last_step >= step and context.get(f"draft_{block}"):
@@ -1347,6 +1375,7 @@ def run_pipeline(
                 web_pack=context.get("web_pack", ""),
                 raw_sources=context.get("raw_sources", ""),
             )
+            + mode_instructions
             + corrections_block
             + f"\n\nНапиши блоки {block} статьи."
         )
@@ -1573,6 +1602,7 @@ if __name__ == "__main__":
     parser.add_argument("--title", required=True, help="Заголовок H1 статьи")
     parser.add_argument("--slug", required=True, help="URL-slug статьи")
     parser.add_argument("--query", required=True, help="Поисковый запрос для GEO-теста")
+    parser.add_argument("--mode", default="🎯 Статья для SEO и GEO", help="Формат статьи")
     parser.add_argument("--auto-approve", action="store_true", help="Пропускать HITL-паузы (тестовый режим)")
     parser.add_argument("--resume", action="store_true", help="Возобновить с последнего сохранённого шага")
     args = parser.parse_args()
@@ -1584,4 +1614,5 @@ if __name__ == "__main__":
         search_query=args.query,
         auto_approve=args.auto_approve,
         resume=args.resume,
+        mode=args.mode,
     )
