@@ -1637,8 +1637,18 @@ async def handle_voice_note_button(update: Update, ctx: ContextTypes.DEFAULT_TYP
 async def menu_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     files = gh_list("knowledge/voice")[:5]
     if files:
+        repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
+        branch = os.environ.get("GITHUB_BRANCH", "claude/vigilant-einstein-hPa8u")
+        
+        lines = []
+        for n in files:
+            url = f"https://github.com/{repo}/blob/{branch}/knowledge/voice/{urllib.parse.quote(n)}"
+            lines.append(f"• <a href=\"{url}\">{n}</a>")
+            
         await update.message.reply_text(
-            "Последние заметки:\n\n" + "\n".join(f"• {n}" for n in files),
+            "<b>Последние заметки:</b>\n\n" + "\n".join(lines),
+            parse_mode="HTML",
+            disable_web_page_preview=True,
             reply_markup=MAIN_KEYBOARD,
         )
     else:
