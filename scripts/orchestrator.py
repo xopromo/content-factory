@@ -1170,6 +1170,8 @@ def run_hallucination_detector(draft: str, raw_sources: str) -> tuple[bool, str]
         'REST', 'GraphQL', 'SQL', 'NoSQL', 'AWS', 'GCP', 'Azure', 'VM', 'GPU',
         'USD', 'EUR', 'GBP', 'CNY', 'The', 'You', 'They', 'It', 'We',
         'May', 'June', 'July', 'August', 'AI', 'ML', 'NLP', 'CV', 'LLM',
+        'Yandex', 'ITMO', 'Skolkovo', 'Director', 'Directors', 'Studio', 'University',
+        'School', 'Russian', 'Russia', 'Telegram', 'Bot', 'Google', 'Microsoft',
     }
 
     def extract_entities(text):
