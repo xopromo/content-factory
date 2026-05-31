@@ -580,9 +580,10 @@ def is_article_url(url: str) -> bool:
     except Exception:
         return False
 
-def fetch_news(query: str, max_results: int = 3) -> list[dict]:
+def fetch_news(query: str, max_results: int = 15) -> list[dict]:
     """Ищет свежие новости через DuckDuckGo, возвращает list[{title, url, body}]."""
     try:
+        # Запрашиваем больше результатов, чтобы после фильтрации получить хороший пул статей
         results = list(DDGS().news(query, max_results=max_results * 2))
         filtered = [r for r in results if is_article_url(r.get("url", ""))]
         if filtered:
@@ -591,7 +592,7 @@ def fetch_news(query: str, max_results: int = 3) -> list[dict]:
         log.warning("News fetch error (news): %s", e)
     # Fallback: текстовый поиск
     try:
-        results = list(DDGS().text(query, max_results=max_results * 3, region="ru-ru"))
+        results = list(DDGS().text(query, max_results=max_results * 2, region="ru-ru"))
         filtered = []
         for r in results:
             url = r.get("href", "")
@@ -611,14 +612,19 @@ def fetch_news(query: str, max_results: int = 3) -> list[dict]:
 
 async def menu_news(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text("⏳ Ищу свежие новости по VK-рекламе...")
-    items = fetch_news(NEWS_QUERY)
+    pool = fetch_news(NEWS_QUERY, max_results=15)
 
-    if not items:
+    if not pool:
         await update.message.reply_text(
             "Не удалось найти новости. Попробуй позже.",
             reply_markup=MAIN_KEYBOARD,
         )
         return ConversationHandler.END
+
+    # Выбираем случайные 3 из пула
+    import random
+    random.shuffle(pool)
+    items = pool[:3]
 
     ctx.user_data["news_items"] = items
     lines = []
@@ -635,14 +641,20 @@ async def menu_news(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
             lines.append(f"↳ {body_escaped}…")
         lines.append("")
 
+    # Динамически строим кнопки выбора номеров
+    keyboard_rows = []
+    if items:
+        number_buttons = ["1️⃣", "2️⃣", "3️⃣"][:len(items)]
+        keyboard_rows.append(number_buttons)
+    keyboard_rows.append(["🔄 Новые новости"])
+    keyboard_rows.append(["🏠 Главное меню"])
+
     await update.message.reply_text(
         "📰 <b>Свежие новости по VK-рекламе:</b>\n\n" + "\n".join(lines).strip()
         + "\n\nВыбери новость и запиши свой комментарий эксперта:",
         parse_mode="HTML",
         reply_markup=ReplyKeyboardMarkup(
-            [["1️⃣", "2️⃣", "3️⃣"],
-             ["🔄 Новые новости"],
-             ["🏠 Главное меню"]],
+            keyboard_rows,
             resize_keyboard=True,
         ),
     )
