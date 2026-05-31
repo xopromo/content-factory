@@ -14,7 +14,7 @@ Voice Bot — голосовые заметки + распаковка эксп�
   GITHUB_TOKEN, GITHUB_REPO, GITHUB_BRANCH  (опционально, для облачного режима)
 """
 
-import os, re, sys, base64, logging, tempfile, urllib.request, urllib.parse, json, asyncio
+import os, re, sys, base64, logging, tempfile, urllib.request, urllib.parse, json, asyncio, time
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
@@ -29,7 +29,6 @@ from telegram.ext import (
 
 logging.basicConfig(format="%(asctime)s [%(levelname)s] %(message)s", level=logging.INFO)
 log = logging.getLogger(__name__)
-
 # ── Состояния разговора ────────────────────────────────────────────────────────
 WAIT_CATEGORY     = 1
 WAIT_EXPERT_PICK  = 2
@@ -49,6 +48,8 @@ WAIT_BIZ_TOPIC     = 15
 WAIT_BIZ_QUERY     = 16
 WAIT_AUD_TOPIC     = 17
 WAIT_AUD_QUERY     = 18
+WAIT_ARTICLE_TOPIC = 19
+WAIT_ARTICLE_CONFIRM = 20
 
 # ── Константы ─────────────────────────────────────────────────────────────────
 CATEGORIES = ["💼 Кейс", "💡 Инсайт", "📋 Гайд", "🎯 Стратегия", "❓ Гипотеза", "📝 Мысль"]
@@ -67,7 +68,7 @@ MAIN_KEYBOARD = ReplyKeyboardMarkup(
         ["🎤 Голосовая заметка"],
         ["💡 Экспертиза", "💼 Бизнес"],
         ["🎯 Аудитория", "📋 Заметки"],
-        ["📰 Новости ниши"],
+        ["📰 Новости ниши", "🚀 Создать статью"],
     ],
     resize_keyboard=True,
     is_persistent=True,
@@ -237,6 +238,29 @@ def gen_audience_profile(topic: str, answers: list[tuple[str, str]]) -> str:
         f"Ты маркетолог, составляешь профиль ЦА в проекте «{topic}» для контент-стратегии эксперта.",
     )
 
+def gen_article_metadata(topic: str) -> tuple[str, str, str]:
+    prompt = f"""На основе темы «{topic}» предложи метаданные для генерации SEO/GEO статьи.
+Ты должен вернуть строго JSON с тремя ключами:
+"title" (привлекательный кликабельный заголовок H1 на русском языке),
+"slug" (латинский URL-slug, например: "seo-guide-2026"),
+"query" (оптимальный поисковый запрос для DuckDuckGo на русском или английском для сбора свежей информации по этой теме).
+
+Верни ТОЛЬКО валидный JSON без разметки markdown и без каких-либо комментариев."""
+    
+    result = llm_chat(prompt, system="Ты помощник по планированию контента.")
+    try:
+        cleaned = result.strip()
+        if cleaned.startswith("```json"):
+            cleaned = cleaned[7:]
+        if cleaned.endswith("```"):
+            cleaned = cleaned[:-3]
+        data = json.loads(cleaned.strip())
+        return data["title"], data["slug"], data["query"]
+    except Exception as e:
+        log.error("Failed to parse article metadata: %s, raw: %s", e, result)
+        slug = get_topic_slug(topic)
+        return f"Новое исследование: {topic}", slug, topic
+
 # ── Вспомогательные ───────────────────────────────────────────────────────────
 
 def get_topic_slug(topic: str) -> str:
@@ -329,6 +353,19 @@ async def go_home(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 # ── Режим: обычная голосовая заметка ─────────────────────────────────────────
 
 async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    review_file = Path("business/review_waiting.txt")
+    if review_file.exists():
+        text = await _transcribe_voice(update, ctx)
+        if text:
+            latest_reply = Path("business/latest_reply.json")
+            latest_reply.write_text(json.dumps({
+                "timestamp": time.time(),
+                "type": "voice",
+                "content": text
+            }, ensure_ascii=False), encoding="utf-8")
+            await update.message.reply_text("🎙 Правка передана в генератор статьи.")
+        return ConversationHandler.END
+
     text = await _transcribe_voice(update, ctx)
     if text is None:
         return ConversationHandler.END
@@ -914,6 +951,125 @@ async def news_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
     return ConversationHandler.END
 
+# ── Режим: Создание статьи ───────────────────────────────────────────────────
+
+async def choose_article_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.message.reply_text(
+        "🚀 <b>Создание статьи с помощью AI-агентов</b>\n\n"
+        "Отправьте тему статьи текстовым сообщением или запишите голосовое с подробным описанием идеи:",
+        parse_mode="HTML",
+        reply_markup=NAV_KEYBOARD
+    )
+    return WAIT_ARTICLE_TOPIC
+
+async def handle_article_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    # If voice, transcribe it first
+    if update.message.voice or update.message.audio:
+        text = await _transcribe_voice(update, ctx)
+        if text is None:
+            return WAIT_ARTICLE_TOPIC
+    else:
+        text = update.message.text.strip()
+
+    if not text:
+        await update.message.reply_text("Тема не может быть пустой. Попробуйте еще раз.")
+        return WAIT_ARTICLE_TOPIC
+
+    ctx.user_data["article_topic"] = text
+    await update.message.reply_text("⏳ Генерирую метаданные статьи с помощью Llama...")
+    
+    # Generate metadata
+    title, slug, query = gen_article_metadata(text)
+    ctx.user_data["article_title"] = title
+    ctx.user_data["article_slug"] = slug
+    ctx.user_data["article_query"] = query
+
+    keyboard = [
+        ["✅ Подтвердить и запустить"],
+        ["🔄 Сгенерировать заново"],
+        ["🏠 Главное меню"]
+    ]
+    await update.message.reply_text(
+        f"📋 <b>Черновик настроек статьи:</b>\n\n"
+        f"💡 <b>Тема:</b> {text}\n"
+        f"📝 <b>Заголовок H1:</b> {title}\n"
+        f"🔗 <b>Slug:</b> {slug}\n"
+        f"🔍 <b>Поисковый запрос:</b> {query}\n\n"
+        f"Подтвердите запуск генерации роем агентов:",
+        parse_mode="HTML",
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
+    return WAIT_ARTICLE_CONFIRM
+
+async def handle_article_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    text = update.message.text.strip()
+    if text == "🔄 Сгенерировать заново":
+        topic = ctx.user_data.get("article_topic")
+        if not topic:
+            await update.message.reply_text("Что-то пошло не так, вернитесь в главное меню.", reply_markup=MAIN_KEYBOARD)
+            return ConversationHandler.END
+        await update.message.reply_text("⏳ Генерирую новые метаданные...")
+        title, slug, query = gen_article_metadata(topic)
+        ctx.user_data["article_title"] = title
+        ctx.user_data["article_slug"] = slug
+        ctx.user_data["article_query"] = query
+        
+        keyboard = [
+            ["✅ Подтвердить и запустить"],
+            ["🔄 Сгенерировать заново"],
+            ["🏠 Главное меню"]
+        ]
+        await update.message.reply_text(
+            f"📋 <b>Новый черновик настроек статьи:</b>\n\n"
+            f"💡 <b>Тема:</b> {topic}\n"
+            f"📝 <b>Заголовок H1:</b> {title}\n"
+            f"🔗 <b>Slug:</b> {slug}\n"
+            f"🔍 <b>Поисковый запрос:</b> {query}\n\n"
+            f"Подтвердите запуск генерации:",
+            parse_mode="HTML",
+            reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+        )
+        return WAIT_ARTICLE_CONFIRM
+
+    elif text == "✅ Подтвердить и запустить":
+        topic = ctx.user_data.get("article_topic")
+        title = ctx.user_data.get("article_title")
+        slug = ctx.user_data.get("article_slug")
+        query = ctx.user_data.get("article_query")
+
+        if not all([topic, title, slug, query]):
+            await update.message.reply_text("Ошибка: утеряны данные настроек. Попробуйте сначала.", reply_markup=MAIN_KEYBOARD)
+            return ConversationHandler.END
+
+        await update.message.reply_text(
+            f"🚀 <b>Запускаю конвейер генерации статьи!</b>\n\n"
+            f"Рой из 9 агентов начал работу в фоновом режиме.\n"
+            f"Я буду присылать уведомления о каждом шаге и запрошу подтверждение на шаге 4 (исследование) и шаге 12 (публикация).",
+            parse_mode="HTML",
+            reply_markup=MAIN_KEYBOARD
+        )
+
+        # Run orchestrator.py in background
+        cmd = [
+            sys.executable,
+            "scripts/orchestrator.py",
+            "--topic", topic,
+            "--title", title,
+            "--slug", slug,
+            "--query", query
+        ]
+        log.info("Starting orchestrator in background: %s", cmd)
+        try:
+            project_root = Path(__file__).parent.parent
+            subprocess.Popen(cmd, cwd=project_root)
+        except Exception as e:
+            log.error("Failed to start orchestrator: %s", e)
+            await update.message.reply_text(f"❌ Ошибка запуска: {e}", reply_markup=MAIN_KEYBOARD)
+
+        return ConversationHandler.END
+
+    return WAIT_ARTICLE_CONFIRM
+
 # ── Список заметок ────────────────────────────────────────────────────────────
 
 async def menu_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
@@ -926,6 +1082,24 @@ async def menu_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     else:
         await update.message.reply_text("Заметок пока нет.", reply_markup=MAIN_KEYBOARD)
     return ConversationHandler.END
+
+async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    review_file = Path("business/review_waiting.txt")
+    if review_file.exists():
+        text = update.message.text.strip()
+        latest_reply = Path("business/latest_reply.json")
+        latest_reply.write_text(json.dumps({
+            "timestamp": time.time(),
+            "type": "text",
+            "content": text
+        }, ensure_ascii=False), encoding="utf-8")
+        await update.message.reply_text("✅ Ответ передан в генератор статьи.")
+        return
+    
+    await update.message.reply_text(
+        "Я не понял эту команду. Пожалуйста, используйте кнопки меню или отправьте голосовую заметку.",
+        reply_markup=MAIN_KEYBOARD
+    )
 
 # ── Запуск ────────────────────────────────────────────────────────────────────
 
@@ -963,6 +1137,7 @@ def main() -> None:
             MessageHandler(filters.Regex("^🎯 Аудитория$"), choose_aud_topic),
             MessageHandler(filters.Regex("^📋 Заметки$"), menu_list),
             MessageHandler(filters.Regex("^📰 Новости ниши$"), choose_news_topic),
+            MessageHandler(filters.Regex("^🚀 Создать статью$"), choose_article_topic),
         ],
         states={
             WAIT_CATEGORY: [
@@ -1037,6 +1212,15 @@ def main() -> None:
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.VOICE | filters.AUDIO, news_voice),
             ],
+            WAIT_ARTICLE_TOPIC: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_article_topic),
+                MessageHandler(filters.VOICE | filters.AUDIO, handle_article_topic),
+            ],
+            WAIT_ARTICLE_CONFIRM: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_article_confirm),
+            ],
         },
         fallbacks=[CommandHandler("cancel", cmd_cancel)],
         allow_reentry=True,
@@ -1044,6 +1228,7 @@ def main() -> None:
 
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(conv)
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
     if port_str := os.getenv("PORT"):
         port = int(port_str)

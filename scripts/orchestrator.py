@@ -615,16 +615,27 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
 def _tg_wait_reply(timeout: int = 600) -> tuple[str, str]:
     """
     Ждёт ответного сообщения от пользователя в Telegram.
-    Возвращает (тип: 'text'|'voice', содержимое).
-    Таймаут в секундах (по умолчанию 10 минут).
+    Поддерживает файловый мост для работы в Webhook-режиме в облаке.
     """
-    import urllib.request, urllib.parse, tempfile, time as _time
+    import urllib.request, urllib.parse, tempfile, time as _time, json
+    from pathlib import Path
+    
     token = os.getenv("TG_BOT_TOKEN")
     chat_id = str(os.getenv("TG_CHAT_ID", ""))
+    
+    # Файловый мост для Webhook
+    reply_file = Path("business/latest_reply.json")
+    initial_time = 0.0
+    if reply_file.exists():
+        try:
+            initial_time = json.loads(reply_file.read_text(encoding="utf-8")).get("timestamp", 0.0)
+        except Exception:
+            pass
+
     if not token or not chat_id:
         return "text", input("\nВаш ответ: ").strip().lower()
 
-    # Получаем текущий offset чтобы не читать старые сообщения
+    # Сдвигаем offset (для локального Polling)
     def _api(method, **params):
         url = f"https://api.telegram.org/bot{token}/{method}"
         if params:
@@ -632,19 +643,32 @@ def _tg_wait_reply(timeout: int = 600) -> tuple[str, str]:
         with urllib.request.urlopen(url, timeout=15) as r:
             return json.loads(r.read())
 
-    # Сдвигаем offset за последнее известное обновление
+    offset = 0
     try:
         updates = _api("getUpdates", limit=1, offset=-1)
         offset = updates["result"][-1]["update_id"] + 1 if updates["result"] else 0
     except Exception:
-        offset = 0
+        pass
 
     deadline = _time.time() + timeout
-    print(f"  Ожидаю ответа в Telegram ({timeout//60} мин)...")
+    print(f"  Ожидаю ответа в Telegram ({timeout//60} мин) через файловый мост / getUpdates...")
 
     while _time.time() < deadline:
+        # 1. Проверяем файловый мост (работает при Webhook)
+        if reply_file.exists():
+            try:
+                data = json.loads(reply_file.read_text(encoding="utf-8"))
+                if data.get("timestamp", 0.0) > initial_time:
+                    msg_type = data.get("type", "text")
+                    content = data.get("content", "")
+                    print(f"  [file-bridge] Получен ответ: {content[:100]}")
+                    return msg_type, content
+            except Exception:
+                pass
+
+        # 2. Пробуем getUpdates (работает при Polling)
         try:
-            updates = _api("getUpdates", offset=offset, timeout=30, limit=5)
+            updates = _api("getUpdates", offset=offset, timeout=5, limit=5)
             for upd in updates.get("result", []):
                 offset = upd["update_id"] + 1
                 msg = upd.get("message", {})
@@ -675,18 +699,22 @@ def _tg_wait_reply(timeout: int = 600) -> tuple[str, str]:
                         tg_notify(f"🎙 Транскрипция правок:\n\n{transcription}")
                         return "voice", transcription
                     finally:
-                        os.unlink(tmp_path)
+                        try:
+                            os.unlink(tmp_path)
+                        except Exception:
+                            pass
 
                 # Текстовое сообщение
                 text = msg.get("text", "").strip()
                 if text:
                     return "text", text
+        except Exception:
+            # Игнорируем ошибки getUpdates (например, 409 Conflict в вебхук-режиме)
+            pass
 
-        except Exception as e:
-            print(f"  [TG poll error] {e}")
-            _time.sleep(5)
+        _time.sleep(2)
 
-    return "text", "stop"  # таймаут — останавливаем
+    return "text", "stop"
 
 
 def human_review(title: str, content: str, step: int, auto: bool = False) -> tuple[bool, str]:
@@ -712,7 +740,21 @@ def human_review(title: str, content: str, step: int, auto: bool = False) -> tup
     print(f"{'='*60}")
     print(content[:1000])
 
-    msg_type, answer = _tg_wait_reply(timeout=600)
+    # Сигнализируем боту о начале ожидания ответа
+    try:
+        Path("business").mkdir(parents=True, exist_ok=True)
+        Path("business/review_waiting.txt").write_text(str(step), encoding="utf-8")
+    except Exception:
+        pass
+
+    try:
+        msg_type, answer = _tg_wait_reply(timeout=600)
+    finally:
+        # Убираем сигнал ожидания
+        try:
+            Path("business/review_waiting.txt").unlink(missing_ok=True)
+        except Exception:
+            pass
 
     if msg_type == "voice":
         # Голосовые правки — одобряем с корректировками
