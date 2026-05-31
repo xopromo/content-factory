@@ -672,6 +672,8 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
             ["claude", "-p", full_prompt, "--output-format", "text"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             cwd=tmp_dir,
         )
         if result.returncode == 0:
@@ -1680,10 +1682,10 @@ def run_pipeline(
     files_to_add = [str(article_path), str(plan_path)]
     if html_path and html_path.exists():
         files_to_add.append(str(html_path))
-    subprocess.run(["git", "add"] + files_to_add, cwd=ROOT, capture_output=True)
+    subprocess.run(["git", "add"] + files_to_add, cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
     subprocess.run(
         ["git", "commit", "-m", f"feat: article '{title}' [{slug}]"],
-        cwd=ROOT, capture_output=True, text=True
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace"
     )
 
     # git push with GITHUB_TOKEN
@@ -1693,8 +1695,8 @@ def run_pipeline(
     if token:
         try:
             auth_url = f"https://x-access-token:{token}@github.com/{repo}.git"
-            subprocess.run(["git", "remote", "set-url", "origin", auth_url], cwd=ROOT, capture_output=True)
-            subprocess.run(["git", "push", "origin", branch], cwd=ROOT, capture_output=True)
+            subprocess.run(["git", "remote", "set-url", "origin", auth_url], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
+            subprocess.run(["git", "push", "origin", branch], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
             print("  [deployer-publisher] Изменения успешно отправлены на GitHub")
         except Exception as e:
             print(f"  [deployer-publisher] [WARN] Ошибка отправки на GitHub: {e}")
