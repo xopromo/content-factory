@@ -1,211 +1,10 @@
 [
   {
-    "timestamp": "2026-06-01T13:36:39.239305+00:00",
+    "timestamp": "2026-06-01T13:43:39.254466+00:00",
     "update": {
       "message": {
         "channel_chat_created": false,
         "delete_chat_photo": false,
-        "entities": [
-          {
-            "length": 7,
-            "offset": 0,
-            "type": "bot_command"
-          }
-        ],
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "text": "/cancel",
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780320999,
-        "message_id": 532,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        }
-      },
-      "update_id": 105152892
-    }
-  },
-  {
-    "timestamp": "2026-06-01T13:36:48.404128+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "entities": [
-          {
-            "length": 6,
-            "offset": 0,
-            "type": "bot_command"
-          }
-        ],
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "text": "/start",
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780321008,
-        "message_id": 533,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        }
-      },
-      "update_id": 105152893
-    }
-  },
-  {
-    "timestamp": "2026-06-01T13:36:51.656762+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "text": "🚀 Создать статью",
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780321011,
-        "message_id": 535,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        }
-      },
-      "update_id": 105152894
-    }
-  },
-  {
-    "timestamp": "2026-06-01T13:36:55.219996+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "text": "📰 Новостной обзор",
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780321015,
-        "message_id": 537,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        }
-      },
-      "update_id": 105152895
-    }
-  },
-  {
-    "timestamp": "2026-06-01T13:37:08.785462+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "text": "проновую модель грок имэджн",
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780321028,
-        "message_id": 539,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        }
-      },
-      "update_id": 105152896
-    }
-  },
-  {
-    "timestamp": "2026-06-01T13:37:18.577371+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "text": "✅ Подтвердить и запустить",
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780321038,
-        "message_id": 542,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        }
-      },
-      "update_id": 105152897
-    }
-  },
-  {
-    "timestamp": "2026-06-01T13:38:35.018676+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "entities": [
-          {
-            "length": 8,
-            "offset": 0,
-            "type": "bot_command"
-          }
-        ],
         "group_chat_created": false,
         "supergroup_chat_created": false,
         "text": "/pushlog",
@@ -215,8 +14,8 @@
           "type": "private",
           "username": "xopromo"
         },
-        "date": 1780321100,
-        "message_id": 550,
+        "date": 1780321110,
+        "message_id": 551,
         "from": {
           "first_name": "Константин",
           "id": 220023136,
@@ -224,7 +23,7 @@
           "username": "xopromo"
         }
       },
-      "update_id": 105152899
+      "update_id": 105152900
     }
   }
 ]
