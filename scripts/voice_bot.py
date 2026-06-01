@@ -24,7 +24,7 @@ from ddgs import DDGS
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, MessageHandler,
-    ContextTypes, ConversationHandler, filters,
+    ContextTypes, ConversationHandler, filters, TypeHandler,
 )
 
 logging.basicConfig(format="%(asctime)s [%(levelname)s] %(message)s", level=logging.INFO)
@@ -1677,6 +1677,29 @@ async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         reply_markup=MAIN_KEYBOARD
     )
 
+async def global_update_logger(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        update_dict = update.to_dict() if hasattr(update, "to_dict") else str(update)
+        log_entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "update": update_dict
+        }
+        log_file = Path(__file__).parent.parent / "webhook_log.json"
+        updates = []
+        if log_file.exists():
+            try:
+                updates = json.loads(log_file.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+        updates.append(log_entry)
+        updates = updates[-50:]
+        log_file.write_text(json.dumps(updates, ensure_ascii=False, indent=2), encoding="utf-8")
+        
+        # Записываем на GitHub
+        gh_write("docs/articles/webhook_log.json", json.dumps(updates, ensure_ascii=False, indent=2), "diagnostics: log webhook update")
+    except Exception as e:
+        log.error("Error in global_update_logger: %s", e)
+
 # ── Запуск ────────────────────────────────────────────────────────────────────
 
 async def telegram_error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1994,6 +2017,7 @@ def main() -> None:
         allow_reentry=True,
     )
 
+    app.add_handler(TypeHandler(Update, global_update_logger), group=-1)
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("log", cmd_log))
     app.add_handler(CommandHandler("pushlog", cmd_pushlog))
