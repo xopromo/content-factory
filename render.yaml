@@ -13,7 +13,12 @@ services:
         sync: false
       - key: GITHUB_TOKEN
         sync: false
+      - key: GEMINI_KEY
+        sync: false
+      - key: GROQ_KEY_2
+        sync: false
       - key: GITHUB_REPO
         value: xopromo/content-factory
       - key: GITHUB_BRANCH
         value: main
+
