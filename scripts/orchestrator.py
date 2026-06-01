@@ -1244,21 +1244,30 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
 
     errors = []
 
+    # Собираем список доступных клиентов Groq
+    groq_clients = []
     if _groq_client:
+        groq_clients.append(_groq_client)
+    if _groq_client2:
+        groq_clients.append(_groq_client2)
+
+    if groq_clients:
         for model_name in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"]:
-            try:
-                resp = _groq_client.chat.completions.create(
-                    model=model_name,
-                    messages=[{"role": "user", "content": full_prompt}],
-                    max_tokens=8192,
-                    temperature=0.7,
-                )
-                return resp.choices[0].message.content.strip(), tokens
-            except Exception as e:
-                err_msg = f"Groq Error ({model_name}): {e}"
-                print(f"[GROQ ERROR - {model_name}] {e}")
-                errors.append(err_msg)
-                continue
+            # Пробуем отправить запрос по очереди через каждый доступный токен
+            for gq in groq_clients:
+                try:
+                    resp = gq.chat.completions.create(
+                        model=model_name,
+                        messages=[{"role": "user", "content": full_prompt}],
+                        max_tokens=8192,
+                        temperature=0.7,
+                    )
+                    return resp.choices[0].message.content.strip(), tokens
+                except Exception as e:
+                    err_msg = f"Groq Error ({model_name} - Токен #{groq_clients.index(gq)+1}): {e}"
+                    print(f"[GROQ ERROR] {err_msg}")
+                    errors.append(err_msg)
+                    continue
 
     if _mistral_client:
         try:
@@ -1709,18 +1718,28 @@ def run_fast(prompt: str) -> tuple[str, int]:
     """
     tokens = len(prompt.split()) * 2
     errors = []
+    
+    groq_clients = []
     if _groq_client:
-        try:
-            resp = _gq.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=1024,
-                temperature=0.2,
-            )
-            return resp.choices[0].message.content.strip(), tokens
-        except Exception as e:
-            errors.append(f"Groq Fast Error: {e}")
-            print(f"[GROQ FAST ERROR] {e}")
+        groq_clients.append(_groq_client)
+    if _groq_client2:
+        groq_clients.append(_groq_client2)
+
+    if groq_clients:
+        for gq in groq_clients:
+            try:
+                resp = gq.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=1024,
+                    temperature=0.2,
+                )
+                return resp.choices[0].message.content.strip(), tokens
+            except Exception as e:
+                err_msg = f"Groq Fast Error (Токен #{groq_clients.index(gq)+1}): {e}"
+                errors.append(err_msg)
+                print(f"[GROQ FAST ERROR] {err_msg}")
+                
     if _gemini_client:
         try:
             resp = _gemini_client.models.generate_content(
