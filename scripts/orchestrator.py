@@ -484,7 +484,7 @@ def _tg_wait_reply(timeout: int = 600) -> tuple[str, str]:
     chat_id = str(os.getenv("TG_CHAT_ID", ""))
     
     # Файловый мост для Webhook
-    reply_file = Path("business/latest_reply.json")
+    reply_file = ROOT / "business" / "latest_reply.json"
     initial_time = 0.0
     if reply_file.exists():
         try:
@@ -602,8 +602,8 @@ def human_review(title: str, content: str, step: int, auto: bool = False) -> tup
 
     # Сигнализируем боту о начале ожидания ответа
     try:
-        Path("business").mkdir(parents=True, exist_ok=True)
-        Path("business/review_waiting.txt").write_text(str(step), encoding="utf-8")
+        (ROOT / "business").mkdir(parents=True, exist_ok=True)
+        (ROOT / "business" / "review_waiting.txt").write_text(str(step), encoding="utf-8")
     except Exception:
         pass
 
@@ -612,7 +612,7 @@ def human_review(title: str, content: str, step: int, auto: bool = False) -> tup
     finally:
         # Убираем сигнал ожидания
         try:
-            Path("business/review_waiting.txt").unlink(missing_ok=True)
+            (ROOT / "business" / "review_waiting.txt").unlink(missing_ok=True)
         except Exception:
             pass
 
@@ -1097,7 +1097,7 @@ def run_pipeline(
         print("  [passport] FINER gate пропущен (уже выполнен на шаге 3)")
         finer_report = context.get("finer_report", "")
     else:
-        finer_ok, finer_report = finer_gate(topic, fresh, deep, mode=mode)
+        finer_ok, finer_report = finer_gate(topic, fresh, deep, mode=pipeline_mode)
         context["finer_report"] = finer_report
         print(f"\n  [FINER gate]\n{finer_report}")
         if not finer_ok:
