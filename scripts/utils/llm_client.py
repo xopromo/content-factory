@@ -192,14 +192,22 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
     # 2. Groq (Llama 3.3 70B с ротацией и авто-бэкоффом)
     groq_clients = get_groq_clients()
     if groq_clients:
-        for model in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"]:
+        for model in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
             for idx, gq in enumerate(groq_clients):
                 try:
+                    # Вычисляем безопасный max_tokens для провайдеров с низким TPM лимитом (Groq)
+                    model_tpm = 6000 if "8b" in model else 12000
+                    # Оставляем запас 500 токенов
+                    safe_max = max(1024, model_tpm - tokens - 500)
+                    # Физический лимит длины генерации для стабильности
+                    limit = 3000 if "70b" in model else 1024
+                    current_max = min(limit, safe_max)
+
                     content = call_groq_with_retry(
                         client=gq,
                         model=model,
                         messages=[{"role": "user", "content": full_prompt}],
-                        max_tokens=8192,
+                        max_tokens=current_max,
                         temperature=0.7
                     )
                     return content, tokens
