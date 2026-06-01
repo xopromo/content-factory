@@ -1714,20 +1714,63 @@ async def telegram_error_handler(update: object, context: ContextTypes.DEFAULT_T
 async def cmd_log(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     log_file = Path(__file__).parent.parent / "orchestrator.log"
     if not log_file.exists():
-        await update.message.reply_text("Файл orchestrator.log не найден.")
+        await update.effective_message.reply_text("Файл orchestrator.log не найден.")
         return
     try:
         # Читаем лог-файл безопасно с заменой некорректных байтов
         content = log_file.read_text(encoding="utf-8", errors="replace")
-        content_tail = content[-3000:] if len(content) > 3000 else content
+        content_tail = content[-1500:] if len(content) > 1500 else content
         
         # Экранируем HTML-теги, чтобы не ломать parse_mode="HTML" в Telegram
         import html
         content_tail_escaped = html.escape(content_tail)
         
-        await update.message.reply_text(f"📋 <b>Последние строки orchestrator.log:</b>\n\n<code>{content_tail_escaped}</code>", parse_mode="HTML")
+        try:
+            await update.effective_message.reply_text(
+                f"📋 <b>Последние строки orchestrator.log:</b>\n\n<code>{content_tail_escaped}</code>",
+                parse_mode="HTML"
+            )
+        except Exception as html_err:
+            # Если разметка сломалась или сообщение слишком длинное, отправляем как обычный текст
+            await update.effective_message.reply_text(
+                f"📋 Последние строки orchestrator.log (Plain Text):\n\n{content_tail}",
+                parse_mode=None
+            )
     except Exception as e:
-        await update.message.reply_text(f"Ошибка при чтении лога: {e}")
+        await update.effective_message.reply_text(f"Ошибка при чтении лога: {e}")
+
+async def cmd_pushlog(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    log_file = Path(__file__).parent.parent / "orchestrator.log"
+    if not log_file.exists():
+        await update.effective_message.reply_text("Файл orchestrator.log не найден для отправки.")
+        return
+    try:
+        content = log_file.read_text(encoding="utf-8", errors="replace")
+        
+        # Записываем в публичную директорию docs
+        docs_dir = Path(__file__).parent.parent / "docs" / "articles"
+        docs_dir.mkdir(parents=True, exist_ok=True)
+        log_txt_path = docs_dir / "log.txt"
+        log_txt_path.write_text(content, encoding="utf-8")
+        
+        # Коммитим и пушим
+        import subprocess
+        token = os.getenv("GITHUB_TOKEN")
+        repo = os.getenv("GITHUB_REPO", "xopromo/content-factory")
+        branch = os.getenv("GITHUB_BRANCH", "main")
+        
+        subprocess.run(["git", "add", "docs/articles/log.txt"], cwd=log_file.parent.parent, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "chore: update log.txt from bot"], cwd=log_file.parent.parent, capture_output=True)
+        
+        if token:
+            auth_url = f"https://x-access-token:{token}@github.com/{repo}.git"
+            subprocess.run(["git", "remote", "set-url", "origin", auth_url], cwd=log_file.parent.parent, capture_output=True)
+            subprocess.run(["git", "push", "origin", branch], cwd=log_file.parent.parent, capture_output=True)
+            await update.effective_message.reply_text("✅ Лог успешно отправлен в docs/articles/log.txt на GitHub.")
+        else:
+            await update.effective_message.reply_text("❌ Нет GITHUB_TOKEN для отправки на GitHub.")
+    except Exception as e:
+        await update.effective_message.reply_text(f"Ошибка при отправке лога на GitHub: {e}")
 
 async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     slug = None
@@ -1815,6 +1858,7 @@ async def post_init(application: Application) -> None:
         BotCommand("start", "Главное меню / Запуск"),
         BotCommand("cancel", "Сбросить текущий режим / Отмена"),
         BotCommand("log", "Показать лог оркестратора"),
+        BotCommand("pushlog", "Отправить лог в репозиторий GitHub"),
         BotCommand("resume", "Возобновить генерацию статьи")
     ])
 
@@ -1952,6 +1996,7 @@ def main() -> None:
 
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("log", cmd_log))
+    app.add_handler(CommandHandler("pushlog", cmd_pushlog))
     app.add_handler(CommandHandler("resume", cmd_resume))
     app.add_handler(conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
