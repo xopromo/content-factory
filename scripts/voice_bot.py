@@ -1675,6 +1675,40 @@ async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
 
 # ── Запуск ────────────────────────────────────────────────────────────────────
 
+async def telegram_error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    import traceback
+    log.error("Исключение при обработке апдейта:", exc_info=context.error)
+    
+    tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
+    tb_string = "".join(tb_list)
+    
+    error_data = {
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "error_type": type(context.error).__name__,
+        "error_message": str(context.error),
+        "traceback": tb_string,
+        "source": "telegram_bot_handler",
+        "update": str(update) if update else None
+    }
+    
+    try:
+        content = json.dumps(error_data, ensure_ascii=False, indent=2)
+        gh_write("critical_error.json", content, f"fail: bot handler exception [{type(context.error).__name__}]")
+        print("  [auto-healer] Сигнальный файл о сбое в обработчике успешно отправлен на GitHub")
+    except Exception as e:
+        print(f"[AUTO-HEALER ERROR] Не удалось отправить сигнальный файл на GitHub: {e}")
+        
+    if update and hasattr(update, "effective_message") and update.effective_message:
+        try:
+            await update.effective_message.reply_text(
+                "⚠️ <b>Произошел технический сбой в работе бота.</b>\n\n"
+                "Сигнальный файл с деталями ошибки уже отправлен ИИ-агенту для автоисправления.\n"
+                "Исправление применится автоматически в течение нескольких минут. Приносим извинения за неудобства!",
+                parse_mode="HTML"
+            )
+        except Exception:
+            pass
+
 async def post_init(application: Application) -> None:
     from telegram import BotCommand
     await application.bot.set_my_commands([
@@ -1698,6 +1732,7 @@ def main() -> None:
     print(f"Бот запущен | Сохранение: {mode}")
 
     app = Application.builder().token(token).post_init(post_init).build()
+    app.add_error_handler(telegram_error_handler)
 
     home_filter = filters.Regex("^(🏠|🏠 Главное меню)$")
 
@@ -1837,4 +1872,23 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        tb_string = "".join(traceback.format_exception(None, e, e.__traceback__))
+        error_data = {
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "traceback": tb_string,
+            "source": "telegram_bot_startup"
+        }
+        print(f"Критическая ошибка при запуске бота: {e}")
+        try:
+            content = json.dumps(error_data, ensure_ascii=False, indent=2)
+            gh_write("critical_error.json", content, "fail: bot startup crash")
+            print("Сигнальный файл о сбое запуска успешно отправлен на GitHub")
+        except Exception as push_err:
+            print(f"Не удалось отправить сигнальный файл о сбое запуска на GitHub: {push_err}")
+        sys.exit(1)

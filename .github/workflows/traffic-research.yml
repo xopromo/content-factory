@@ -61,3 +61,17 @@ jobs:
               print(f\"Last updated: {data.get('last_updated', 'N/A')}\")
             "
           fi
+
+      - name: Create and push critical error report
+        if: failure()
+        run: |
+          echo '{
+            "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",
+            "error_type": "GitHubActionsFailure",
+            "error_message": "Traffic Research Agent workflow failed",
+            "source": "github_actions_traffic"
+          }' > critical_error.json
+          git add critical_error.json
+          git commit -m "fail: Traffic research workflow failed"
+          git push origin main
+
