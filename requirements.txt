@@ -8,4 +8,3 @@ markdown
 beautifulsoup4
 lxml
 httpx
-google-genai

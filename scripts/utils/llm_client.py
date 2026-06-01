@@ -121,6 +121,27 @@ def get_mock_response(prompt: str, is_fast: bool = False) -> str:
         return "Mock Response: Успешная тестовая генерация."
 
 
+def run_gemini_rest(prompt: str) -> str:
+    gemini_key = os.getenv("GEMINI_KEY")
+    if not gemini_key:
+        raise ValueError("GEMINI_KEY is not set")
+    import urllib.request
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
+    payload = {
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.2, "maxOutputTokens": 8192}
+    }
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST"
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        res = json.loads(resp.read().decode("utf-8"))
+    return res["candidates"][0]["content"]["parts"][0]["text"].strip()
+
+
 def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = False) -> Tuple[str, int]:
     """
     Вызывает LLM для тяжелых задач (написание текстов, глубокий синтез).
@@ -147,6 +168,7 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
     errors = []
 
     # 1. Gemini (как основной бесплатный провайдер с 1M контекстом)
+    gemini_key = os.getenv("GEMINI_KEY")
     if _gemini_client:
         try:
             resp = _gemini_client.models.generate_content(
@@ -156,6 +178,14 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
             return resp.text.strip(), tokens
         except Exception as e:
             err_msg = f"Gemini Error: {e}"
+            print(f"  [LLM CLIENT WARNING] {err_msg}")
+            errors.append(err_msg)
+    elif gemini_key:
+        try:
+            res = run_gemini_rest(full_prompt)
+            return res, tokens
+        except Exception as e:
+            err_msg = f"Gemini REST Error: {e}"
             print(f"  [LLM CLIENT WARNING] {err_msg}")
             errors.append(err_msg)
 
@@ -247,19 +277,29 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
         raise RuntimeError(f"All Groq clients failed for model {model_name}")
 
     def try_gemini() -> str:
-        if not _gemini_client:
-            raise ValueError("No Gemini client available")
-        try:
-            resp = _gemini_client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=prompt,
-            )
-            return resp.text.strip()
-        except Exception as e:
-            err_msg = f"Gemini Fast Error: {e}"
-            errors.append(err_msg)
-            print(f"  [LLM CLIENT WARNING] {err_msg}")
-            raise RuntimeError(err_msg)
+        gemini_key = os.getenv("GEMINI_KEY")
+        if _gemini_client:
+            try:
+                resp = _gemini_client.models.generate_content(
+                    model="gemini-2.0-flash",
+                    contents=prompt,
+                )
+                return resp.text.strip()
+            except Exception as e:
+                err_msg = f"Gemini Fast Error: {e}"
+                errors.append(err_msg)
+                print(f"  [LLM CLIENT WARNING] {err_msg}")
+                raise RuntimeError(err_msg)
+        elif gemini_key:
+            try:
+                return run_gemini_rest(prompt)
+            except Exception as e:
+                err_msg = f"Gemini Fast REST Error: {e}"
+                errors.append(err_msg)
+                print(f"  [LLM CLIENT WARNING] {err_msg}")
+                raise RuntimeError(err_msg)
+        else:
+            raise ValueError("No Gemini client or key available")
 
     # Задаем порядок опроса
     if quality == "strong":
@@ -281,7 +321,7 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
                 return try_groq(model), tokens
             except Exception:
                 continue
-        elif provider == "gemini" and _gemini_client:
+        elif provider == "gemini" and (_gemini_client or os.getenv("GEMINI_KEY")):
             try:
                 return try_gemini(), tokens
             except Exception:
