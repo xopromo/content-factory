@@ -24,7 +24,7 @@
 - [x] Шаг 03 — `web-researcher`: собраны данные из документации и GitHub ⏸ **HUMAN REVIEW**
 - [x] Шаг 04 — `lead-orchestrator`: утверждение структуры пользователем
 - [x] Шаг 05 — `content-writer`: написан черновик (блок 1-3)
-- [ ] Шаг 06 — `content-writer`: написан черновик (блок 4-6)
+- [x] Шаг 06 — `content-writer`: написан черновик (блок 4-6)
 - [ ] Шаг 07 — `diagram-illustrator`: созданы Mermaid/SVG-схемы
 - [ ] Шаг 08 — `seo-geo-optimizer`: интегрированы LSI-ключи, AEO-форматирование
 - [ ] Шаг 09 — `seo-geo-optimizer`: сгенерирован Schema.org JSON-LD
