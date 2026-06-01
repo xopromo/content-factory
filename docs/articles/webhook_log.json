@@ -25,5 +25,32 @@
       },
       "update_id": 105152900
     }
+  },
+  {
+    "timestamp": "2026-06-01T14:15:39.038448+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/resume grok-image-novosti",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780322920,
+        "message_id": 575,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152908
+    }
   }
 ]
