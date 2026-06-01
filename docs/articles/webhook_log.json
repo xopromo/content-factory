@@ -1,13 +1,20 @@
 [
   {
-    "timestamp": "2026-06-01T14:49:47.557690+00:00",
+    "timestamp": "2026-06-01T16:58:05.443106+00:00",
     "update": {
       "message": {
         "channel_chat_created": false,
         "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 7,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
         "group_chat_created": false,
         "supergroup_chat_created": false,
-        "text": "Ок",
+        "text": "/cancel",
         "chat": {
           "first_name": "Константин",
           "id": 220023136,
@@ -15,8 +22,8 @@
           "type": "private",
           "username": "xopromo"
         },
-        "date": 1780325387,
-        "message_id": 603,
+        "date": 1780333085,
+        "message_id": 648,
         "from": {
           "first_name": "Константин",
           "id": 220023136,
@@ -26,7 +33,7 @@
           "username": "xopromo"
         }
       },
-      "update_id": 105152913
+      "update_id": 105152915
     }
   }
 ]
