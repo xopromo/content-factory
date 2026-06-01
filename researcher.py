@@ -106,88 +106,14 @@ def fetch_article_text(url: str, max_chars: int = 3000) -> str:
 
 
 def summarize_with_llm(title: str, article_text: str, platform: str) -> str:
-    """Summarizes article via free LLMs: Gemini → Groq → Mistral → Cerebras"""
-    LLM_PROVIDERS = [
-        {
-            "name": "Gemini",
-            "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-            "key_env": "GEMINI_KEY",
-            "is_gemini": True,
-        },
-        {
-            "name": "Groq",
-            "url": "https://api.groq.com/openai/v1/chat/completions",
-            "model": "llama-3.3-70b-versatile",
-            "key_env": "GROQ_KEY",
-        },
-        {
-            "name": "Mistral",
-            "url": "https://api.mistral.ai/v1/chat/completions",
-            "model": "mistral-small-latest",
-            "key_env": "MISTRAL_KEY",
-        },
-        {
-            "name": "Cerebras",
-            "url": "https://api.cerebras.ai/v1/chat/completions",
-            "model": "llama3.1-8b",
-            "key_env": "CEREBRAS_KEY",
-        },
-    ]
-
-    prompt = (
-        f"Ты эксперт по digital-маркетингу. Прочитай статью и напиши саммари на русском языке "
-        f"(3-5 предложений) — только конкретные инсайты и практические советы по теме {platform}. "
-        f"Без воды.\n\nЗаголовок: {title}\n\nТекст:\n{article_text}"
-    )
-
+    """Summarizes article via free LLMs using shared llm_client"""
     try:
-        import requests as req
-    except ImportError:
+        from scripts.utils.llm_client import summarize_article_common
+        res = summarize_article_common(title, article_text, platform)
+        return clean_summary(res)
+    except Exception as e:
+        print(f"  [WARN] summarize_with_llm failed: {e}")
         return ""
-
-    for p in LLM_PROVIDERS:
-        api_key = os.getenv(p["key_env"], "")
-        if not api_key:
-            key_file = os.path.expanduser(f"~/.{p['key_env'].lower().replace('_key','')}_key")
-            try:
-                api_key = open(key_file).read().strip()
-            except Exception:
-                pass
-        if not api_key:
-            print(f"  [SKIP] {p['name']}: no key")
-            continue
-        try:
-            if p.get("is_gemini"):
-                resp = req.post(
-                    f"{p['url']}?key={api_key}",
-                    headers={"Content-Type": "application/json"},
-                    json={"contents": [{"parts": [{"text": prompt}]}],
-                          "generationConfig": {"maxOutputTokens": 400, "temperature": 0.4}},
-                    timeout=20,
-                )
-            else:
-                resp = req.post(
-                    p["url"],
-                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                    json={"model": p["model"],
-                          "messages": [{"role": "user", "content": prompt}],
-                          "max_tokens": 400, "temperature": 0.4},
-                    timeout=20,
-                )
-
-            if resp.status_code == 200:
-                if p.get("is_gemini"):
-                    result = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-                else:
-                    result = resp.json()["choices"][0]["message"]["content"].strip()
-                print(f"  [LLM] {p['name']} OK")
-                return clean_summary(result)
-
-            print(f"  [WARN] {p['name']}: HTTP {resp.status_code}, trying next...")
-        except Exception as e:
-            print(f"  [WARN] {p['name']} failed: {e}, trying next...")
-
-    return ""
 
 
 def clean_summary(text: str) -> str:

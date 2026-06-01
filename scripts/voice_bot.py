@@ -211,66 +211,11 @@ def transcribe(audio_path: Path) -> str:
     return result.strip()
 
 def llm_chat(prompt: str, system: str = "") -> str:
-    # 1. Пробуем Groq (с ротацией ключей)
-    groq_keys = []
-    if k1 := os.environ.get("GROQ_KEY"):
-        groq_keys.append(k1)
-    if k2 := os.environ.get("GROQ_KEY_2"):
-        groq_keys.append(k2)
-
-    errors = []
-    if groq_keys:
-        for key in groq_keys:
-            try:
-                from groq import Groq
-                client = Groq(api_key=key)
-                messages = []
-                if system:
-                    messages.append({"role": "system", "content": system})
-                messages.append({"role": "user", "content": prompt})
-                resp = client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
-                    messages=messages,
-                    max_tokens=1024,
-                    temperature=0.7,
-                )
-                return resp.choices[0].message.content.strip()
-            except Exception as e:
-                errors.append(f"Groq Error (Key #{groq_keys.index(key)+1}): {e}")
-
-    # 2. Пробуем Gemini 2.0 Flash (через прямой REST API для стабильности)
-    gemini_key = os.getenv("GEMINI_KEY")
-    if gemini_key:
-        try:
-            import urllib.request
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
-            contents = []
-            if system:
-                contents.append({"role": "user", "parts": [{"text": f"System Instructions: {system}"}]})
-            contents.append({"role": "user", "parts": [{"text": prompt}]})
-            payload = {
-                "contents": contents,
-                "generationConfig": {
-                    "temperature": 0.7,
-                    "maxOutputTokens": 2048
-                }
-            }
-            req = urllib.request.Request(
-                url,
-                data=json.dumps(payload).encode("utf-8"),
-                headers={"Content-Type": "application/json"},
-                method="POST"
-            )
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                res = json.loads(resp.read().decode("utf-8"))
-            text = res["candidates"][0]["content"]["parts"][0]["text"]
-            return text.strip()
-        except Exception as e:
-            errors.append(f"Gemini Error: {e}")
-
-    # 3. Если все провайдеры упали
-    detailed_errors = "\n".join(f"- {err}" for err in errors)
-    raise RuntimeError(f"Не удалось выполнить llm_chat в боте. Все ключи и провайдеры вернули ошибку:\n{detailed_errors}")
+    """Sends chat prompt to shared llm_client"""
+    from scripts.utils.llm_client import run_claude_common
+    full_prompt = f"System Instructions: {system}\n\nUser Request:\n{prompt}" if system else prompt
+    content, _ = run_claude_common(full_prompt)
+    return content
 
 # ── Генерация вопросов ────────────────────────────────────────────────────────
 
