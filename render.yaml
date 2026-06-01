@@ -16,4 +16,4 @@ services:
       - key: GITHUB_REPO
         value: xopromo/content-factory
       - key: GITHUB_BRANCH
-        value: claude/vigilant-einstein-hPa8u
+        value: main

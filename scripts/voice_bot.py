@@ -106,7 +106,7 @@ def gh_read(path: str) -> str:
         p = Path(__file__).parent.parent / path
         return p.read_text("utf-8") if p.exists() else ""
     repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
-    branch = os.environ.get("GITHUB_BRANCH", "claude/vigilant-einstein-hPa8u")
+    branch = os.environ.get("GITHUB_BRANCH", "main")
     url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}?ref={branch}"
     try:
         req = urllib.request.Request(url, headers=_gh_headers())
@@ -123,7 +123,7 @@ def gh_write(path: str, content: str, message: str) -> str:
         p.write_text(content, "utf-8")
         return str(p)
     repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
-    branch = os.environ.get("GITHUB_BRANCH", "claude/vigilant-einstein-hPa8u")
+    branch = os.environ.get("GITHUB_BRANCH", "main")
     url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}"
     sha = None
     try:
@@ -156,7 +156,7 @@ def gh_write_bin(path: str, data: bytes, message: str) -> str:
         p.write_bytes(data)
         return str(p)
     repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
-    branch = os.environ.get("GITHUB_BRANCH", "claude/vigilant-einstein-hPa8u")
+    branch = os.environ.get("GITHUB_BRANCH", "main")
     url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}"
     sha = None
     try:
@@ -187,7 +187,7 @@ def gh_list(path: str) -> list[str]:
         p = Path(__file__).parent.parent / path
         return sorted([f.name for f in p.glob("*.md")], reverse=True) if p.exists() else []
     repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
-    branch = os.environ.get("GITHUB_BRANCH", "claude/vigilant-einstein-hPa8u")
+    branch = os.environ.get("GITHUB_BRANCH", "main")
     url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}?ref={branch}"
     try:
         req = urllib.request.Request(url, headers=_gh_headers())
@@ -1638,7 +1638,7 @@ async def menu_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     files = gh_list("knowledge/voice")[:5]
     if files:
         repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
-        branch = os.environ.get("GITHUB_BRANCH", "claude/vigilant-einstein-hPa8u")
+        branch = os.environ.get("GITHUB_BRANCH", "main")
         
         lines = []
         for n in files:

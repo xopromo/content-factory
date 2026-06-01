@@ -2742,7 +2742,7 @@ def run_pipeline(
     # git push with GITHUB_TOKEN
     token = os.getenv("GITHUB_TOKEN")
     repo = os.getenv("GITHUB_REPO", "xopromo/content-factory")
-    branch = os.getenv("GITHUB_BRANCH", "claude/vigilant-einstein-hPa8u")
+    branch = os.getenv("GITHUB_BRANCH", "main")
     if token:
         try:
             auth_url = f"https://x-access-token:{token}@github.com/{repo}.git"
@@ -2827,7 +2827,7 @@ if __name__ == "__main__":
             # Пытаемся отправить сигнальный файл на GitHub для моментальной реакции
             token = os.getenv("GITHUB_TOKEN")
             repo = os.getenv("GITHUB_REPO", "xopromo/content-factory")
-            branch = os.getenv("GITHUB_BRANCH", "claude/vigilant-einstein-hPa8u")
+            branch = os.getenv("GITHUB_BRANCH", "main")
             if token:
                 subprocess.run(["git", "add", "critical_error.json"], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
                 subprocess.run(["git", "commit", "-m", f"fail: orchestrator crashed on topic '{args.topic}'"], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
