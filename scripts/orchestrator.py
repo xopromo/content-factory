@@ -788,6 +788,12 @@ def run_hallucination_detector(draft: str, raw_sources: str) -> tuple[bool, str]
         'May', 'June', 'July', 'August', 'AI', 'ML', 'NLP', 'CV', 'LLM',
         'Yandex', 'ITMO', 'Skolkovo', 'Director', 'Directors', 'Studio', 'University',
         'School', 'Russian', 'Russia', 'Telegram', 'Bot', 'Google', 'Microsoft',
+        'YouTube', 'Shorts', 'Instagram', 'TikTok', 'Canva', 'Zapier', 'Bing',
+        'Ads', 'Chrome', 'Edge', 'Adobe', 'Premiere', 'Final', 'Cut', 'Imagen',
+        'Ultra', 'Pro', 'Nano', 'Flash', 'Online', 'Generated', 'Kling', 'Runway',
+        'Sora', 'Midjourney', 'ChatGPT', 'OpenAI', 'Anthropic', 'Claude', 'Copilot',
+        'Github', 'Facebook', 'Apple', 'iOS', 'Android', 'Windows', 'Mac', 'Linux',
+        'Slack', 'Zoom'
     }
 
     def extract_entities(text):
