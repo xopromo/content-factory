@@ -13,6 +13,7 @@ import subprocess
 import urllib.request
 from pathlib import Path
 from datetime import datetime, timezone
+sys.path.append(str(Path(__file__).parent.parent))
 
 if sys.platform.startswith("win"):
     try:
@@ -28,61 +29,17 @@ try:
 except ImportError:
     pass
 
-try:
-    from groq import Groq as _Groq
-    _groq_client = _Groq(api_key=os.environ.get("GROQ_KEY", "")) if os.environ.get("GROQ_KEY") else None
-    _groq_client2 = _Groq(api_key=os.environ.get("GROQ_KEY_2", "")) if os.environ.get("GROQ_KEY_2") else None
-except ImportError:
-    _groq_client = None
-    _groq_client2 = None
-
-try:
-    from google import genai as _genai
-    _gemini_key = os.environ.get("GEMINI_KEY", "")
-    _gemini_client = _genai.Client(api_key=_gemini_key) if _gemini_key else None
-except ImportError:
-    _gemini_client = None
-
-try:
-    from mistralai.client.sdk import Mistral as _Mistral
-    _mistral_key = os.environ.get("MISTRAL_KEY", "")
-    _mistral_client = _Mistral(api_key=_mistral_key) if _mistral_key else None
-except ImportError:
-    _mistral_client = None
-
-try:
-    from cerebras.cloud.sdk import Cerebras as _Cerebras
-    _cerebras_key = os.environ.get("CEREBRAS_KEY", "")
-    _cerebras_client = _Cerebras(api_key=_cerebras_key) if _cerebras_key else None
-except ImportError:
-    _cerebras_client = None
-
-try:
-    from openai import OpenAI as _OpenAI
-    _openrouter_key = os.environ.get("OPENROUTER_KEY", "")
-    _openrouter_client = _OpenAI(
-        api_key=_openrouter_key,
-        base_url="https://openrouter.ai/api/v1",
-    ) if _openrouter_key else None
-except ImportError:
-    _openrouter_client = None
-
-try:
-    from ddgs import DDGS as _DDGS
-except ImportError:
-    _DDGS = None
-
-try:
-    import trafilatura as _trafilatura
-except ImportError:
-    _trafilatura = None
-
-try:
-    from mistralai import Mistral as _Mistral
-    _mistral_key = os.environ.get("MISTRAL_KEY", "")
-    _mistral_client = _Mistral(api_key=_mistral_key) if _mistral_key else None
-except ImportError:
-    _mistral_client = None
+from scripts.utils.llm_client import run_fast_common, run_claude_common, _gemini_client, _groq_client
+from scripts.utils.validators import (
+    validate_entity_names, validate_numbers, detect_semantic_duplicates,
+    assess_content_value, verify_article_logic, rewrite_for_coherence,
+    finer_gate, _source_tier, _TIER_LABEL, strengthen_weak_sections,
+    improve_readability_seo, reduce_excessive_headings
+)
+from scripts.utils.search_helper import (
+    web_search_fresh, web_search_deep, format_search_for_llm, format_raw_sources
+)
+from scripts.agent_prompts import AGENT_PROMPTS
 
 ROOT = Path(__file__).parent.parent
 PLANS_DIR = ROOT / "plans"
@@ -309,7 +266,6 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
         i = 0
         while i < len(text):
             if text[i:].startswith('[INSUFFICIENT_SOURCES:'):
-                # Ищем закрывающую ] с учётом вложенных скобок
                 depth = 0
                 j = i
                 while j < len(text):
@@ -321,7 +277,7 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
                             j += 1
                             break
                     j += 1
-                # Пропускаем маркер и trailing whitespace/newline
+                # Пропускаем пробелы и переводы строк после закрывающей скобки
                 while j < len(text) and text[j] in (' ', '\t', '\n'):
                     j += 1
                 i = j
@@ -330,42 +286,28 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
                 i += 1
         return ''.join(result)
 
-    # Убираем заголовок + INSUFFICIENT_SOURCES если раздел только из них состоит
-    md_text = re.sub(
-        r'\n#{2,4}[^\n]+\n+(?=\[INSUFFICIENT_SOURCES:)',
-        '\n',
-        md_text,
-    )
+    # Перед удалением маркеров убираем заголовки H2-H4, если после них сразу идет маркер нехватки
+    md_text = re.sub(r'\n#{2,4}[^\n]+\n+(?=\[INSUFFICIENT_SOURCES:)', '\n', md_text)
     md_text = _remove_insufficient(md_text)
-    # Убираем "Примечание по JSON-LD" если осталось
-    md_text = re.sub(r'\*\*Примечание по JSON-LD:\*\*[^\n]*\n?', '', md_text)
-    # Убираем служебный отчёт SEO-оптимизатора перед H1 (до первого одиночного #)
+    md_text = re.sub(r'\*\*\*Примечание по JSON-LD:\*\*[^\n]*\n?', '', md_text)
+    # Гарантируем, что статья начинается с первого H1 заголовка, убирая все метаданные до него
     h1_match = re.search(r'^# ', md_text, re.MULTILINE)
     if h1_match:
         md_text = md_text[h1_match.start():]
-    # Убираем пустые секции: заголовок H2/H3 сразу за которым следует другой заголовок или конец
+    # Зачищаем пустые H2-H4 заголовки в конце или в тексте
     md_text = re.sub(r'\n(#{2,4}[^\n]+)\n+(?=#{1,4}|\Z)', '\n', md_text)
-
-    # Таблицы требуют пустую строку перед первой строкой — добавляем если строка перед | не пустая
+    # Для корректного рендеринга таблиц markdown добавляем пустую строку перед таблицей
     md_text = re.sub(r'(?m)^([^|\n#][^\n]*)\n(\|)', r'\1\n\n\2', md_text)
 
-    # Убираем метки "Лид" и "Вывод" (как строки или как заголовки)
+    # Очищаем заголовки-маркеры структуры из текста (Лид, Вывод)
     md_text = re.sub(r'^\*\*Лид\*\*\s*\n?', '', md_text, flags=re.MULTILINE)
     md_text = re.sub(r'^\*\*Вывод\*\*\s*\n?', '', md_text, flags=re.MULTILINE)
     md_text = re.sub(r'^#+\s+\*?\*?Лид\*?\*?\s*\n?', '', md_text, flags=re.MULTILINE)
     md_text = re.sub(r'^#+\s+\*?\*?Вывод\*?\*?\s*\n?', '', md_text, flags=re.MULTILINE)
-
-    # Убираем заголовок Schema.org JSON-LD (он виден в тексте, но не нужен)
-    # Используем [^\n]* чтобы захватить всю строку целиком (.*? останавливался на Schema.org)
     md_text = re.sub(r'^#+\s+[^\n]*Schema\.org[^\n]*\n?', '', md_text, flags=re.MULTILINE | re.IGNORECASE)
-
-    # Убираем блок Примечания SEO-оптимизатора (утечка внутренних заметок в статью)
     md_text = re.sub(r'\*?\*?Примечания:\*?\*?.*$', '', md_text, flags=re.DOTALL)
-
-    # Убираем <script> теги внутри ```json блоков (JSON-LD уже извлечён отдельно)
+    # Убираем случайные теги script
     md_text = re.sub(r'<script[^>]*>|</script>', '', md_text)
-
-    # Убираем пустые ```json``` блоки (остаются после извлечения JSON-LD из <script> внутри блока)
     md_text = re.sub(r'```json\s*```', '', md_text, flags=re.DOTALL)
 
     # Убираем жирное форматирование из текста (заменяем **text** на text)
@@ -377,858 +319,20 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
     )
     body_html = _make_code_collapsible(body_html)
 
-    html = f"""<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{title}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  {jsonld_block}
-  <style>
-    *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    :root {{
-      --bg: #1F2937; --surface: #263348; --surface2: #2d3a50;
-      --border: rgba(255,255,255,0.08); --primary: #818CF8;
-      --text: #F9FAFB; --text-muted: #9CA3AF;
-      --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px;
-    }}
-    body {{ font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }}
-    .nav {{
-      display: flex; align-items: center; gap: 24px; padding: 0 32px; height: 52px;
-      border-bottom: 1px solid var(--border); background: rgba(31,41,55,0.95);
-      backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 100;
-    }}
-    .nav-logo {{ font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }}
-    .nav-logo-dot {{ width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }}
-    .nav-back {{ margin-left: auto; font-size: 13px; color: var(--text-muted); text-decoration: none; }}
-    .nav-back:hover {{ color: var(--text); }}
-    .article-wrap {{ max-width: 780px; margin: 48px auto; padding: 0 24px 80px; }}
-    .article-wrap h1 {{ font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; margin-bottom: 24px; }}
-    .article-wrap h2 {{ font-size: 22px; font-weight: 600; margin: 40px 0 12px; letter-spacing: -0.01em; }}
-    .article-wrap h3 {{ font-size: 17px; font-weight: 600; margin: 28px 0 10px; }}
-    .article-wrap h4 {{ font-size: 15px; font-weight: 600; margin: 20px 0 8px; color: var(--text-muted); }}
-    .article-wrap p {{ margin-bottom: 16px; }}
-    .article-wrap ul, .article-wrap ol {{ margin: 0 0 16px 24px; }}
-    .article-wrap li {{ margin-bottom: 6px; }}
-    .article-wrap table {{ width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; }}
-    .article-wrap th {{ background: var(--surface2); padding: 10px 14px; text-align: left; font-weight: 600; border: 1px solid var(--border); }}
-    .article-wrap td {{ padding: 9px 14px; border: 1px solid var(--border); }}
-    .article-wrap tr:nth-child(even) td {{ background: rgba(255,255,255,0.02); }}
-    .article-wrap code {{ font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: 4px; }}
-    .article-wrap pre {{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; overflow-x: auto; margin: 20px 0; }}
-    .article-wrap pre code {{ background: none; padding: 0; }}
-    .article-wrap blockquote {{ border-left: 3px solid var(--primary); padding: 12px 20px; margin: 20px 0; background: var(--surface); border-radius: 0 var(--radius-md) var(--radius-md) 0; color: var(--text-muted); }}
-    .article-wrap a {{ color: var(--primary); text-decoration: none; }}
-    .article-wrap a:hover {{ text-decoration: underline; }}
-    .article-wrap hr {{ border: none; border-top: 1px solid var(--border); margin: 32px 0; }}
-    .mermaid {{ background: var(--surface); border-radius: var(--radius-md); padding: 20px; margin: 20px 0; overflow-x: auto; }}
-    .code-wrap {{ margin: 20px 0; }}
-    .code-wrap pre {{ margin: 0; border-radius: var(--radius-md) var(--radius-md) 0 0; }}
-    .code-wrap.collapsed pre {{ max-height: 104px; overflow: hidden; position: relative; }}
-    .code-wrap.collapsed pre::after {{
-      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 48px;
-      background: linear-gradient(transparent, var(--surface)); pointer-events: none;
-    }}
-    .code-toggle {{
-      display: block; width: 100%; padding: 8px 16px;
-      background: var(--surface2); border: 1px solid var(--border); border-top: none;
-      color: var(--text-muted); cursor: pointer; font-size: 12px;
-      border-radius: 0 0 var(--radius-md) var(--radius-md); text-align: center;
-    }}
-    .code-toggle:hover {{ color: var(--text); }}
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-  <script>mermaid.initialize({{startOnLoad:true, theme:'dark'}});</script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {{
-      document.querySelectorAll('.code-wrap').forEach(function(wrap) {{
-        var btn = wrap.querySelector('.code-toggle');
-        if (!btn) return;
-        btn.addEventListener('click', function() {{
-          wrap.classList.toggle('collapsed');
-          btn.textContent = wrap.classList.contains('collapsed')
-            ? btn.dataset.expand : btn.dataset.collapse;
-        }});
-      }});
-    }});
-  </script>
-</head>
-<body>
-  <nav class="nav">
-    <div class="nav-logo"><div class="nav-logo-dot"></div>Content Factory</div>
-    <a class="nav-back" href="/content-factory/">← Все статьи</a>
-  </nav>
-  <div class="article-wrap">
-    {body_html}
-  </div>
-</body>
-</html>"""
+    template_path = Path(__file__).parent / "templates" / "article_template.html"
+    if template_path.exists():
+        template = template_path.read_text(encoding="utf-8")
+    else:
+        template = "<html><head><title>{title}</title>{jsonld_block}</head><body>{body_html}</body></html>"
+
+    html = template.format(
+        title=title,
+        jsonld_block=jsonld_block,
+        body_html=body_html
+    )
 
     html_path.write_text(html, encoding="utf-8")
     return html_path
-
-
-# ── Web search ────────────────────────────────────────────────────────────────
-
-_FETCH_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
-    ),
-    "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.5",
-}
-
-
-def _fetch_full_text(url: str, max_chars: int = 3000) -> str:
-    """Вытаскивает полный текст страницы: httpx+bs4 → trafilatura → пусто."""
-    if not url:
-        return ""
-
-    # Слой 1: httpx + BeautifulSoup (работает в облаке, не зависит от trafilatura)
-    try:
-        import httpx
-        from bs4 import BeautifulSoup
-        resp = httpx.get(url, headers=_FETCH_HEADERS, timeout=10, follow_redirects=True)
-        if resp.status_code == 200:
-            soup = BeautifulSoup(resp.text, "lxml")
-            # убираем мусор
-            for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
-                tag.decompose()
-            # берём основной контент
-            main = (
-                soup.find("article")
-                or soup.find("main")
-                or soup.find(id="content")
-                or soup.find(class_="content")
-                or soup.body
-            )
-            if main:
-                text = " ".join(main.get_text(" ", strip=True).split())
-                if len(text) > 200:
-                    return text[:max_chars]
-    except Exception:
-        pass
-
-    # Слой 2: trafilatura как резервный
-    if _trafilatura:
-        try:
-            downloaded = _trafilatura.fetch_url(url)
-            if downloaded:
-                text = _trafilatura.extract(
-                    downloaded,
-                    include_comments=False,
-                    include_tables=True,
-                    favor_recall=True,
-                    no_fallback=False,
-                )
-                return (text or "")[:max_chars]
-        except Exception:
-            pass
-
-    return ""
-
-
-def validate_entity_names(article_text: str, sources_text: str) -> tuple[bool, list[str]]:
-    """
-    Проверяет что названия компаний/продуктов в статье совпадают ТОЧНО с источниками.
-    Возвращает (is_valid, list_of_errors).
-    """
-    import re
-
-    errors = []
-
-    # Служебные слова и метаметки которые игнорируем
-    ignore_list = {
-        'The', 'By', 'In', 'For', 'And', 'Or', 'As', 'Is', 'Was', 'Are', 'Be',
-        'Have', 'Has', 'Do', 'Does', 'Did', 'Will', 'Would', 'Should', 'Could',
-        'May', 'Might', 'Must', 'Can', 'Let', 'Make', 'Get', 'Put', 'Set', 'Go',
-        # Служебные слова из отчётов
-        'VERIFIED', 'UNVERIFIED', 'CONTRADICTED', 'FACT_CHECK_PASSED', 'FACT_CHECK_FAILED',
-        'CRITICAL', 'ERROR', 'WARNING', 'PASSED', 'FAILED', 'OK', 'ИТОГ',
-        # ALL_CAPS слова вообще игнорируем (это обычно аббревиатуры)
-    }
-
-    # Ищем известные компании/продукты в статье (капитализированные слова и фразы)
-    # Паттерны типа: CompanyName, Product Name, "кавычки"
-    entity_patterns = [
-        (r'\b([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)\b', 'common'),  # CamelCase или два слова с заглавной
-        (r'"([^"]+)"', 'quoted'),  # В кавычках
-    ]
-
-    found_entities = set()
-    for pattern, pattern_type in entity_patterns:
-        for match in re.finditer(pattern, article_text):
-            entity = match.group(1).strip()
-            if len(entity) > 2:  # Игнорируем короткие слова (I, A, и т.д.)
-                found_entities.add(entity)
-
-    # Проверяем каждую найденную сущность
-    # Если сущность есть в статье, она ДОЛЖНА быть в источниках (примерно)
-    for entity in sorted(found_entities):
-        # Пропускаем служебные слова и ALL_CAPS
-        if entity in ignore_list or entity.isupper():
-            continue
-
-        # Ищем: есть ли в источниках похожее НО ДРУГОЕ имя?
-        # Это главный кейс: "Devika" в статье, "Devin" в источниках
-        entity_lower = entity.lower()
-
-        # Если точное совпадение есть — OK, пропускаем
-        if entity_lower in sources_text.lower():
-            continue
-
-        # Ищем похожее слово в источниках (возможная опечатка)
-        for match in re.finditer(r'\b[A-Z][a-zA-Z]{3,}\b', sources_text):
-            source_word = match.group(0)
-            if source_word in ignore_list or source_word.isupper():
-                continue
-            if entity_lower == source_word.lower():
-                break  # Точное совпадение (case-insensitive) — OK
-            from difflib import SequenceMatcher
-            ratio = SequenceMatcher(None, entity_lower, source_word.lower()).ratio()
-            # 75-99%: похожее но не идентичное → возможная опечатка
-            if 0.75 < ratio < 1.0:
-                errors.append(
-                    f"⚠️ ВОЗМОЖНАЯ ОШИБКА ИМЕНИ: в статье '{entity}', "
-                    f"в источниках похожее слово '{source_word}' — проверь, не опечатка ли!"
-                )
-                break
-
-    is_valid = len(errors) == 0
-    return is_valid, errors
-
-
-def assess_content_value(article_text: str) -> dict:
-    """
-    Оценивает ценность каждого блока контента в статье (H2 → параграфы).
-    Возвращает {section_index: score, ...} где score 0-10.
-    Используется для удаления низкоценностного контента.
-    """
-    import re
-
-    # Разбиваем статью на секции (H2 + следующие параграфы)
-    h2_pattern = r'^## (.+?)$'
-    sections = re.split(rf'(?m)^##', article_text)
-
-    scores = {}
-
-    # Первая секция (лид) всегда важная
-    if len(sections) > 0:
-        scores[0] = 10
-
-    # Оцениваем каждую H2-секцию
-    for idx, section in enumerate(sections[1:], start=1):
-        heading_match = re.match(r' (.+?)\n', section)
-        if not heading_match:
-            continue
-
-        heading = heading_match.group(1).strip()
-        body = section[heading_match.end():]
-
-        # Красные флаги: низкоценностный контент
-        low_value_keywords = [
-            'дизайн', 'иконка', 'логотип', 'стиль', 'внешний вид',
-            'переименован', 'переименовал', 'обновил иконку',
-            'минималистичный дизайн', 'визуальный'
-        ]
-
-        # Считаем слова и специфичность
-        word_count = len(body.split())
-        has_numbers = bool(re.search(r'\d+', body))
-        has_quotes = '>' in body  # блокквоты
-        has_facts = bool(re.search(r'\[(\d+)\]', body))  # ссылки на источники
-
-        # Логика оценки
-        score = 5  # базовая оценка
-
-        # Штрафы за низкоценность
-        if any(keyword in heading.lower() for keyword in low_value_keywords):
-            score -= 3
-
-        # Бонусы за специфичность
-        if has_numbers:
-            score += 2
-        if has_facts:
-            score += 1
-        if has_quotes:
-            score += 1
-        if word_count > 200:
-            score += 1
-        elif word_count < 50:
-            score -= 2
-
-        # Штраф если заголовок и первое предложение == одно и то же
-        first_sentence = body.split('\n')[0] if body else ""
-        if first_sentence.lower().find(heading.lower()) >= 0:
-            # Заголовок повторяется в тексте
-            score -= 2
-
-        # Убеждаемся что не ниже 0 и не выше 10
-        scores[idx] = max(0, min(10, score))
-
-    return scores
-
-
-def validate_numbers(article_text: str, sources: str) -> tuple[bool, str]:
-    """
-    Проверяет числа, цифры и проценты в статье по трём уровням:
-    - Тип A: изобретённые числа (нет в источниках)
-    - Тип B: математически неверный перевод (в N раз → проценты)
-    - Тип C: неверная единица измерения
-    - Тип D: число без контекста/базы сравнения
-    Возвращает (ok, report).
-    """
-    prompt = (
-        "Ты математический редактор. Проверь все числа, цифры и проценты в статье.\n\n"
-        "## Правила проверки:\n\n"
-        "**Тип A — Изобретённые числа:** число есть в тексте, но отсутствует в источниках\n"
-        "**Тип B — Неверный перевод кратности:**\n"
-        "  - «в N раз меньше» = снижение на (1 − 1/N)×100%, НЕ на N×100%\n"
-        "  - «в N раз больше» = рост на (N−1)×100%, НЕ на N×100%\n"
-        "  - Примеры ошибок: «в 4 раза меньше» → «на 400% меньше» ❌ (верно: на 75%)\n"
-        "  -                  «в 2 раза больше» → «на 200% больше» ❌ (верно: на 100%)\n"
-        "**Тип C — Неверная единица:** число правильное, единица другая\n"
-        "**Тип D — Число без базы:** «на X% быстрее» без указания по сравнению с чем\n\n"
-        "## Источники:\n"
-        f"{sources[:2000]}\n\n"
-        "## Статья:\n"
-        f"{article_text}\n\n"
-        "## Формат ответа:\n"
-        "Если ошибок нет → одна строка: NUMBERS_OK\n"
-        "Если есть → NUMBERS_FAIL, затем список:\n"
-        "ТИП [A/B/C/D]: «цитата из текста» → ПРОБЛЕМА: объяснение → ИСПРАВИТЬ: правильный вариант\n"
-        "Перечисляй только реальные ошибки, не придирайся к стилю."
-    )
-    result, _ = run_fast(prompt, quality="simple")
-    ok = "NUMBERS_OK" in result and "NUMBERS_FAIL" not in result
-    return ok, result
-
-
-def detect_semantic_duplicates(article_text: str) -> tuple[bool, str]:
-    """
-    Находит H2-секции с повторяющимися тезисами (>50% смыслового пересечения).
-    Возвращает (has_duplicates, report_str).
-    """
-    import re
-    h2_sections = re.findall(r'^## .+?$', article_text, re.MULTILINE)
-    if len(h2_sections) < 3:
-        return False, "Секций слишком мало для проверки дубликатов"
-
-    prompt = (
-        f"Ты редактор. Проверь, нет ли смысловых повторов между разделами статьи.\n\n"
-        f"Разделы H2:\n" + '\n'.join(f"  - {s[3:]}" for s in h2_sections) + "\n\n"
-        f"Полный текст:\n{article_text[:6000]}\n\n"
-        f"Найди пары разделов, которые говорят об одном и том же (>50% совпадение тезисов).\n\n"
-        f"Если дубликатов нет → ответь одной строкой: DEDUP_OK\n"
-        f"Если есть → ответь: DEDUP_FOUND\n"
-        f"Затем для каждой пары:\n"
-        f"MERGE: «заголовок A» + «заголовок B» → оставить «A» (или «B»), убрать другой\n"
-        f"REASON: [одна строка почему они дублируют друг друга]"
-    )
-    result, _ = run_fast(prompt, quality="strong")
-    return "DEDUP_FOUND" in result, result
-
-
-def strengthen_weak_sections(article_text: str, sources: str) -> str:
-    """
-    Усиливает разделы с низкой информационной ценностью (score < 3).
-    Добавляет конкретику или удаляет пустые блоки.
-    """
-    scores = assess_content_value(article_text)
-    weak = {idx: s for idx, s in scores.items() if s < 4}
-    if not weak:
-        return article_text
-
-    prompt = (
-        f"Ты редактор. Усиль слабые разделы статьи — добавь конкретику или удали пустые.\n\n"
-        f"Правила:\n"
-        f"- Если раздел < 50 слов и нет фактов → удали его целиком\n"
-        f"- Если раздел без цифр/примеров → добавь конкретику ИЗ источников\n"
-        f"- НЕ придумывай данные которых нет в источниках\n"
-        f"- НЕ трогай разделы с оценкой ≥ 4\n\n"
-        f"Слабые разделы (индекс: оценка): {weak}\n\n"
-        f"Источники:\n{sources[:2000]}\n\n"
-        f"Статья:\n{article_text}"
-    )
-    result, _ = run_claude(prompt)
-    return result if len(result) >= len(article_text) * 0.7 else article_text
-
-
-def improve_readability_seo(article_text: str) -> str:
-    """
-    Улучшает читаемость SEO-статьи:
-    - Разбивает абзацы длиннее 5 предложений
-    - Убирает слова-паразиты
-    - Делает первые предложения H2 прямыми ответами на вопрос заголовка
-    - Устраняет однотипные структуры предложений подряд
-    """
-    prompt = (
-        f"Ты редактор с фокусом на читаемость. Улучши статью строго по правилам:\n\n"
-        f"1. АБЗАЦЫ: абзац длиннее 5 предложений — раздели на 2 по смыслу\n"
-        f"2. ПЕРВЫЕ ПРЕДЛОЖЕНИЯ H2: должны содержать главный факт/тезис, а не вступление\n"
-        f"   Плохо: «Рассмотрим, как работает Dynamic Workflows.»\n"
-        f"   Хорошо: «Dynamic Workflows запускает до сотен субагентов параллельно в одной сессии.»\n"
-        f"3. СЛОВА-ПАРАЗИТЫ: убери — данный, является, осуществляет, в рамках, в целях, "
-        f"следует отметить, таким образом, в настоящее время\n"
-        f"4. ПОВТОРЯЮЩАЯСЯ СТРУКТУРА: не более 2 предложений подряд с одинаковым началом "
-        f"(«Это позволяет...», «Это даёт...», «Это означает...» — чередуй)\n"
-        f"5. ВВОДНЫЕ КЛИШЕ: убери «В этой статье мы рассмотрим», «Давайте разберёмся», «Не секрет что»\n\n"
-        f"Важно: не добавляй новых фактов — только улучшай стиль и структуру.\n"
-        f"Возвращай полный текст статьи.\n\n"
-        f"Статья:\n{article_text}"
-    )
-    result, _ = run_claude(prompt)
-    return result if len(result) >= len(article_text) * 0.65 else article_text
-
-
-def verify_article_logic(article_text: str, removed_sections: list[str] = None) -> tuple[bool, str]:
-    """
-    Проверяет логику и целостность статьи после удаления блоков.
-    Возвращает (is_coherent, issues_report).
-
-    Проверяет:
-    1. Есть ли разрывы между соседними H2-блоками
-    2. Есть ли ссылки на удалённые концепции
-    3. Согласованность вывода с фактами
-    """
-    import re
-
-    if removed_sections is None:
-        removed_sections = []
-
-    issues = []
-
-    # Извлекаем все H2-секции
-    sections = re.split(r'(^## .+?$)', article_text, flags=re.MULTILINE)
-    h2_headings = []
-    h2_bodies = []
-
-    for i in range(1, len(sections), 2):
-        if i < len(sections):
-            heading = sections[i].strip('# ').strip()
-            body = sections[i + 1] if i + 1 < len(sections) else ""
-            h2_headings.append(heading)
-            h2_bodies.append(body)
-
-    # Проверка 1: Вывод ссылается на удалённые концепции?
-    if h2_bodies:
-        last_body = h2_bodies[-1]  # Последний блок обычно вывод
-
-        # Ищем существительные в заголовках оставшихся блоков
-        remaining_concepts = set()
-        for heading in h2_headings[:-1]:  # все кроме последнего (вывод)
-            words = heading.lower().split()
-            remaining_concepts.update([w for w in words if len(w) > 3])
-
-        # Ищем в выводе ссылки на удалённые концепции
-        for removed in removed_sections:
-            removed_words = removed.lower().split()
-            for word in removed_words:
-                if len(word) > 4 and word in last_body.lower():
-                    # Это слово было в удалённом блоке и сейчас в выводе
-                    issues.append(
-                        f"⚠️ Вывод ссылается на удалённую концепцию '{word}' "
-                        f"(была в блоке '{removed[:30]}...')"
-                    )
-
-    # Проверка 2: Очень короткие оставшиеся блоки (<100 слов после удаления)
-    for i, body in enumerate(h2_bodies):
-        word_count = len(body.split())
-        if word_count < 80:
-            issues.append(
-                f"⚠️ Блок #{i+1} очень короткий ({word_count} слов) — "
-                f"может быть неполным после удаления контекста"
-            )
-
-    # Проверка 3: Нет фактов в первых блоках (числа, ссылки)
-    if h2_bodies:
-        first_body = h2_bodies[0]
-        has_facts = bool(re.search(r'\d+|http|\[[\d]\]', first_body))
-        if not has_facts and len(h2_bodies) > 1:
-            issues.append(
-                "⚠️ Первый блок не содержит конкретных фактов/чисел — "
-                "может быть слишком общим"
-            )
-
-    is_coherent = len(issues) == 0
-    report = "\n".join(issues) if issues else "✅ Логика и целостность сохранены"
-
-    return is_coherent, report
-
-
-def rewrite_for_coherence(article_text: str, logic_issues: str, sources: str) -> str:
-    """
-    Переписывает оставшиеся блоки статьи чтобы восстановить целостность.
-    Используется когда после удаления блоков выявлены проблемы логики.
-    """
-    prompt = (
-        "Ты редактор-логик. Статья была сокращена (удалены некоторые H2-блоки), "
-        "и теперь в ней есть проблемы с логикой и связностью.\n\n"
-        "ПРОБЛЕМЫ:\n" + logic_issues + "\n\n"
-        "ЗАДАЧА:\n"
-        "1. Перепиши оставшиеся H2-блоки так чтобы они логически связывались\n"
-        "2. Убери ссылки на удалённые концепции\n"
-        "3. Убедись что вывод опирается на оставшиеся факты, а не на удалённые\n"
-        "4. Расширь короткие блоки (если <100 слов) добавив больше деталей\n"
-        "5. Используй ТОЛЬКО информацию из источников, не придумывай новое\n\n"
-        "ИСТОЧНИКИ (для проверки):\n" + sources[:2000] + "\n\n"
-        "СТАТЬЯ:\n" + article_text + "\n\n"
-        "Верни только переписанную статью (без комментариев)."
-    )
-    result, _ = run_fast(prompt, quality="strong")
-    return result
-
-
-def reduce_excessive_headings(article_text: str, max_h2: int = 2, mode: str = "news") -> str:
-    """
-    Для режима NEWS: убирает лишние H2-заголовки если их больше чем max_h2.
-    ВАЖНО: сохраняет порядок секций и не нарушает логику (не удаляет контекстные блоки).
-
-    Стратегия:
-    1. Сначала удаляем очень низкоценностные (<3 балла)
-    2. Если всё ещё слишком много — объединяем соседние блоки вместо удаления
-    """
-    import re
-
-    if pipeline_mode != "news":
-        return article_text
-
-    # Оцениваем каждый блок
-    scores = assess_content_value(article_text)
-
-    # Если H2 меньше чем максимум — ничего не делаем
-    h2_count = len(re.findall(r'^## ', article_text, re.MULTILINE))
-    if h2_count <= max_h2:
-        return article_text
-
-    # СТРАТЕГИЯ 1: Удаляем ОЧЕНЬ низкоценностные блоки (score < 3)
-    sections = re.split(r'(^## .+?$)', article_text, flags=re.MULTILINE)
-    result_parts = []
-    idx = 0
-    section_idx = 0
-
-    while idx < len(sections):
-        if idx == 0:
-            result_parts.append(sections[idx])
-            idx += 1
-        elif idx < len(sections) - 1 and sections[idx].startswith('##'):
-            heading = sections[idx]
-            body = sections[idx + 1] if idx + 1 < len(sections) else ""
-            section_idx += 1
-            score = scores.get(section_idx, 5)
-
-            # Пороги: удаляем только очень низкие (score < 2)
-            if score >= 2:
-                result_parts.append(heading)
-                result_parts.append(body)
-
-            idx += 2
-        else:
-            idx += 1
-
-    cleaned = ''.join(result_parts)
-    remaining_h2 = len(re.findall(r'^## ', cleaned, re.MULTILINE))
-
-    # СТРАТЕГИЯ 2: Если всё ещё слишком много H2 — объединяем вместо удаления
-    if remaining_h2 > max_h2:
-        # Берём индексы секций в ПОРЯДКЕ ПОЯВЛЕНИЯ (не по оценке!)
-        # и удаляем только наихудшие из "средних" (не трогаем первую и последнюю)
-        sections_data = []
-        for i, score in scores.items():
-            if i > 0:  # пропускаем лид
-                sections_data.append((i, score))
-
-        # Сортируем по ИНДЕКСУ (порядок в статье), но помечаем оценку
-        sections_data.sort(key=lambda x: x[0])
-
-        # Удаляем нижние (max_h2 - 1) секций по оценке, но СОХРАНЯЕМ ПОРЯДОК оставшихся
-        num_to_remove = remaining_h2 - max_h2
-        lowest_scores = sorted(sections_data, key=lambda x: x[1])[:num_to_remove]
-        remove_indices = {i for i, _ in lowest_scores}
-
-        # Перестраиваем, удаляя только те, что в remove_indices
-        sections = re.split(r'(^## .+?$)', cleaned, flags=re.MULTILINE)
-        result_parts = []
-        section_idx = 0
-        idx = 0
-
-        while idx < len(sections):
-            if idx == 0:
-                result_parts.append(sections[idx])
-                idx += 1
-            elif idx < len(sections) - 1 and sections[idx].startswith('##'):
-                section_idx += 1
-                if section_idx not in remove_indices:
-                    result_parts.append(sections[idx])
-                    result_parts.append(sections[idx + 1] if idx + 1 < len(sections) else "")
-                idx += 2
-            else:
-                idx += 1
-
-        cleaned = ''.join(result_parts)
-
-    return cleaned
-
-
-def web_search_yandex(query: str, search_type: str = "news", max_results: int = 5) -> list[dict]:
-    """
-    Поиск через Yandex Search API (fallback при ошибках DuckDuckGo).
-    search_type: 'news' или 'web'
-    Возвращает список {title, url, date?, text}.
-    """
-    import requests
-
-    api_key = os.getenv("YANDEX_API_KEY", "")
-    folder_id = os.getenv("YANDEX_FOLDER_ID", "")
-
-    if not api_key or not folder_id:
-        return []
-
-    try:
-        url = "https://search-api.yandex.ru/search"
-        headers = {
-            "Authorization": f"Api-Key {api_key}",
-        }
-        params = {
-            "query": query,
-            "folderId": folder_id,
-            "pageSize": max_results,
-        }
-
-        # Добавляем фильтр по типу поиска
-        if search_type == "news":
-            params["filter"] = "news"
-
-        response = requests.get(url, headers=headers, params=params, timeout=8)
-        response.raise_for_status()
-
-        data = response.json()
-        results = []
-
-        for item in data.get("results", [])[:max_results]:
-            result_url = item.get("url", "")
-            full_text = _fetch_full_text(result_url)
-
-            results.append({
-                "title": item.get("title", ""),
-                "url": result_url,
-                "date": item.get("publishedDate", "")[:10] if item.get("publishedDate") else "",
-                "source": item.get("domain", ""),
-                "text": full_text or item.get("snippet", ""),
-            })
-
-        return results
-    except Exception as e:
-        print(f"  [SEARCH] yandex ошибка: {e}")
-        return []
-
-
-def web_search_fresh(query: str, max_results: int = 3) -> list[dict]:
-    """
-    Слой 1: свежие новости за последнюю неделю.
-    Возвращает список {title, url, date, source, text}.
-    Fallback: DuckDuckGo → Yandex Search API
-    """
-    if not _DDGS:
-        return []
-    for timelimit in ("w", "m"):  # неделя → если пусто, месяц
-        try:
-            items = list(_DDGS().news(query, max_results=max_results, timelimit=timelimit, region="ru-ru"))
-            if not items:
-                continue
-            results = []
-            for item in items:
-                url = item.get("url", "")
-                full_text = _fetch_full_text(url)
-                results.append({
-                    "title": item.get("title", ""),
-                    "url": url,
-                    "date": item.get("date", "")[:10],
-                    "source": item.get("source", ""),
-                    "text": full_text or item.get("body", ""),
-                    "fresh": timelimit == "w",
-                })
-            return results
-        except Exception as e:
-            print(f"  [SEARCH] news/{timelimit} ошибка: {e}")
-    return []
-
-
-def web_search_deep(query: str, max_results: int = 5) -> list[dict]:
-    """
-    Слой 2: глубинные источники без ограничения по дате.
-    Возвращает список {title, url, text}.
-    Fallback: DuckDuckGo → Yandex Search API
-    """
-    if not _DDGS:
-        return []
-    try:
-        items = list(_DDGS().text(query, max_results=max_results, region="ru-ru"))
-        results = []
-        for item in items:
-            url = item.get("href", "")
-            full_text = _fetch_full_text(url)
-            results.append({
-                "title": item.get("title", ""),
-                "url": url,
-                "text": full_text or item.get("body", ""),
-            })
-        return results
-    except Exception as e:
-        print(f"  [SEARCH] text ошибка: {e}")
-        return []
-
-
-def format_search_for_llm(fresh: list[dict], deep: list[dict]) -> str:
-    """Форматирует результаты поиска для передачи в LLM."""
-    parts = []
-
-    if fresh:
-        parts.append("## СВЕЖИЕ НОВОСТИ (последняя неделя)\n")
-        for i, item in enumerate(fresh, 1):
-            flag = "🔴 ГОРЯЧАЯ НОВОСТЬ" if item.get("fresh") else "🟡 Свежая"
-            parts.append(
-                f"### {flag} [{item['date']}] {item['title']}\n"
-                f"Источник: {item['source']} | URL: {item['url']}\n\n"
-                f"{item['text']}\n"
-            )
-    else:
-        parts.append("## СВЕЖИЕ НОВОСТИ\n⚠️ Новостей за последнюю неделю не найдено.\n")
-
-    if deep:
-        parts.append("\n## ГЛУБИННЫЕ ИСТОЧНИКИ (любой период)\n")
-        for item in deep:
-            parts.append(
-                f"### {item['title']}\nURL: {item['url']}\n\n{item['text']}\n"
-            )
-
-    return "\n---\n".join(parts)
-
-
-_TIER_TEXT_LIMIT = {1: 1200, 2: 700, 3: 350}  # символов текста по уровню авторитетности
-_RAW_SOURCES_CAP = 7000  # суммарный лимит всего блока raw_sources
-
-
-def format_raw_sources(fresh: list[dict], deep: list[dict]) -> str:
-    """
-    Форматирует сырые источники с порядковыми номерами и уровнем авторитетности.
-    ⭐⭐⭐ = первичный источник (GitHub, arxiv, официальная дока)
-    ⭐⭐   = качественный блог (TechCrunch, MIT, Хабр)
-    ⭐     = общий источник
-    Текст каждого источника ограничен _TIER_TEXT_LIMIT, итого не более _RAW_SOURCES_CAP символов.
-    """
-    parts = []
-    idx = 1
-    total_chars = 0
-    all_items = [
-        (item, True) for item in fresh
-    ] + [
-        (item, False) for item in deep
-    ]
-    # Tier-1 источники сначала
-    all_items.sort(key=lambda x: _source_tier(x[0].get("url", "")))
-    for item, is_fresh in all_items:
-        text = item.get("text", "").strip()
-        if not text:
-            continue
-        tier = _source_tier(item.get("url", ""))
-        text = text[:_TIER_TEXT_LIMIT[tier]]
-        date_line = f"Дата: {item.get('date', '')} | " if is_fresh else ""
-        part = (
-            f"[{idx}] {_TIER_LABEL[tier]} {item.get('title', 'Без заголовка')}\n"
-            f"URL: {item.get('url', '')}\n"
-            f"{date_line}Уровень: {_TIER_LABEL[tier]}\n\n"
-            f"{text}"
-        )
-        total_chars += len(part)
-        if total_chars > _RAW_SOURCES_CAP:
-            break
-        parts.append(part)
-        idx += 1
-    return "\n\n---\n\n".join(parts) if parts else "(источники не найдены)"
-
-
-# ── FINER gate ────────────────────────────────────────────────────────────────
-
-def finer_gate(topic: str, fresh: list[dict], deep: list[dict], mode: str = "seo") -> tuple[bool, str]:
-    """
-    FINER-оценка темы и исследовательской базы (адаптировано из ARS):
-    F — Feasible:  достаточно ли источников для статьи
-    I — Interesting: есть ли свежий инфоповод (последняя неделя)
-    N — Novel:     не слишком ли тема перегружена однотипными источниками
-    E — Engaging:  упоминаются ли в теме/источниках AI/tech-ключевые слова
-    R — Relevant:  есть ли хотя бы один первичный источник (⭐⭐⭐)
-
-    Блокирует пайплайн только при F=0 (физическая невозможность написать статью).
-    Остальные флаги — предупреждения для HITL-шага 4.
-    Возвращает (pass: bool, отчёт: str).
-    """
-    all_sources = fresh + deep
-    real = [s for s in all_sources if len(s.get("text", "").strip()) > 100]
-    total_chars = sum(len(s["text"]) for s in real)
-
-    # F — Feasible: пороги зависят от режима
-    # news: 1 источник и 300 симв. достаточно — свежих новостей мало по определению
-    # seo/full: стандартные пороги
-    _min_sources = 1 if mode == "news" else RESEARCH_MIN_SOURCES
-    _min_chars   = 300 if mode == "news" else RESEARCH_MIN_CHARS
-    f_score = min(len(real) / 5, 1.0)
-    f_ok = len(real) >= _min_sources and total_chars >= _min_chars
-    f_label = f"{'✅' if f_ok else '❌'} F Feasible: {len(real)} источников, {total_chars:,} симв."
-
-    # I — Interesting/Fresh (механически)
-    has_fresh = any(s.get("fresh") for s in fresh)
-    i_label = f"{'✅' if has_fresh else '⚠️'} I Interesting: {'есть горячая новость' if has_fresh else 'нет новостей за неделю'}"
-
-    # N — Novel: смотрим разнообразие доменов
-    domains = set()
-    for s in real:
-        try:
-            from urllib.parse import urlparse
-            d = urlparse(s.get("url", "")).netloc.lower().removeprefix("www.")
-            domains.add(d)
-        except Exception:
-            pass
-    n_ok = len(domains) >= 2
-    n_label = f"{'✅' if n_ok else '⚠️'} N Novel: {len(domains)} разных доменов {'(риск однобокости)' if not n_ok else ''}"
-
-    # E — Engaging: AI/tech ключевые слова в теме или источниках
-    ai_keywords = {"ai", "llm", "gpt", "claude", "нейросет", "model", "llama", "gemini",
-                   "python", "api", "код", "разработ", "автомат", "агент"}
-    topic_lower = topic.lower()
-    e_ok = any(kw in topic_lower for kw in ai_keywords)
-    e_label = f"{'✅' if e_ok else '⚠️'} E Engaging: {'тема в нише AI/tech' if e_ok else 'тема вне AI/tech ниши'}"
-
-    # R — Relevant: хотя бы один ⭐⭐⭐ источник
-    has_tier1 = any(_source_tier(s.get("url", "")) == 1 for s in real)
-    r_label = f"{'✅' if has_tier1 else '⚠️'} R Relevant: {'есть первичный источник ⭐⭐⭐' if has_tier1 else 'только вторичные источники'}"
-
-    warnings = []
-    if not has_fresh:
-        warnings.append("нет горячего инфоповода")
-    if not n_ok:
-        warnings.append("мало разных доменов — риск однобокости")
-    if not has_tier1:
-        warnings.append("нет первичных источников — факты сложнее верифицировать")
-
-    lines = ["## FINER-оценка темы", f_label, i_label, n_label, e_label, r_label]
-    if warnings:
-        lines.append(f"\n⚠️ Предупреждения: {'; '.join(warnings)}")
-
-    if not f_ok:
-        lines.append("\n❌ СТОП: недостаточно источников для написания статьи.")
-        lines.append("Рекомендация: смените тему или расширьте поисковый запрос.")
-        return False, "\n".join(lines)
-
-    lines.append("\n✅ Тема прошла проверку")
-    return True, "\n".join(lines)
-
-
-# ── Step runner ────────────────────────────────────────────────────────────────
 
 class StepResult:
     def __init__(self, step: int, agent: str):
@@ -1252,9 +356,7 @@ class StepResult:
 
 
 def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: bool = False) -> tuple[str, int]:
-    """
-    Вызывает LLM для выполнения задачи агента через общий llm_client.
-    """
+    """Вызывает LLM для выполнения задачи агента через общий llm_client."""
     from scripts.utils.llm_client import run_claude_common
     context = ""
     if context_files:
@@ -1262,6 +364,12 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
             if f.exists():
                 context += f"\n\n### {f.name}\n{f.read_text(encoding='utf-8')}"
     return run_claude_common(prompt, context, inject_feedback)
+
+
+def run_fast(prompt: str, quality: str = "strong") -> tuple[str, int]:
+    """Быстрый вызов LLM для лёгких или вспомогательных задач через общий llm_client."""
+    from scripts.utils.llm_client import run_fast_common
+    return run_fast_common(prompt, quality)
 
 
 # ── Human-in-the-Loop ─────────────────────────────────────────────────────────
@@ -1425,246 +533,6 @@ def human_review(title: str, content: str, step: int, auto: bool = False) -> tup
 
 
 # ── Main pipeline ──────────────────────────────────────────────────────────────
-
-AGENT_PROMPTS = {
-    "knowledge-retriever": (
-        "Ты агент семантического поиска по базе знаний автора. "
-        "Твоя задача: найти в папке knowledge/ все фрагменты, "
-        "релевантные теме '{topic}'. Используй grep и чтение файлов. "
-        "Верни компактный контекстный пакет: цитаты, кейсы, личный опыт автора. "
-        "Максимум 2000 токенов. Без лишних комментариев — только выжимка."
-    ),
-    "web-researcher": (
-        "Ты технический аналитик. Тема: '{topic}'. "
-        "Найди через WebSearch актуальные данные ТОЛЬКО из: официальной документации, "
-        "репозиториев GitHub, блогов инженеров. "
-        "Игнорируй SEO-агрегаторы, копипаст-статьи. "
-        "Верни: топ-5 фактов с источниками, список LSI-ключей, предложение структуры H2-H3."
-    ),
-    "content-writer": (
-        "Ты копирайтер-смысловик. Пиши черновик статьи '{title}' по структуре.\n\n"
-        "## АБСОЛЮТНЫЕ ПРАВИЛА ФАКТЧЕКИНГА (нарушение = брак):\n"
-        "1. Ты можешь писать ТОЛЬКО факты, цифры, имена, события, названия продуктов, "
-        "которые явно присутствуют в разделе «ВЕРИФИЦИРОВАННЫЕ ИСТОЧНИКИ» ниже.\n"
-        "2. После каждого конкретного факта или цифры добавляй ссылку [N], "
-        "где N — номер источника из раздела «ВЕРИФИЦИРОВАННЫЕ ИСТОЧНИКИ».\n"
-        "3. ЗАПРЕЩЕНО дополнять статью фактами из тренировочных данных модели.\n"
-        "4. Если данных из источников не хватает для полноценного раздела — "
-        "напиши вместо него: [INSUFFICIENT_SOURCES: <что именно отсутствует>]\n"
-        "5. Короткая достоверная статья лучше длинной с домыслами.\n"
-        "6. ЗАПРЕЩЕНО вводить собственные классификации/таксономии (например «три класса», «два типа») "
-        "если источник не использует эту классификацию явно.\n"
-        "7. ЗАПРЕЩЕНО приписывать взгляды «экспертам», «аналитикам», «многим специалистам» "
-        "если источник не содержит такой атрибуции.\n"
-        "8. Если источник обрезан (текст обрывается на «...»), трактуй только то, что прямо написано — "
-        "не интерпретируй намерения автора.\n\n"
-        "Правила стиля: {rules_excerpt}.\n\n"
-        "## СТРУКТУРА И ЖИВОСТЬ ТЕКСТА (выводы 2026-05-27):\n"
-        "1. ЗАГОЛОВКИ: H2 не чаще чем через 2-3 абзаца. Под каждым H2 — минимум 2 полнотекстовых абзаца.\n"
-        "   Заголовок = конкретный тезис, не абстрактный. ✅ «Усиление позиций в конкуренции», "
-        "   ❌ «Новый этап гонки».\n"
-        "2. СЛУЖЕБНЫЕ ОБОРОТЫ — УБИРАТЬ: «Это показывает, что», «Присоединившись к», "
-        "   «Переход X показывает» — удали, начни со смысла. Каждое предложение должно добавлять новый факт.\n"
-        "3. ЛИД (первое предложение раздела, особенно H2): прямой ответ на вопрос, без вводных слов. "
-        "   ✅ «Компании теперь конкурируют за таланты», ❌ «Это показывает, что компании...»\n"
-        "4. ДЕТАЛИ ВМЕСТО ШТАМПОВ: одна конкретная деталь > трёх штамповых фраз.\n"
-        "   ❌ «известный специалист в области ИИ» → ✅ «автор курса с 4 млн просмотров»\n"
-        "   ❌ «работал над ключевыми проектами» → ✅ «создавал автопилот в Tesla»\n"
-        "5. ВЫВОД СТАТЬИ: ЗАПРЕЩЕНО писать очевидные выводы. Дать неочевидный инсайт — "
-        "   переформулировать проблему, показать скрытое следствие, выявить противоречие, "
-        "   предсказать последствие, которое НЕ очевидно из самих фактов.\n\n"
-        "   ОЧЕНЬ ПЛОХО (очевидные выводы — ЗАПРЕЩЕНЫ):\n"
-        "   ❌ «ИИ становится инструментом, который заменяет рутинные задачи» (в 2026 это всем известно)\n"
-        "   ❌ «Инвестиции показывают интерес к ИИ» (банально)\n"
-        "   ❌ «Технологии развиваются» (тавтология)\n\n"
-        "   ХОРОШО (неочевидные инсайты):\n"
-        "   ✅ «Программисты с низкой производительностью становятся невостребованными — "
-        "нужны инженеры, способные управлять ИИ-системами и проверять их код» (вытекающее следствие)\n"
-        "   ✅ «Инвестиции смещаются от 'может ли ИИ кодировать' к 'кто монополизирует рынок ИИ-разработки'» "
-        "(меняется вопрос)\n"
-        "   ✅ «Стандартизация ИИ-разработки означает что качество кода теперь зависит от платформы, "
-        "а не от разработчика» (неочевидное следствие)\n\n"
-        "## ОБЯЗАТЕЛЬНЫЙ ЧЕК-ЛИСТ ПЕРЕД ОТПРАВКОЙ:\n"
-        "После написания проверь ВСЕ пункты (если хоть один НЕ выполнен → текст брак):\n"
-        "☐ Первое предложение лида содержит КТО/ЧТО/КОГДА/ПОЧЕМУ?\n"
-        "☐ Нет предложений начинающихся с «Это показывает», «Это значит», «Следует отметить»?\n"
-        "☐ Каждое имя появляется максимум в двух соседних предложениях (потом -> он, она, они)?\n"
-        "☐ H2 не чаще чем через 2-3 абзаца? (макс 2-3 H2 на весь текст)\n"
-        "☐ Нет жирного текста внутри предложений (жирное только для H2/H3)?\n"
-        "☐ ВЫВОД — это неочевидный инсайт? (НЕ повторение темы, НЕ банальность, НЕ известный факт 2024-2025г)?\n"
-        "   Спроси себя: «Если бы это прочитал читатель, он бы сказал 'ну и что в этом нового?' — вывод брак».\n"
-        "Нарушение любого пункта = текст переписывается.\n\n"
-        "Контекст из базы знаний автора: {knowledge_pack}.\n\n"
-        "Аналитика исследователя (структура, LSI, тезисы): {web_pack}.\n\n"
-        "## ВЕРИФИЦИРОВАННЫЕ ИСТОЧНИКИ:\n{raw_sources}\n\n"
-        "## ДЛЯ РЕЖИМА NEWS (короткие новости):\n"
-        "- Объём: максимум 600 слов. Если больше — это не новость, а аналитика.\n"
-        "- Структура: лид (ЧТО произошло) → детали (КАК/ПОЧЕМУ) → смысл (ЗНАЧЕНИЕ для читателя).\n"
-        "- Заголовки: максимум 2 H2. Если получается больше — переделай в один логичный абзац.\n"
-        "- Каждое слово на счету: убирай ВСЕ служебные обороты, даже если кажутся связующими.\n"
-        "- ❌ Плохо: «Это важное событие показывает, что компания...» (10 слов вводного мусора)\n"
-        "- ✅ Хорошо: «Компания запустила новый сервис...» (4 слова фактов)\n"
-        "- Лид новости: в первом предложении должны быть ВСЕ ключевые факты (кто/что/когда/почему).\n\n"
-        "Пиши поблочно. Первое предложение каждого H2 — прямой ответ на вопрос (AEO). "
-        "Интегрируй конкретные числа, команды, таблицы — строго из источников выше.\n"
-        "H2-заголовки — тезисы, не вопросы и не обращения. ЗАПРЕЩЕНО: «Что X даёт вам», «Как это изменит вас».\n"
-        "ЗАПРЕЩЕНО обращение «вы/вам/тебе» в заголовках H2/H3.\n"
-        "Английские технические термины не переводить дословно — писать в оригинале если нет устоявшегося русского.\n"
-        "Вывод статьи — это ОБЯЗАТЕЛЬНО неочевидное следствие, противоречие, или меняющийся вопрос. "
-        "Если вывод можно сформулировать как 'а значит <банальность>', то это брак. "
-        "Читатель уносит НОВУЮ мысль, которую он сам не вывел бы из фактов."
-    ),
-    "fact-checker": (
-        "Ты агент верификации фактов. Твоя задача — найти галлюцинации в черновике статьи.\n\n"
-        "## ИНСТРУКЦИЯ:\n"
-        "1. Прочитай раздел «ИСХОДНЫЕ ИСТОЧНИКИ» — это единственная допустимая фактическая база.\n"
-        "2. Извлеки из черновика ВСЕ верифицируемые утверждения: "
-        "числа, проценты, имена людей, названия организаций, "
-        "названия продуктов/моделей, даты, события, технические параметры.\n"
-        "3. ⚠️ ОСОБО ВНИМАТЕЛЬНО: Названия компаний и продуктов должны совпадать ТОЧНО с источниками:\n"
-        "   Если в источнике 'Devin', а в статье 'Devika' → это CONTRADICTED (ошибка в имени).\n"
-        "   Если в источнике 'Cognition Labs', а в статье 'Cognition' → проверь что это один и тот же.\n"
-        "4. Для каждого утверждения проверь его наличие в исходных источниках.\n"
-        "5. Классифицируй каждое утверждение:\n"
-        "   — VERIFIED: явно присутствует в источниках (укажи номер источника [N])\n"
-        "   — UNVERIFIED: не найдено ни в одном источнике (потенциальная галлюцинация)\n"
-        "   — CONTRADICTED: противоречит тому, что написано в источниках ИЛИ имя неточно\n\n"
-        "## ФОРМАТ ОТВЕТА:\n"
-        "### ИТОГ\n"
-        "VERIFIED: X | UNVERIFIED: Y | CONTRADICTED: Z\n\n"
-        "### UNVERIFIED (требуют удаления или подтверждения источником):\n"
-        "- «цитата из черновика» — пояснение\n\n"
-        "### CONTRADICTED (требуют немедленного исправления):\n"
-        "- «цитата из черновика» — что именно противоречит источнику [N] или как звучит правильно\n\n"
-        "Если UNVERIFIED = 0 и CONTRADICTED = 0 → в конце напиши строку: FACT_CHECK_PASSED\n"
-        "Если есть хотя бы одно UNVERIFIED или CONTRADICTED → напиши: FACT_CHECK_FAILED"
-    ),
-    "temporal-verifier": (
-        "Ты агент проверки временной согласованности. "
-        "Твоя задача — найти временные ошибки в тексте статьи.\n\n"
-        "Ищи 5 типов ошибок:\n"
-        "1. Ретроспективная арифметика: «X лет назад» при неверной дате\n"
-        "2. Анахронизм: ссылка на продукт/событие раньше его выхода\n"
-        "3. Устаревшие сравнения: «лучший на рынке» для продукта, у которого уже есть замена\n"
-        "4. Дейктическое настоящее: «сейчас», «сегодня», «в этом году» без уточнения даты\n"
-        "5. Версии без дат: упоминание версии без указания когда она актуальна\n\n"
-        "Для каждой найденной ошибки:\n"
-        "- TEMPORAL_WARN: «цитата» — тип ошибки — рекомендация\n\n"
-        "Если ошибок нет → напиши: TEMPORAL_OK\n"
-        "Если есть хотя бы одна → напиши: TEMPORAL_WARN_FOUND"
-    ),
-    "seo-geo-optimizer": (
-        "Ты SEO/GEO-оптимизатор. Получи черновик статьи и: "
-        "1. Интегрируй LSI-ключи естественно в текст. "
-        "2. Проверь AEO: первые предложения H2 должны быть самодостаточными ответами. "
-        "3. Сгенерируй Schema.org JSON-LD (Article или HowTo) для этой статьи. "
-        "4. Верни оптимизированный текст + JSON-LD блок отдельно."
-    ),
-    "geo-emulator": (
-        "Ты симулятор ИИ-поисковика (Perplexity/ChatGPT Search). "
-        "Получи текст статьи о '{topic}'. "
-        "Задача: представь, что пользователь спросил: '{search_query}'. "
-        "1. Ответь на вопрос, используя ТОЛЬКО предоставленный текст. "
-        "2. Укажи точные цитаты (с номерами абзацев), которые ты использовал. "
-        "3. Оцени по шкале 1-10, насколько хорошо текст отвечает на этот запрос. "
-        "4. Перечисли блоки, которые ИИ-поисковик проигнорировал, и почему. "
-        "5. Дай 3 конкретные рекомендации по переписыванию для улучшения цитируемости."
-    ),
-    "editor-critic": (
-        "Ты главный редактор. Проверь финальный текст статьи по критериям: "
-        "1. Соответствие Tone of Voice из rules.md (стоп-слова, стиль). "
-        "2. Работоспособность блоков кода (логика, синтаксис). "
-        "3. Отсутствие канцеляризмов и пассивного залога. "
-        "4. Наличие оригинальных элементов (кейсы, таблицы, схемы). "
-        "5. GEO-стандарты: первые предложения разделов самодостаточны. "
-        "Верни: оценку 1-10 по каждому критерию в формате 'Критерий N: X/10', "
-        "затем список конкретных правок."
-    ),
-    "devil-advocate": (
-        "Ты агент оппонирования. Твоя роль — найти слабые места в статье перед публикацией.\n\n"
-        "Задача:\n"
-        "1. Определи главный тезис статьи (1 предложение).\n"
-        "2. Сформулируй 2 сильных контраргумента к этому тезису.\n"
-        "   Контраргумент сильный, если: опирается на реальную практику, "
-        "   не является очевидным возражением, не опровергается самой статьёй.\n"
-        "3. Проверь: упоминает ли статья эти контраргументы или ограничения?\n"
-        "4. Оцени однобокость изложения по шкале 1-10 "
-        "   (1 = полностью сбалансировано, 10 = пропаганда одной точки зрения).\n\n"
-        "Формат ответа:\n"
-        "ТЕЗИС: ...\n"
-        "КОНТРАРГУМЕНТ 1: ...\n"
-        "КОНТРАРГУМЕНТ 2: ...\n"
-        "ПОКРЫТО В СТАТЬЕ: да/нет/частично\n"
-        "ОДНОБОКОСТЬ: X/10\n"
-        "РЕКОМЕНДАЦИЯ: [добавить раздел 'Ограничения и риски' | статья сбалансирована | ...]\n\n"
-        "Если однобокость >= 7 → напиши: ADVOCATE_FLAG\n"
-        "Если статья сбалансирована → напиши: ADVOCATE_OK"
-    ),
-    "news-writer": (
-        "Ты журналист технологического издания. Напиши короткую информационную статью (~500-600 слов).\n\n"
-        "## АБСОЛЮТНЫЕ ПРАВИЛА ФАКТЧЕКИНГА (нарушение = брак):\n"
-        "1. Только факты, явно присутствующие в «ВЕРИФИЦИРОВАННЫХ ИСТОЧНИКАХ».\n"
-        "2. После каждого факта или цифры — ссылка [N].\n"
-        "3. ЗАПРЕЩЕНО дополнять фактами из памяти модели.\n"
-        "4. Если данных не хватает для раздела — напиши: [INSUFFICIENT_SOURCES: <что отсутствует>]\n"
-        "5. ЗАПРЕЩЕНО вводить таксономии и классификации, которых нет в источниках.\n"
-        "6. ЗАПРЕЩЕНО приписывать взгляды «экспертам», если источник не содержит такой атрибуции.\n\n"
-        "## КРИТИЧЕСКОЕ ПРАВИЛО ДЛЯ ЗАГОЛОВКОВ:\n"
-        "- МАКСИМУМ 2 H2 заголовка (не больше!).\n"
-        "- Каждый H2 должен быть ОТДЕЛЬНЫМ УГЛОМ, не просто пересказом первого предложения параграфа.\n"
-        "- Заголовок и текст под ним НЕ должны быть тем же самым — заголовок = угол, текст = деталь.\n"
-        "- ❌ ПЛОХО: H2 «Новый минималистичный дизайн» с параграфом «Google обновил дизайн, сделав его минималистичным»\n"
-        "- ✅ ХОРОШО: H2 «Главный факт» с первым предложением, а второй и третий параграфы — развитие с новыми фактами\n\n"
-        "Структура статьи:\n"
-        "# {title}\n"
-        "**Лид** (2-3 предложения — суть события, кто, что, когда, почему важно. ВСЕ ключевые факты в первом предложении!)\n"
-        "## [H2: один главный факт или первый угол]\n"
-        "[2-3 параграфа: развитие этого факта с конкретными деталями и контекстом]\n"
-        "## [H2: второй угол или более широкая картина]\n"
-        "[2-3 параграфа: почему это важно читателю, последствия, значимость]\n"
-        "**Вывод** (1-2 предложения) — это новый смысл или угол, которого не было явно "
-        "в тексте: последствие, неочевидная связь, инсайт для читателя. "
-        "Читатель должен унести мысль, а не резюме.\n\n"
-        "Дополнительные правила:\n"
-        "- H2-заголовки — конкретные тезисы, не вопросы и не обращения. ЗАПРЕЩЕНО: «Что X даёт вам», «Как это изменит вас»\n"
-        "- Английские технические термины не переводить дословно. vibe coding — не «вибро-кодинг». Писать в оригинале если нет устоявшегося русского термина\n"
-        "- ЗАПРЕЩЕНО обращение «вы/вам/тебе» в заголовках H2/H3\n"
-        "- ЗАПРЕЩЕНО создавать низкоценностные блоки (например о логотипах/иконках) если они не дают новой информации. Сосредоточься на главном.\n\n"
-        "Правила стиля: {rules_excerpt}\n\n"
-        "## ВЕРИФИЦИРОВАННЫЕ ИСТОЧНИКИ:\n{raw_sources}\n\n"
-        "Напиши статью строго по структуре. Каждое H2 начинается с прямого ответа (AEO) и развивается в 2-3 параграфах."
-    ),
-}
-
-
-def _source_tier(url: str) -> int:
-    """Классифицирует источник по уровню авторитетности (1=первичный, 2=качественный, 3=общий)."""
-    if not url:
-        return 3
-    try:
-        from urllib.parse import urlparse
-        domain = urlparse(url).netloc.lower().removeprefix("www.")
-        if any(d in domain for d in _TIER1_DOMAINS):
-            return 1
-        if any(d in domain for d in _TIER2_DOMAINS):
-            return 2
-    except Exception:
-        pass
-    return 3
-
-
-_TIER_LABEL = {1: "⭐⭐⭐", 2: "⭐⭐", 3: "⭐"}
-
-
-def run_fast(prompt: str, quality: str = "strong") -> tuple[str, int]:
-    """
-    Быстрый вызов LLM для лёгких или вспомогательных задач через общий llm_client.
-    """
-    from scripts.utils.llm_client import run_fast_common
-    return run_fast_common(prompt, quality)
-
-
-# ── Material Passport ─────────────────────────────────────────────────────────
 
 def save_state(slug: str, context: dict, completed_step: int) -> None:
     """Сохраняет текущее состояние пайплайна в JSON. completed_step никогда не откатывается."""
@@ -2228,25 +1096,6 @@ def run_pipeline(
             "- Используй простые аналогии и форматируй списки для легкого сканирования глазами.\n"
         )
 
-    for step in (5, 6):
-        block = "1-3" if step == 5 else "4-6"
-        if last_step >= step and context.get(f"draft_{block}"):
-            print(f"  [passport] Шаг {step} пропущен (уже выполнен)")
-            continue
-        r = StepResult(step, "content-writer")
-        prompt = (
-            AGENT_PROMPTS["content-writer"].format(
-                title=title,
-                rules_excerpt=rules_excerpt,
-                knowledge_pack=context.get("knowledge_pack", ""),
-                web_pack=context.get("web_pack", ""),
-                raw_sources=context.get("raw_sources", ""),
-            )
-            + mode_instructions
-            + corrections_block
-            + f"\n\nНапиши блоки {block} статьи."
-        )
-
     if pipeline_mode == "news":
         # Режим новость: один вызов, промпт news-writer
         if last_step >= 5 and context.get("draft_1-3"):
@@ -2312,6 +1161,7 @@ def run_pipeline(
                     web_pack=context.get("web_pack", ""),
                     raw_sources=context.get("raw_sources", ""),
                 )
+                + mode_instructions
                 + corrections_block
                 + f"\n\nНапиши блоки {block} статьи."
             )

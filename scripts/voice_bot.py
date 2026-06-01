@@ -1717,18 +1717,105 @@ async def cmd_log(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text("Файл orchestrator.log не найден.")
         return
     try:
-        content = log_file.read_text(encoding="utf-8")
+        # Читаем лог-файл безопасно с заменой некорректных байтов
+        content = log_file.read_text(encoding="utf-8", errors="replace")
         content_tail = content[-3000:] if len(content) > 3000 else content
-        await update.message.reply_text(f"📋 <b>Последние строки orchestrator.log:</b>\n\n<code>{content_tail}</code>", parse_mode="HTML")
+        
+        # Экранируем HTML-теги, чтобы не ломать parse_mode="HTML" в Telegram
+        import html
+        content_tail_escaped = html.escape(content_tail)
+        
+        await update.message.reply_text(f"📋 <b>Последние строки orchestrator.log:</b>\n\n<code>{content_tail_escaped}</code>", parse_mode="HTML")
     except Exception as e:
         await update.message.reply_text(f"Ошибка при чтении лога: {e}")
+
+async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    slug = None
+    if ctx.args:
+        slug = ctx.args[0].strip()
+    
+    state_dir = Path(__file__).parent.parent / "plans" / ".state"
+    if not slug:
+        if not state_dir.exists():
+            await update.message.reply_text("Директория состояний plans/.state/ не найдена.")
+            return
+        state_files = sorted(state_dir.glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True)
+        if not state_files:
+            await update.message.reply_text("Активные состояния для возобновления не найдены.")
+            return
+        latest_file = state_files[0]
+        try:
+            state_data = json.loads(latest_file.read_text(encoding="utf-8"))
+            slug = state_data.get("slug")
+        except Exception as e:
+            await update.message.reply_text(f"Ошибка чтения файла состояния {latest_file.name}: {e}")
+            return
+
+    if not slug:
+        await update.message.reply_text("Не удалось определить slug статьи.")
+        return
+
+    state_file = state_dir / f"{slug}.json"
+    if not state_file.exists():
+        await update.message.reply_text(f"Файл состояния для '{slug}' не найден.")
+        return
+
+    try:
+        state_data = json.loads(state_file.read_text(encoding="utf-8"))
+        completed_step = state_data.get("completed_step", 0)
+        saved_ctx = state_data.get("context", {})
+        topic = saved_ctx.get("topic")
+        title = saved_ctx.get("title")
+        query = saved_ctx.get("search_query")
+        mode = saved_ctx.get("mode")
+        pipeline_mode = saved_ctx.get("pipeline_mode", "seo")
+    except Exception as e:
+        await update.message.reply_text(f"Ошибка парсинга файла состояния: {e}")
+        return
+
+    if not all([topic, title, slug, query]):
+        await update.message.reply_text(f"Недостаточно данных в файле состояния для возобновления '{slug}'.")
+        return
+
+    # Запускаем оркестратор в фоне
+    import subprocess
+    cmd = [
+        sys.executable,
+        "scripts/orchestrator.py",
+        "--topic", topic,
+        "--title", title,
+        "--slug", slug,
+        "--query", query,
+        "--mode", mode,
+        "--pipeline-mode", pipeline_mode,
+        "--resume",
+        "--chat-id", str(update.effective_message.chat_id)
+    ]
+    log.info("Resuming orchestrator in background: %s", cmd)
+    try:
+        project_root = Path(__file__).parent.parent
+        log_file_path = project_root / "orchestrator.log"
+        log_file = open(log_file_path, "a", encoding="utf-8")
+        subprocess.Popen(cmd, cwd=project_root, stdout=log_file, stderr=log_file)
+        
+        await update.message.reply_text(
+            f"▶️ <b>Возобновляю генерацию статьи!</b>\n\n"
+            f"⚙️ <b>Формат:</b> {mode}\n"
+            f"🔗 <b>Slug:</b> {slug}\n"
+            f"Пайплайн продолжит работу с шага {completed_step + 1}.",
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        log.error("Failed to resume orchestrator: %s", e)
+        await update.message.reply_text(f"❌ Ошибка возобновления: {e}")
 
 async def post_init(application: Application) -> None:
     from telegram import BotCommand
     await application.bot.set_my_commands([
         BotCommand("start", "Главное меню / Запуск"),
         BotCommand("cancel", "Сбросить текущий режим / Отмена"),
-        BotCommand("log", "Показать лог оркестратора")
+        BotCommand("log", "Показать лог оркестратора"),
+        BotCommand("resume", "Возобновить генерацию статьи")
     ])
 
 def main() -> None:
@@ -1865,6 +1952,7 @@ def main() -> None:
 
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("log", cmd_log))
+    app.add_handler(CommandHandler("resume", cmd_resume))
     app.add_handler(conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 

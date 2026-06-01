@@ -114,8 +114,8 @@ def get_mock_response(prompt: str, is_fast: bool = False) -> str:
         return "PASSED"
     else:
         # Тяжелые задачи
-        if "напиши статью" in prompt_lower or "content-writer" in prompt_lower:
-            return "# Тестовая статья (MOCK)\n\nЭто тестовый текст статьи, сгенерированный в Mock-режиме для экономии токенов."
+        if "напиши статью" in prompt_lower or "content-writer" in prompt_lower or "копирайтер-смысловик" in prompt_lower or "черновик статьи" in prompt_lower:
+            return "# Тестовая статья (MOCK)\n\nЭто тестовый текст статьи, сгенерированный в Mock-режиме для экономии токенов. Он должен быть достаточно длинным (более 200 символов), чтобы успешно пройти валидацию длины черновика на шаге проверки контента в оркестраторе."
         if "выдели 3-5 ключевых углов" in prompt_lower:
             return "1. Первый угол\n2. Второй угол\n3. Третий угол"
         return "Mock Response: Успешная тестовая генерация."
