@@ -49,6 +49,102 @@ KNOWLEDGE_DIR = ROOT / "knowledge"
 RULES_FILE = ROOT / "ai-clone" / "rules.md"
 STATE_DIR = ROOT / "plans" / ".state"   # Material Passport — состояние пайплайна
 
+# ── GitHub REST API Helpers ───────────────────────────────────────────────────
+
+def _gh_headers() -> dict:
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "content-factory-bot/1.0"
+    }
+    if os.environ.get("GITHUB_TOKEN"):
+        headers["Authorization"] = f"Bearer {os.environ['GITHUB_TOKEN']}"
+    return headers
+
+def gh_read(path: str) -> str:
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        p = ROOT / path
+        return p.read_text("utf-8") if p.exists() else ""
+    import urllib.parse
+    import base64
+    repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
+    branch = os.environ.get("GITHUB_BRANCH", "main")
+    url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}?ref={branch}"
+    try:
+        req = urllib.request.Request(url, headers=_gh_headers())
+        with urllib.request.urlopen(req, timeout=10) as r:
+            d = json.loads(r.read())
+            return base64.b64decode(d["content"].replace("\n", "")).decode("utf-8")
+    except Exception as e:
+        print(f"  [gh_read] Warning: could not read {path} from GitHub: {e}")
+        return ""
+
+def gh_write(path: str, content: str, message: str) -> str:
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        p = ROOT / path
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(content, "utf-8")
+        return str(p)
+    import urllib.parse
+    import base64
+    repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
+    branch = os.environ.get("GITHUB_BRANCH", "main")
+    url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}"
+    
+    sha = None
+    try:
+        req = urllib.request.Request(url + f"?ref={branch}", headers=_gh_headers())
+        with urllib.request.urlopen(req, timeout=10) as r:
+            sha = json.loads(r.read()).get("sha")
+    except Exception:
+        pass
+        
+    payload: dict = {
+        "message": message,
+        "content": base64.b64encode(content.encode()).decode(),
+        "branch": branch,
+    }
+    if sha:
+        payload["sha"] = sha
+        
+    try:
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode(),
+            headers={**_gh_headers(), "Content-Type": "application/json"},
+            method="PUT",
+        )
+        with urllib.request.urlopen(req, timeout=15) as r:
+            result = json.loads(r.read())
+            return result.get("content", {}).get("html_url", path)
+    except Exception as e:
+        print(f"  [gh_write] Warning: could not write {path} to GitHub: {e}")
+        return path
+
+def gh_list_dir(path: str) -> list[dict]:
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        p = ROOT / path
+        if not p.exists():
+            return []
+        return [{"name": f.name, "type": "file"} for f in p.glob("*")]
+    import urllib.parse
+    repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
+    branch = os.environ.get("GITHUB_BRANCH", "main")
+    url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}?ref={branch}"
+    try:
+        req = urllib.request.Request(url, headers=_gh_headers())
+        with urllib.request.urlopen(req, timeout=10) as r:
+            res = json.loads(r.read())
+            if isinstance(res, list):
+                return res
+    except Exception as e:
+        print(f"  [gh_list_dir] Warning: could not list {path} on GitHub: {e}")
+    return []
+
+
 # Минимальные требования к исследовательской базе перед запуском content-writer
 RESEARCH_MIN_CHARS = 750      # символов реального текста из источников
 RESEARCH_MIN_SOURCES = 2      # источников с текстом > 100 символов
@@ -175,6 +271,7 @@ def create_plan(title: str, slug: str) -> Path:
     )
     plan_path = PLANS_DIR / f"{date_str}_{slug}.md"
     plan_path.write_text(content, encoding="utf-8")
+    gh_write(f"plans/{plan_path.name}", content, f"feat: create plan for {slug}")
     return plan_path
 
 
@@ -187,6 +284,7 @@ def update_step(plan_path: Path, step_num: int, status: str = "done") -> None:
     elif status == "failed":
         content = content.replace(step_marker, f"- [!] Шаг {step_num:02d}", 1)
     plan_path.write_text(content, encoding="utf-8")
+    gh_write(f"plans/{plan_path.name}", content, f"chore: update step {step_num} in plan")
 
 
 # ── HTML generator ────────────────────────────────────────────────────────────
@@ -555,7 +653,9 @@ def save_state(slug: str, context: dict, completed_step: int) -> None:
             if isinstance(v, (str, int, float, bool)) or v is None
         },
     }
-    state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+    content = json.dumps(state, ensure_ascii=False, indent=2)
+    state_path.write_text(content, encoding="utf-8")
+    gh_write(f"plans/.state/{slug}.json", content, f"chore: save state at step {completed_step}")
 
 
 def load_state(slug: str) -> tuple[int, dict]:
@@ -564,6 +664,19 @@ def load_state(slug: str) -> tuple[int, dict]:
     Возвращает (последний_завершённый_шаг, контекст) или (0, {}) если нет состояния.
     """
     state_path = STATE_DIR / f"{slug}.json"
+    if not state_path.exists():
+        print(f"  [passport] Локальный файл состояния plans/.state/{slug}.json не найден. Загружаем с GitHub...")
+        remote_content = gh_read(f"plans/.state/{slug}.json")
+        if remote_content:
+            try:
+                STATE_DIR.mkdir(parents=True, exist_ok=True)
+                state_path.write_text(remote_content, encoding="utf-8")
+                print(f"  [passport] Файл состояния успешно скачан с GitHub.")
+            except Exception as e:
+                print(f"  [passport] Ошибка сохранения скачанного файла состояния: {e}")
+        else:
+            print(f"  [passport] Файл состояния {slug}.json не найден на GitHub.")
+            
     if not state_path.exists():
         return 0, {}
     try:
@@ -808,7 +921,42 @@ def run_pipeline(
     # Если resume и план уже существует — найти его
     if resume and last_step > 0:
         matches = list(PLANS_DIR.glob(f"*_{slug}.md"))
+        if not matches:
+            print(f"  [passport] План для {slug} не найден локально. Ищем на GitHub...")
+            plans_files = gh_list_dir("plans")
+            matched_file = None
+            for f in plans_files:
+                if f.get("name", "").endswith(f"_{slug}.md"):
+                    matched_file = f.get("name")
+                    break
+            if matched_file:
+                remote_content = gh_read(f"plans/{matched_file}")
+                if remote_content:
+                    try:
+                        PLANS_DIR.mkdir(parents=True, exist_ok=True)
+                        dest_path = PLANS_DIR / matched_file
+                        dest_path.write_text(remote_content, encoding="utf-8")
+                        print(f"  [passport] План {matched_file} успешно скачан с GitHub.")
+                        matches = [dest_path]
+                    except Exception as e:
+                        print(f"  [passport] Ошибка сохранения скачанного плана: {e}")
+            else:
+                print(f"  [passport] План для {slug} не найден на GitHub.")
+        
         plan_path = matches[0] if matches else create_plan(title, slug)
+
+        # Также восстанавливаем draft статьи, если он есть на GitHub
+        articles_dir = ROOT / "docs" / "articles"
+        local_article = articles_dir / f"{slug}.md"
+        if not local_article.exists():
+            remote_article = gh_read(f"docs/articles/{slug}.md")
+            if remote_article:
+                try:
+                    articles_dir.mkdir(parents=True, exist_ok=True)
+                    local_article.write_text(remote_article, encoding="utf-8")
+                    print(f"  [passport] Черновик статьи {slug}.md успешно скачан с GitHub.")
+                except Exception as e:
+                    print(f"  [passport] Ошибка сохранения скачанного черновика: {e}")
 
     context: dict = {"topic": topic, "title": title, "search_query": search_query, "mode": mode, "pipeline_mode": pipeline_mode}
     context.update(saved_ctx)  # восстанавливаем сохранённые данные

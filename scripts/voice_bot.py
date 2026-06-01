@@ -118,6 +118,25 @@ def gh_read(path: str) -> str:
     except Exception:
         return ""
 
+def gh_list_dir(path: str) -> list[dict]:
+    if not os.environ.get("GITHUB_TOKEN"):
+        p = Path(__file__).parent.parent / path
+        if not p.exists():
+            return []
+        return [{"name": f.name, "type": "file"} for f in p.glob("*")]
+    repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
+    branch = os.environ.get("GITHUB_BRANCH", "main")
+    url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}?ref={branch}"
+    try:
+        req = urllib.request.Request(url, headers=_gh_headers())
+        with urllib.request.urlopen(req, timeout=10) as r:
+            res = json.loads(r.read())
+            if isinstance(res, list):
+                return res
+    except Exception:
+        pass
+    return []
+
 def gh_write(path: str, content: str, message: str) -> str:
     if not os.environ.get("GITHUB_TOKEN"):
         p = Path(__file__).parent.parent / path
@@ -1813,30 +1832,50 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         slug = ctx.args[0].strip()
     
     state_dir = Path(__file__).parent.parent / "plans" / ".state"
+    state_dir.mkdir(parents=True, exist_ok=True)
+    
     if not slug:
-        if not state_dir.exists():
-            await update.message.reply_text("Директория состояний plans/.state/ не найдена.")
-            return
-        state_files = sorted(state_dir.glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True)
-        if not state_files:
-            await update.message.reply_text("Активные состояния для возобновления не найдены.")
-            return
-        latest_file = state_files[0]
-        try:
-            state_data = json.loads(latest_file.read_text(encoding="utf-8"))
-            slug = state_data.get("slug")
-        except Exception as e:
-            await update.message.reply_text(f"Ошибка чтения файла состояния {latest_file.name}: {e}")
-            return
+        # Пытаемся получить список из GitHub
+        state_files_info = gh_list_dir("plans/.state")
+        
+        # Если на GitHub ничего не найдено, пробуем локально
+        if not state_files_info:
+            state_files = sorted(state_dir.glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True)
+            if not state_files:
+                await update.message.reply_text("Активные состояния для возобновления не найдены ни локально, ни на GitHub.")
+                return
+            latest_file = state_files[0]
+            try:
+                state_data = json.loads(latest_file.read_text(encoding="utf-8"))
+                slug = state_data.get("slug")
+            except Exception as e:
+                await update.message.reply_text(f"Ошибка чтения локального файла состояния {latest_file.name}: {e}")
+                return
+        else:
+            state_files_info = sorted(state_files_info, key=lambda x: x.get("name", ""), reverse=True)
+            latest_file_name = state_files_info[0].get("name")
+            slug = latest_file_name.replace(".json", "")
 
     if not slug:
         await update.message.reply_text("Не удалось определить slug статьи.")
         return
 
     state_file = state_dir / f"{slug}.json"
+    
+    # Загружаем из GitHub если локально файла нет
     if not state_file.exists():
-        await update.message.reply_text(f"Файл состояния для '{slug}' не найден.")
-        return
+        await update.message.reply_text(f"⏳ Файл состояния '{slug}.json' не найден локально. Пытаюсь загрузить из GitHub...")
+        remote_content = gh_read(f"plans/.state/{slug}.json")
+        if remote_content:
+            try:
+                state_file.write_text(remote_content, encoding="utf-8")
+                await update.message.reply_text("✅ Файл состояния успешно скачан с GitHub.")
+            except Exception as e:
+                await update.message.reply_text(f"❌ Ошибка сохранения скачанного файла состояния: {e}")
+                return
+        else:
+            await update.message.reply_text(f"❌ Файл состояния для '{slug}' не найден ни локально, ни на GitHub.")
+            return
 
     try:
         state_data = json.loads(state_file.read_text(encoding="utf-8"))
