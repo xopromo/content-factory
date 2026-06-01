@@ -112,12 +112,15 @@ _TIER2_DOMAINS = {
 
 # ── Telegram ──────────────────────────────────────────────────────────────────
 
+TG_CHAT_ID_OVERRIDE = None
+
 def tg_notify(text: str) -> None:
     token = os.getenv("TG_BOT_TOKEN")
-    chat_id = os.getenv("TG_CHAT_ID")
+    chat_id = TG_CHAT_ID_OVERRIDE or os.getenv("TG_CHAT_ID")
     if not token or not chat_id:
         print(f"[TG SKIP] {text}")
         return
+
     
     # Авто-определение шага для отображения прогресс-бара
     import re
@@ -2858,7 +2861,11 @@ if __name__ == "__main__":
             "full — максимальная точность, строгий фактчекинг (~60 мин, редко)"
         )
     )
+    parser.add_argument("--chat-id", help="Telegram chat_id для отправки уведомлений")
     args = parser.parse_args()
+
+    if args.chat_id:
+        TG_CHAT_ID_OVERRIDE = args.chat_id
 
     try:
         run_pipeline(

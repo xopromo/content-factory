@@ -1446,7 +1446,8 @@ async def handle_article_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
             "--slug", slug,
             "--query", query,
             "--mode", mode,
-            "--pipeline-mode", pipeline_mode
+            "--pipeline-mode", pipeline_mode,
+            "--chat-id", str(update.effective_message.chat_id)
         ]
         log.info("Starting orchestrator in background: %s", cmd)
         try:
