@@ -1282,15 +1282,16 @@ async def handle_article_mode(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
     if ctx.user_data.get("article_topic"):
         topic = ctx.user_data["article_topic"]
         status_msg = await update.message.reply_text("⏳ Генерирую метаданные статьи с помощью Llama...")
-        title, slug, query = gen_article_metadata(topic, mode)
-        ctx.user_data["article_title"] = title
-        ctx.user_data["article_slug"] = slug
-        ctx.user_data["article_query"] = query
-
         try:
-            await status_msg.delete()
-        except Exception:
-            pass
+            title, slug, query = gen_article_metadata(topic, mode)
+            ctx.user_data["article_title"] = title
+            ctx.user_data["article_slug"] = slug
+            ctx.user_data["article_query"] = query
+        finally:
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
 
         keyboard = [
             ["✅ Подтвердить и запустить"],
@@ -1342,18 +1343,18 @@ async def handle_article_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
 
     ctx.user_data["article_topic"] = text
     status_msg = await update.message.reply_text("⏳ Генерирую метаданные статьи с помощью Llama...")
-    
-    # Generate metadata
-    mode = ctx.user_data.get("article_mode", "🎯 Статья для SEO и GEO")
-    title, slug, query = gen_article_metadata(text, mode)
-    ctx.user_data["article_title"] = title
-    ctx.user_data["article_slug"] = slug
-    ctx.user_data["article_query"] = query
-
     try:
-        await status_msg.delete()
-    except Exception:
-        pass
+        # Generate metadata
+        mode = ctx.user_data.get("article_mode", "🎯 Статья для SEO и GEO")
+        title, slug, query = gen_article_metadata(text, mode)
+        ctx.user_data["article_title"] = title
+        ctx.user_data["article_slug"] = slug
+        ctx.user_data["article_query"] = query
+    finally:
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
 
     keyboard = [
         ["✅ Подтвердить и запустить"],
@@ -1382,15 +1383,16 @@ async def handle_article_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
             await update.message.reply_text("Что-то пошло не так, вернитесь в главное меню.", reply_markup=MAIN_KEYBOARD)
             return ConversationHandler.END
         status_msg = await update.message.reply_text("⏳ Генерирую новые метаданные...")
-        title, slug, query = gen_article_metadata(topic, mode)
-        ctx.user_data["article_title"] = title
-        ctx.user_data["article_slug"] = slug
-        ctx.user_data["article_query"] = query
-        
         try:
-            await status_msg.delete()
-        except Exception:
-            pass
+            title, slug, query = gen_article_metadata(topic, mode)
+            ctx.user_data["article_title"] = title
+            ctx.user_data["article_slug"] = slug
+            ctx.user_data["article_query"] = query
+        finally:
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
 
         keyboard = [
             ["✅ Подтвердить и запустить"],

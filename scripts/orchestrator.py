@@ -113,14 +113,15 @@ _TIER2_DOMAINS = {
 # ── Telegram ──────────────────────────────────────────────────────────────────
 
 TG_CHAT_ID_OVERRIDE = None
+SENT_NOTIFICATION_IDS = []
 
 def tg_notify(text: str) -> None:
+    global SENT_NOTIFICATION_IDS
     token = os.getenv("TG_BOT_TOKEN")
     chat_id = TG_CHAT_ID_OVERRIDE or os.getenv("TG_CHAT_ID")
     if not token or not chat_id:
         print(f"[TG SKIP] {text}")
         return
-
     
     # Авто-определение шага для отображения прогресс-бара
     import re
@@ -156,9 +157,36 @@ def tg_notify(text: str) -> None:
         headers={"Content-Type": "application/json"},
     )
     try:
-        urllib.request.urlopen(req, timeout=10)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            res_data = json.loads(resp.read().decode("utf-8"))
+            if res_data.get("ok"):
+                msg_id = res_data["result"]["message_id"]
+                
+                # Финальные и интерактивные сообщения не удаляем
+                is_critical = any(keyword in text for keyword in ["опубликована", "ошибка", "Подтвердите", "HUMAN REVIEW"])
+                if not is_critical:
+                    SENT_NOTIFICATION_IDS.append(msg_id)
+                
+                # Оставляем только последние 2 сообщения в ленте
+                while len(SENT_NOTIFICATION_IDS) > 2:
+                    old_msg_id = SENT_NOTIFICATION_IDS.pop(0)
+                    del_payload = json.dumps({
+                        "chat_id": chat_id,
+                        "message_id": old_msg_id
+                    })
+                    del_req = urllib.request.Request(
+                        f"https://api.telegram.org/bot{token}/deleteMessage",
+                        data=del_payload.encode(),
+                        headers={"Content-Type": "application/json"},
+                    )
+                    try:
+                        with urllib.request.urlopen(del_req, timeout=5) as del_resp:
+                            pass
+                    except Exception as del_err:
+                        print(f"[TG DELETE ERROR] {del_err}")
     except Exception as e:
         print(f"[TG ERROR] {e}")
+
 
 
 # ── Feedback aggregation ───────────────────────────────────────────────────────
