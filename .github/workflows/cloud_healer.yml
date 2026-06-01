@@ -1,0 +1,38 @@
+name: Cloud Healer Agent
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'critical_error.json'
+  workflow_dispatch:
+    # Позволяет запускать вручную из веб-интерфейса
+
+permissions:
+  contents: write
+
+jobs:
+  heal:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Полная история для корректной работы git push
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Run Auto Healer Script
+        run: python3 scripts/cloud_healer.py
+        env:
+          GEMINI_KEY:    ${{ secrets.GEMINI_KEY }}
+          TG_BOT_TOKEN:  ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID:    ${{ secrets.TG_CHAT_ID }}
+          GITHUB_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO:   ${{ github.repository }}
+          GITHUB_BRANCH: main
