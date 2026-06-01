@@ -16,6 +16,7 @@ Voice Bot — голосовые заметки + распаковка эксп�
 
 import os, re, sys, base64, logging, tempfile, urllib.request, urllib.parse, json, asyncio, time, subprocess
 from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
 from datetime import datetime, timezone
 from typing import Optional
 
