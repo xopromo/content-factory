@@ -1,0 +1,14 @@
+{
+  "status": "online",
+  "timestamp": "2026-06-01T13:04:30.345700+00:00",
+  "commit": "e0e4b0c5c1d68639424db37650b648741a28efdb",
+  "env": {
+    "TG_BOT_TOKEN_SET": true,
+    "GROQ_KEY_SET": true,
+    "GEMINI_KEY_SET": true,
+    "GITHUB_TOKEN_SET": true,
+    "GITHUB_BRANCH": "main",
+    "PORT": "10000",
+    "RENDER_EXTERNAL_URL": "https://voice-bot-ohfb.onrender.com"
+  }
+}
