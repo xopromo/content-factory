@@ -32,7 +32,7 @@
 - [x] Шаг 11 — `editor-critic`: финальный аудит качества
 - [x] Шаг 12 — `lead-orchestrator`: финальный черновик готов ⏸ **HUMAN REVIEW**
 - [x] Шаг 13 — `lead-orchestrator`: утверждение пользователем
-- [ ] Шаг 14 — `deployer-publisher`: коммит и публикация
+- [x] Шаг 14 — `deployer-publisher`: коммит и публикация
 
 ---
 

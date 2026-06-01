@@ -1676,7 +1676,7 @@ def run_pipeline(
         cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace"
     )
 
-    # git push with GITHUB_TOKEN
+    # git push with GITHUB_TOKEN / Local fallback
     token = os.getenv("GITHUB_TOKEN")
     repo = os.getenv("GITHUB_REPO", "xopromo/content-factory")
     branch = os.getenv("GITHUB_BRANCH", "main")
@@ -1685,9 +1685,19 @@ def run_pipeline(
             auth_url = f"https://x-access-token:{token}@github.com/{repo}.git"
             subprocess.run(["git", "remote", "set-url", "origin", auth_url], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
             subprocess.run(["git", "push", "origin", branch], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
-            print("  [deployer-publisher] Изменения успешно отправлены на GitHub")
+            print("  [deployer-publisher] Изменения успешно отправлены на GitHub с помощью GITHUB_TOKEN")
         except Exception as e:
-            print(f"  [deployer-publisher] [WARN] Ошибка отправки на GitHub: {e}")
+            print(f"  [deployer-publisher] [WARN] Ошибка отправки на GitHub с GITHUB_TOKEN: {e}")
+    else:
+        try:
+            print("  [deployer-publisher] GITHUB_TOKEN не найден, пробуем обычный git push...")
+            res = subprocess.run(["git", "push", "origin", branch], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
+            if res.returncode == 0:
+                print("  [deployer-publisher] Изменения успешно отправлены на GitHub (local push)")
+            else:
+                print(f"  [deployer-publisher] [WARN] Ошибка git push: {res.stderr.strip()}")
+        except Exception as e:
+            print(f"  [deployer-publisher] [WARN] Не удалось выполнить локальный git push: {e}")
 
     update_step(plan_path, 14)
 
