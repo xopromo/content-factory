@@ -1766,11 +1766,24 @@ async def telegram_error_handler(update: object, context: ContextTypes.DEFAULT_T
         except Exception:
             pass
 
+async def cmd_log(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    log_file = Path(__file__).parent.parent / "orchestrator.log"
+    if not log_file.exists():
+        await update.message.reply_text("Файл orchestrator.log не найден.")
+        return
+    try:
+        content = log_file.read_text(encoding="utf-8")
+        content_tail = content[-3000:] if len(content) > 3000 else content
+        await update.message.reply_text(f"📋 <b>Последние строки orchestrator.log:</b>\n\n<code>{content_tail}</code>", parse_mode="HTML")
+    except Exception as e:
+        await update.message.reply_text(f"Ошибка при чтении лога: {e}")
+
 async def post_init(application: Application) -> None:
     from telegram import BotCommand
     await application.bot.set_my_commands([
         BotCommand("start", "Главное меню / Запуск"),
-        BotCommand("cancel", "Сбросить текущий режим / Отмена")
+        BotCommand("cancel", "Сбросить текущий режим / Отмена"),
+        BotCommand("log", "Показать лог оркестратора")
     ])
 
 def main() -> None:
@@ -1906,6 +1919,7 @@ def main() -> None:
     )
 
     app.add_handler(CommandHandler("start", cmd_start))
+    app.add_handler(CommandHandler("log", cmd_log))
     app.add_handler(conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
