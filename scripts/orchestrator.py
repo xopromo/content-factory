@@ -1766,16 +1766,10 @@ if __name__ == "__main__":
             (ROOT / "critical_error.json").write_text(json.dumps(error_data, ensure_ascii=False, indent=2), encoding="utf-8")
             print(f"  [auto-healer] Сигнальный файл critical_error.json успешно записан.")
             
-            # Пытаемся отправить сигнальный файл на GitHub для моментальной реакции
+            # Отправляем сигнальный файл на GitHub для моментальной реакции через REST API
             token = os.getenv("GITHUB_TOKEN")
-            repo = os.getenv("GITHUB_REPO", "xopromo/content-factory")
-            branch = os.getenv("GITHUB_BRANCH", "main")
             if token:
-                subprocess.run(["git", "add", "critical_error.json"], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
-                subprocess.run(["git", "commit", "-m", f"fail: orchestrator crashed on topic '{args.topic}'"], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
-                auth_url = f"https://x-access-token:{token}@github.com/{repo}.git"
-                subprocess.run(["git", "remote", "set-url", "origin", auth_url], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
-                subprocess.run(["git", "push", "origin", branch], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
+                gh_write("critical_error.json", json.dumps(error_data, ensure_ascii=False, indent=2), f"fail: orchestrator crashed on topic '{args.topic}'")
                 print("  [auto-healer] Сигнальный файл успешно отправлен на GitHub")
         except Exception as json_err:
             print(f"[AUTO-HEALER ERROR] Не удалось записать или отправить сигнальный файл: {json_err}")

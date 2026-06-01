@@ -26,6 +26,7 @@ from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKey
 from telegram.ext import (
     Application, CommandHandler, MessageHandler,
     ContextTypes, ConversationHandler, filters, TypeHandler,
+    ApplicationHandlerStop,
 )
 
 logging.basicConfig(format="%(asctime)s [%(levelname)s] %(message)s", level=logging.INFO)
@@ -1711,7 +1712,63 @@ async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         reply_markup=MAIN_KEYBOARD
     )
 
+async def _direct_log(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    # Ищем лог-файл в корневой директории
+    log_file = Path(__file__).parent.parent / "orchestrator.log"
+    if not log_file.exists():
+        log_file = Path("orchestrator.log")
+    if not log_file.exists():
+        await update.effective_message.reply_text("📋 Лог-файл orchestrator.log не найден.")
+        return
+    try:
+        content = log_file.read_text(encoding="utf-8", errors="replace")
+        content_tail = content[-1500:] if len(content) > 1500 else content
+        import html
+        content_tail_escaped = html.escape(content_tail)
+        await update.effective_message.reply_text(
+            f"📋 <b>Последние строки orchestrator.log (прямой перехват):</b>\n\n<code>{content_tail_escaped}</code>",
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        await update.effective_message.reply_text(f"❌ Ошибка при чтении лога: {e}")
+
+async def _direct_pushlog(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    log_file = Path(__file__).parent.parent / "orchestrator.log"
+    if not log_file.exists():
+        log_file = Path("orchestrator.log")
+    if not log_file.exists():
+        await update.effective_message.reply_text("📋 Лог-файл orchestrator.log не найден для отправки.")
+        return
+    try:
+        content = log_file.read_text(encoding="utf-8", errors="replace")
+        url = gh_write("docs/articles/log.txt", content, "chore: update log.txt from bot (direct)")
+        await update.effective_message.reply_text(f"✅ Лог успешно отправлен на GitHub через REST API:\n{url}")
+    except Exception as e:
+        await update.effective_message.reply_text(f"❌ Ошибка при отправке лога на GitHub: {e}")
+
 async def global_update_logger(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    # ── Перехват и прямое выполнение команд отладки ───────────────────────
+    if update.message and update.message.text:
+        cmd_text = update.message.text.strip().split()[0]
+        if cmd_text in ("/pushlog", "/pushlog@neiromagie_bot"):
+            try:
+                await _direct_pushlog(update, ctx)
+            except Exception as e:
+                log.error("Error in _direct_pushlog intercept: %s", e)
+            raise ApplicationHandlerStop()
+        elif cmd_text in ("/log", "/log@neiromagie_bot"):
+            try:
+                await _direct_log(update, ctx)
+            except Exception as e:
+                log.error("Error in _direct_log intercept: %s", e)
+            raise ApplicationHandlerStop()
+        elif cmd_text.startswith("/resume"):
+            try:
+                await cmd_resume(update, ctx)
+            except Exception as e:
+                log.error("Error in cmd_resume intercept: %s", e)
+            raise ApplicationHandlerStop()
+
     try:
         update_dict = update.to_dict() if hasattr(update, "to_dict") else str(update)
         log_entry = {
