@@ -99,6 +99,7 @@ def _gh_headers() -> dict:
         "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "content-factory-bot/1.0"
     }
 
 def gh_read(path: str) -> str:
@@ -1700,6 +1701,35 @@ async def global_update_logger(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
     except Exception as e:
         log.error("Error in global_update_logger: %s", e)
 
+def log_bot_startup() -> None:
+    try:
+        import subprocess
+        commit = ""
+        try:
+            commit = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
+        except Exception:
+            pass
+            
+        status_data = {
+            "status": "online",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "commit": commit,
+            "env": {
+                "TG_BOT_TOKEN_SET": bool(os.getenv("TG_BOT_TOKEN")),
+                "GROQ_KEY_SET": bool(os.getenv("GROQ_KEY")),
+                "GEMINI_KEY_SET": bool(os.getenv("GEMINI_KEY")),
+                "GITHUB_TOKEN_SET": bool(os.getenv("GITHUB_TOKEN")),
+                "GITHUB_BRANCH": os.getenv("GITHUB_BRANCH"),
+                "PORT": os.getenv("PORT"),
+                "RENDER_EXTERNAL_URL": os.getenv("RENDER_EXTERNAL_URL")
+            }
+        }
+        content = json.dumps(status_data, ensure_ascii=False, indent=2)
+        gh_write("docs/articles/bot_status.json", content, "diagnostics: bot startup status online")
+        print("  [diagnostics] Successful startup status logged to GitHub.")
+    except Exception as e:
+        print(f"  [diagnostics ERROR] Failed to log startup status: {e}")
+
 # ── Запуск ────────────────────────────────────────────────────────────────────
 
 async def telegram_error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -2024,6 +2054,8 @@ def main() -> None:
     app.add_handler(CommandHandler("resume", cmd_resume))
     app.add_handler(conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
+
+    log_bot_startup()
 
     if port_str := os.getenv("PORT"):
         port = int(port_str)
