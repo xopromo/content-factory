@@ -13,6 +13,13 @@ import subprocess
 import urllib.request
 from pathlib import Path
 from datetime import datetime, timezone
+
+if sys.platform.startswith("win"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass
 from typing import Optional
 
 try:
@@ -70,6 +77,13 @@ try:
 except ImportError:
     _trafilatura = None
 
+try:
+    from mistralai import Mistral as _Mistral
+    _mistral_key = os.environ.get("MISTRAL_KEY", "")
+    _mistral_client = _Mistral(api_key=_mistral_key) if _mistral_key else None
+except ImportError:
+    _mistral_client = None
+
 ROOT = Path(__file__).parent.parent
 PLANS_DIR = ROOT / "plans"
 RETRO_DIR = ROOT / "retrospectives"
@@ -104,8 +118,35 @@ def tg_notify(text: str) -> None:
     if not token or not chat_id:
         print(f"[TG SKIP] {text}")
         return
+    
+    # Авто-определение шага для отображения прогресс-бара
+    import re
+    step_match = re.search(r"Шаг\s*0*(\d+)", text, re.IGNORECASE)
+    if step_match:
+        try:
+            step = int(step_match.group(1))
+            if 1 <= step <= 14:
+                filled = "■" * step
+                empty = "□" * (14 - step)
+                percent = int((step / 14) * 100)
+                progress = f"\n<code>[{filled}{empty}]</code> <b>{percent}%</b>\n"
+                # Вставляем прогресс-бар после первой строки для красоты
+                lines = text.split("\n")
+                if len(lines) > 0:
+                    lines.insert(1, progress.strip())
+                    text = "\n".join(lines)
+                else:
+                    text = text + "\n" + progress
+        except Exception:
+            pass
+
     import urllib.request, urllib.parse
-    payload = json.dumps({"chat_id": chat_id, "text": text, "parse_mode": "HTML"})
+    payload = json.dumps({
+        "chat_id": chat_id, 
+        "text": text, 
+        "parse_mode": "HTML",
+        "link_preview_options": {"is_disabled": True}
+    })
     req = urllib.request.Request(
         f"https://api.telegram.org/bot{token}/sendMessage",
         data=payload.encode(),
@@ -961,35 +1002,28 @@ def web_search_fresh(query: str, max_results: int = 3) -> list[dict]:
     Возвращает список {title, url, date, source, text}.
     Fallback: DuckDuckGo → Yandex Search API
     """
-    # Попробуем DuckDuckGo
-    if _DDGS:
-        for timelimit in ("w", "m"):  # неделя → если пусто, месяц
-            try:
-                items = list(_DDGS().news(query, max_results=max_results, timelimit=timelimit))
-                if not items:
-                    continue
-                results = []
-                for item in items:
-                    url = item.get("url", "")
-                    full_text = _fetch_full_text(url)
-                    results.append({
-                        "title": item.get("title", ""),
-                        "url": url,
-                        "date": item.get("date", "")[:10],
-                        "source": item.get("source", ""),
-                        "text": full_text or item.get("body", ""),
-                        "fresh": timelimit == "w",
-                    })
-                return results
-            except Exception as e:
-                print(f"  [SEARCH] news/{timelimit} ошибка: {e}")
-
-    # Fallback: Yandex Search API
-    print(f"  [SEARCH] trying Yandex Search API...")
-    yandex_results = web_search_yandex(query, search_type="news", max_results=max_results)
-    if yandex_results:
-        return yandex_results
-
+    if not _DDGS:
+        return []
+    for timelimit in ("w", "m"):  # неделя → если пусто, месяц
+        try:
+            items = list(_DDGS().news(query, max_results=max_results, timelimit=timelimit, region="ru-ru"))
+            if not items:
+                continue
+            results = []
+            for item in items:
+                url = item.get("url", "")
+                full_text = _fetch_full_text(url)
+                results.append({
+                    "title": item.get("title", ""),
+                    "url": url,
+                    "date": item.get("date", "")[:10],
+                    "source": item.get("source", ""),
+                    "text": full_text or item.get("body", ""),
+                    "fresh": timelimit == "w",
+                })
+            return results
+        except Exception as e:
+            print(f"  [SEARCH] news/{timelimit} ошибка: {e}")
     return []
 
 
@@ -999,32 +1033,23 @@ def web_search_deep(query: str, max_results: int = 5) -> list[dict]:
     Возвращает список {title, url, text}.
     Fallback: DuckDuckGo → Yandex Search API
     """
-    # Попробуем DuckDuckGo
-    if _DDGS:
-        try:
-            items = list(_DDGS().text(query, max_results=max_results))
-            results = []
-            for item in items:
-                url = item.get("href", "")
-                full_text = _fetch_full_text(url)
-                results.append({
-                    "title": item.get("title", ""),
-                    "url": url,
-                    "text": full_text or item.get("body", ""),
-                })
-            if results:
-                return results
-        except Exception as e:
-            print(f"  [SEARCH] text ошибка: {e}")
-
-    # Fallback: Yandex Search API
-    print(f"  [SEARCH] trying Yandex Search API...")
-    yandex_results = web_search_yandex(query, search_type="web", max_results=max_results)
-    if yandex_results:
-        # Преобразуем результаты в формат deep (без date)
-        return [{"title": r["title"], "url": r["url"], "text": r["text"]} for r in yandex_results]
-
-    return []
+    if not _DDGS:
+        return []
+    try:
+        items = list(_DDGS().text(query, max_results=max_results, region="ru-ru"))
+        results = []
+        for item in items:
+            url = item.get("href", "")
+            full_text = _fetch_full_text(url)
+            results.append({
+                "title": item.get("title", ""),
+                "url": url,
+                "text": full_text or item.get("body", ""),
+            })
+        return results
+    except Exception as e:
+        print(f"  [SEARCH] text ошибка: {e}")
+        return []
 
 
 def format_search_for_llm(fresh: list[dict], deep: list[dict]) -> str:
@@ -1198,7 +1223,7 @@ class StepResult:
 def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: bool = False) -> tuple[str, int]:
     """
     Вызывает LLM для выполнения задачи агента.
-    Использует Groq (llama-3.3-70b) если есть GROQ_KEY, иначе claude CLI.
+    Использует Groq (llama-3.3-70b) если есть GROQ_KEY, иначе Gemini, иначе claude CLI.
     Возвращает (output, estimated_tokens).
     inject_feedback=True только для content-writer (остальным не нужно).
     """
@@ -1217,21 +1242,35 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
     full_prompt = "\n\n".join(p for p in parts if p.strip())
     tokens = len(full_prompt.split()) * 2
 
-    for _gq_idx, _gq in enumerate([_groq_client, _groq_client2]):
-        if not _gq:
-            continue
+    errors = []
+
+    if _groq_client:
+        for model_name in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"]:
+            try:
+                resp = _groq_client.chat.completions.create(
+                    model=model_name,
+                    messages=[{"role": "user", "content": full_prompt}],
+                    max_tokens=8192,
+                    temperature=0.7,
+                )
+                return resp.choices[0].message.content.strip(), tokens
+            except Exception as e:
+                err_msg = f"Groq Error ({model_name}): {e}"
+                print(f"[GROQ ERROR - {model_name}] {e}")
+                errors.append(err_msg)
+                continue
+
+    if _mistral_client:
         try:
-            resp = _gq.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+            resp = _mistral_client.chat.complete(
+                model="mistral-large-latest",
                 messages=[{"role": "user", "content": full_prompt}],
-                max_tokens=8192,
-                temperature=0.7,
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
-            label = "GROQ" if _gq_idx == 0 else "GROQ-2"
-            next_label = "GROQ-2" if (_gq_idx == 0 and _groq_client2) else "Gemini"
-            print(f"[ОШИБКА {label}] {e} — пробую {next_label}")
+            err_msg = f"Mistral Error: {e}"
+            print(f"[MISTRAL ERROR] {e}")
+            errors.append(err_msg)
 
     if _gemini_client:
         try:
@@ -1241,66 +1280,34 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
             )
             return resp.text.strip(), tokens
         except Exception as e:
-            print(f"[ОШИБКА GEMINI] {e} — пробую Mistral")
+            err_msg = f"Gemini Error: {e}"
+            print(f"[GEMINI ERROR] {e}")
+            errors.append(err_msg)
 
-    if _mistral_client:
-        try:
-            resp = _mistral_client.chat.complete(
-                model="mistral-small-latest",
-                messages=[{"role": "user", "content": full_prompt}],
-                max_tokens=8192,
-            )
-            return resp.choices[0].message.content.strip(), tokens
-        except Exception as e:
-            print(f"[ОШИБКА MISTRAL] {e} — пробую Cerebras")
+    # Fallback: claude CLI
+    try:
+        import tempfile
+        tmp_dir = tempfile.gettempdir()
+        result = subprocess.run(
+            ["claude", "-p", full_prompt, "--output-format", "text"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=tmp_dir,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip(), tokens
+        else:
+            errors.append(f"claude CLI Error: {result.stderr.strip()}")
+    except Exception as e:
+        errors.append(f"claude CLI execution error: {e}")
 
-    if _cerebras_client:
-        try:
-            resp = _cerebras_client.chat.completions.create(
-                model="gpt-oss-120b",
-                messages=[{"role": "user", "content": full_prompt}],
-                max_tokens=8192,
-            )
-            msg = resp.choices[0].message
-            text = msg.content or getattr(msg, "reasoning", None) or ""
-            if text.strip():
-                return text.strip(), tokens
-            raise ValueError("пустой ответ")
-        except Exception as e:
-            print(f"[ОШИБКА CEREBRAS] {e} — пробую OpenRouter")
-
-    if _openrouter_client:
-        for _or_model in ["deepseek/deepseek-v4-flash:free", "nvidia/nemotron-3-super-120b-a12b:free", "meta-llama/llama-3.3-70b-instruct:free"]:
-            try:
-                resp = _openrouter_client.chat.completions.create(
-                    model=_or_model,
-                    messages=[{"role": "user", "content": full_prompt}],
-                    max_tokens=8192,
-                )
-                text = resp.choices[0].message.content if resp.choices and resp.choices[0].message.content else ""
-                if text.strip():
-                    return text.strip(), tokens
-                raise ValueError("пустой ответ")
-            except Exception as e:
-                print(f"[ОШИБКА OPENROUTER {_or_model}] {e}")
-        print("  [openrouter] все модели недоступны — пробую claude CLI")
-
-    # Предпоследний резерв: claude CLI с Haiku (быстро и дёшево)
-    result = subprocess.run(
-        ["claude", "-p", full_prompt, "--output-format", "text", "--model", "claude-haiku-4-5"],
-        capture_output=True, text=True, cwd="/tmp",
+    # Если ни один провайдер не сработал
+    detailed_errors = "\n".join(f"- {err}" for err in errors)
+    raise RuntimeError(
+        f"Не удалось выполнить запрос к LLM. Все доступные провайдеры вернули ошибку:\n{detailed_errors}"
     )
-    if result.returncode == 0 and result.stdout.strip():
-        return result.stdout.strip(), tokens
-    print(f"[ОШИБКА HAIKU] {result.stderr.strip()[:120]} — пробую Sonnet")
-
-    # Последний резерв: claude CLI Sonnet
-    result = subprocess.run(
-        ["claude", "-p", full_prompt, "--output-format", "text"],
-        capture_output=True, text=True, cwd="/tmp",
-    )
-    output = result.stdout.strip() if result.returncode == 0 else result.stderr.strip()
-    return output, tokens
 
 
 # ── Human-in-the-Loop ─────────────────────────────────────────────────────────
@@ -1308,16 +1315,27 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
 def _tg_wait_reply(timeout: int = 600) -> tuple[str, str]:
     """
     Ждёт ответного сообщения от пользователя в Telegram.
-    Возвращает (тип: 'text'|'voice', содержимое).
-    Таймаут в секундах (по умолчанию 10 минут).
+    Поддерживает файловый мост для работы в Webhook-режиме в облаке.
     """
-    import urllib.request, urllib.parse, tempfile, time as _time
+    import urllib.request, urllib.parse, tempfile, time as _time, json
+    from pathlib import Path
+    
     token = os.getenv("TG_BOT_TOKEN")
     chat_id = str(os.getenv("TG_CHAT_ID", ""))
+    
+    # Файловый мост для Webhook
+    reply_file = Path("business/latest_reply.json")
+    initial_time = 0.0
+    if reply_file.exists():
+        try:
+            initial_time = json.loads(reply_file.read_text(encoding="utf-8")).get("timestamp", 0.0)
+        except Exception:
+            pass
+
     if not token or not chat_id:
         return "text", input("\nВаш ответ: ").strip().lower()
 
-    # Получаем текущий offset чтобы не читать старые сообщения
+    # Сдвигаем offset (для локального Polling)
     def _api(method, **params):
         url = f"https://api.telegram.org/bot{token}/{method}"
         if params:
@@ -1325,19 +1343,32 @@ def _tg_wait_reply(timeout: int = 600) -> tuple[str, str]:
         with urllib.request.urlopen(url, timeout=15) as r:
             return json.loads(r.read())
 
-    # Сдвигаем offset за последнее известное обновление
+    offset = 0
     try:
         updates = _api("getUpdates", limit=1, offset=-1)
         offset = updates["result"][-1]["update_id"] + 1 if updates["result"] else 0
     except Exception:
-        offset = 0
+        pass
 
     deadline = _time.time() + timeout
-    print(f"  Ожидаю ответа в Telegram ({timeout//60} мин)...")
+    print(f"  Ожидаю ответа в Telegram ({timeout//60} мин) через файловый мост / getUpdates...")
 
     while _time.time() < deadline:
+        # 1. Проверяем файловый мост (работает при Webhook)
+        if reply_file.exists():
+            try:
+                data = json.loads(reply_file.read_text(encoding="utf-8"))
+                if data.get("timestamp", 0.0) > initial_time:
+                    msg_type = data.get("type", "text")
+                    content = data.get("content", "")
+                    print(f"  [file-bridge] Получен ответ: {content[:100]}")
+                    return msg_type, content
+            except Exception:
+                pass
+
+        # 2. Пробуем getUpdates (работает при Polling)
         try:
-            updates = _api("getUpdates", offset=offset, timeout=30, limit=5)
+            updates = _api("getUpdates", offset=offset, timeout=5, limit=5)
             for upd in updates.get("result", []):
                 offset = upd["update_id"] + 1
                 msg = upd.get("message", {})
@@ -1368,18 +1399,22 @@ def _tg_wait_reply(timeout: int = 600) -> tuple[str, str]:
                         tg_notify(f"🎙 Транскрипция правок:\n\n{transcription}")
                         return "voice", transcription
                     finally:
-                        os.unlink(tmp_path)
+                        try:
+                            os.unlink(tmp_path)
+                        except Exception:
+                            pass
 
                 # Текстовое сообщение
                 text = msg.get("text", "").strip()
                 if text:
                     return "text", text
+        except Exception:
+            # Игнорируем ошибки getUpdates (например, 409 Conflict в вебхук-режиме)
+            pass
 
-        except Exception as e:
-            print(f"  [TG poll error] {e}")
-            _time.sleep(5)
+        _time.sleep(2)
 
-    return "text", "stop"  # таймаут — останавливаем
+    return "text", "stop"
 
 
 def human_review(title: str, content: str, step: int, auto: bool = False) -> tuple[bool, str]:
@@ -1405,7 +1440,21 @@ def human_review(title: str, content: str, step: int, auto: bool = False) -> tup
     print(f"{'='*60}")
     print(content[:1000])
 
-    msg_type, answer = _tg_wait_reply(timeout=600)
+    # Сигнализируем боту о начале ожидания ответа
+    try:
+        Path("business").mkdir(parents=True, exist_ok=True)
+        Path("business/review_waiting.txt").write_text(str(step), encoding="utf-8")
+    except Exception:
+        pass
+
+    try:
+        msg_type, answer = _tg_wait_reply(timeout=600)
+    finally:
+        # Убираем сигнал ожидания
+        try:
+            Path("business/review_waiting.txt").unlink(missing_ok=True)
+        except Exception:
+            pass
 
     if msg_type == "voice":
         # Голосовые правки — одобряем с корректировками
@@ -1659,9 +1708,8 @@ def run_fast(prompt: str) -> tuple[str, int]:
     Использует llama-3.1-8b-instant (Groq) вместо 70b — экономия ~4x токенов.
     """
     tokens = len(prompt.split()) * 2
-    for _gq_idx, _gq in enumerate([_groq_client, _groq_client2]):
-        if not _gq:
-            continue
+    errors = []
+    if _groq_client:
         try:
             resp = _gq.chat.completions.create(
                 model="llama-3.1-8b-instant",
@@ -1671,8 +1719,8 @@ def run_fast(prompt: str) -> tuple[str, int]:
             )
             return resp.choices[0].message.content.strip(), tokens
         except Exception as e:
-            label = "GROQ-FAST" if _gq_idx == 0 else "GROQ2-FAST"
-            print(f"[ОШИБКА {label}] {e}")
+            errors.append(f"Groq Fast Error: {e}")
+            print(f"[GROQ FAST ERROR] {e}")
     if _gemini_client:
         try:
             resp = _gemini_client.models.generate_content(
@@ -1681,46 +1729,13 @@ def run_fast(prompt: str) -> tuple[str, int]:
             )
             return resp.text.strip(), tokens
         except Exception as e:
-            print(f"[ОШИБКА GEMINI-FAST] {e}")
-    if _cerebras_client:
-        try:
-            resp = _cerebras_client.chat.completions.create(
-                model="gpt-oss-120b",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=1024,
-            )
-            msg = resp.choices[0].message
-            text = msg.content or getattr(msg, "reasoning", None) or ""
-            if text.strip():
-                return text.strip(), tokens
-            raise ValueError("пустой ответ")
-        except Exception as e:
-            print(f"[ОШИБКА CEREBRAS-FAST] {e}")
-    if _mistral_client:
-        try:
-            resp = _mistral_client.chat.complete(
-                model="mistral-small-latest",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=1024,
-            )
-            return resp.choices[0].message.content.strip(), tokens
-        except Exception as e:
-            print(f"[ОШИБКА MISTRAL-FAST] {e}")
-    if _openrouter_client:
-        for _or_model in ["deepseek/deepseek-v4-flash:free", "nvidia/nemotron-3-super-120b-a12b:free", "meta-llama/llama-3.3-70b-instruct:free"]:
-            try:
-                resp = _openrouter_client.chat.completions.create(
-                    model=_or_model,
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=1024,
-                )
-                text = resp.choices[0].message.content if resp.choices and resp.choices[0].message.content else ""
-                if text.strip():
-                    return text.strip(), tokens
-                raise ValueError("пустой ответ")
-            except Exception as e:
-                print(f"[ОШИБКА OPENROUTER-FAST {_or_model}] {e}")
-    return "", tokens
+            errors.append(f"Gemini Fast Error: {e}")
+            print(f"[GEMINI FAST ERROR] {e}")
+
+    detailed_errors = "\n".join(f"- {err}" for err in errors)
+    raise RuntimeError(
+        f"Не удалось выполнить быстрый запрос к LLM. Все провайдеры вернули ошибку:\n{detailed_errors}"
+    )
 
 
 # ── Material Passport ─────────────────────────────────────────────────────────
@@ -1842,6 +1857,93 @@ def run_devil_advocate(article: str) -> tuple[bool, str]:
     return flagged, output
 
 
+def run_hallucination_detector(draft: str, raw_sources: str) -> tuple[bool, str]:
+    """
+    Детектор галлюцинаций — проверяет что все названия компаний, продуктов,
+    персон в тексте присутствуют в исходных источниках.
+
+    Ловит ошибки типа:
+    - "Devika" когда в источнике только "Devin"
+    - Неизвестные названия продуктов/компаний
+    - Новые персоны, не упомянутые в источниках
+
+    Возвращает (passed: bool, report: str).
+    """
+    import re
+
+    print("  [hallucination-detector] Проверяю введение новых сущностей...")
+
+    common_terms = {
+        'Series', 'Round', 'Funding', 'API', 'SDK', 'CLI', 'HTTP', 'JSON', 'XML',
+        'REST', 'GraphQL', 'SQL', 'NoSQL', 'AWS', 'GCP', 'Azure', 'VM', 'GPU',
+        'USD', 'EUR', 'GBP', 'CNY', 'The', 'You', 'They', 'It', 'We',
+        'May', 'June', 'July', 'August', 'AI', 'ML', 'NLP', 'CV', 'LLM',
+        'Yandex', 'ITMO', 'Skolkovo', 'Director', 'Directors', 'Studio', 'University',
+        'School', 'Russian', 'Russia', 'Telegram', 'Bot', 'Google', 'Microsoft',
+    }
+
+    def extract_entities(text):
+        entities = set()
+        for word in re.findall(r'\b[A-Z][a-zA-Z]*(?:\s+[A-Z][a-zA-Z]*)*\b', text):
+            if len(word) > 2:
+                # Игнорируем сущность, если хотя бы одно слово из нее есть в common_terms
+                parts = word.split()
+                if not any(p in common_terms for p in parts) and word not in common_terms:
+                    entities.add(word)
+        return entities
+
+    source_entities = extract_entities(raw_sources)
+    draft_entities = extract_entities(draft)
+
+    unknowns = draft_entities - source_entities
+
+    if not unknowns:
+        report = "✅ Все сущности присутствуют в источниках"
+        return True, report
+
+    blocking_entities = []
+
+    for entity in unknowns:
+        entity_lower = entity.lower()
+        found_exact_match = False
+        potential_misspelling = None
+
+        for source_ent in source_entities:
+            source_lower = source_ent.lower()
+            if source_lower == entity_lower:
+                found_exact_match = True
+                break
+
+            if source_lower in entity_lower or entity_lower in source_lower:
+                potential_misspelling = source_ent
+                break
+
+            dist = abs(len(entity) - len(source_ent))
+            if dist <= 2 and source_lower[:3] == entity_lower[:3]:
+                potential_misspelling = source_ent
+                break
+
+        if not found_exact_match and len(entity) > 3:
+            if potential_misspelling:
+                blocking_entities.append(f"{entity} (похоже на {potential_misspelling}, но не совпадает)")
+            else:
+                blocking_entities.append(entity)
+
+    status = len(blocking_entities) == 0
+
+    if blocking_entities:
+        report = "❌ Обнаружены неизвестные сущности:\n  " + "\n  ".join(blocking_entities)
+    else:
+        report = "✅ Все сущности подтверждены источниками"
+
+    tg_notify(
+        f"{'✅' if status else '❌'} <b>hallucination-detector</b>\n"
+        f"{report[:600]}"
+    )
+
+    return status, report
+
+
 def run_fact_checker(draft: str, raw_sources: str, step_label: str) -> tuple[bool, str]:
     """
     Запускает трёхуровневую проверку фактов:
@@ -1894,7 +1996,8 @@ def run_fact_checker(draft: str, raw_sources: str, step_label: str) -> tuple[boo
 
 def run_pipeline(
     topic: str, title: str, slug: str, search_query: str,
-    auto_approve: bool = False, resume: bool = False, mode: str = "full",
+    auto_approve: bool = False, resume: bool = False,
+    mode: str = "🎯 Статья для SEO и GEO",
 ) -> None:
     # ── Resume: загружаем сохранённое состояние ──────────────────────────────
     last_step, saved_ctx = load_state(slug) if resume else (0, {})
@@ -1902,9 +2005,8 @@ def run_pipeline(
         print(f"\n▶️  Возобновляем с шага {last_step + 1} (slug: {slug})")
         tg_notify(f"▶️ <b>Возобновление пайплайна</b>\nСлуг: {slug}\nПродолжаем с шага {last_step + 1}")
     else:
-        mode_label = " [режим: новость]" if mode == "news" else ""
-        print(f"\n🚀 Content Factory — запуск генерации{mode_label}: {title}")
-        tg_notify(f"🚀 <b>Запуск генерации{mode_label}</b>\n📝 {title}\n🔍 {topic}")
+        print(f"\n🚀 Content Factory — запуск генерации: {title}")
+        tg_notify(f"🚀 <b>Запуск генерации</b>\n📝 {title}\n🔍 {topic}\n⚙️ Формат: {mode}")
 
     plan_path = create_plan(title, slug) if last_step == 0 else (PLANS_DIR / f"*_{slug}.md")
     # Если resume и план уже существует — найти его
@@ -2149,14 +2251,51 @@ def run_pipeline(
 
     # Шаги 5-6: content-writer (с обязательным grounding по верифицированным источникам)
     rules_excerpt = RULES_FILE.read_text(encoding="utf-8")[:800] if RULES_FILE.exists() else ""
-    # Если автор выбрал конкретный вариант угла — передаём его явно в writer
-    selected_angle_block = ""
-    if angles_result and context.get("corrections"):
-        selected_angle_block = (
-            f"\n\n## ВЫБРАННЫЙ УГОЛ СТАТЬИ:\n"
-            f"Автор выбрал следующее направление (учти при написании):\n"
-            f"{context['corrections']}\n\n"
-            f"Все доступные варианты были:\n{angles_result}"
+    corrections_block = f"\n\n## ПРАВКИ И УТОЧНЕНИЯ ОТ АВТОРА:\n{context['corrections']}" if context.get("corrections") else ""
+    
+    current_mode = context.get("mode", "🎯 Статья для SEO и GEO")
+    if current_mode == "🔬 Статья-исследование":
+        mode_instructions = (
+            "\n\n## ФОРМАТ: СТАТЬЯ-ИССЛЕДОВАНИЕ (Technical Deep Dive / Research Paper)\n"
+            "- Фокусируйся на глубоком техническом анализе, бенчмарках, архитектуре решений и деталях реализации.\n"
+            "- Приводи точные цифры, сравнительные таблицы, примеры кода или конфигураций из источников.\n"
+            "- Избегай общих фраз и поверхностных инструкций. Давай академический и экспертный разбор.\n"
+            "- Обязательно укажи ограничения текущих решений и потенциальные направления развития.\n"
+        )
+    elif current_mode == "📰 Новостной обзор":
+        mode_instructions = (
+            "\n\n## ФОРМАТ: НОВОСТНОЙ ОБЗОР (News Analysis / Industry Update)\n"
+            "- Сфокусируйся на свежем инфоповоде. Опиши главное событие последних дней/недели.\n"
+            "- Сравни реакцию разных источников, мнения экспертов и представителей индустрии.\n"
+            "- Опиши практические последствия новости: как это повлияет на рынок, разработчиков и бизнес.\n"
+            "- Делай повествование динамичным, актуальным и структурированным по ключевым аспектам события.\n"
+        )
+    else:
+        mode_instructions = (
+            "\n\n## ФОРМАТ: СТАТЬЯ ДЛЯ SEO И GEO (SEO/GEO-optimized Guide / Tutorial)\n"
+            "- Пиши в стиле пошагового практического руководства или подробного гайда.\n"
+            "- Структурируй текст так, чтобы читатель мог легко повторить описанные шаги.\n"
+            "- Естественно интегрируй LSI-ключи и следи, чтобы первые предложения H2 давали прямой ответ на вопросы (AEO).\n"
+            "- Используй простые аналогии и форматируй списки для легкого сканирования глазами.\n"
+        )
+
+    for step in (5, 6):
+        block = "1-3" if step == 5 else "4-6"
+        if last_step >= step and context.get(f"draft_{block}"):
+            print(f"  [passport] Шаг {step} пропущен (уже выполнен)")
+            continue
+        r = StepResult(step, "content-writer")
+        prompt = (
+            AGENT_PROMPTS["content-writer"].format(
+                title=title,
+                rules_excerpt=rules_excerpt,
+                knowledge_pack=context.get("knowledge_pack", ""),
+                web_pack=context.get("web_pack", ""),
+                raw_sources=context.get("raw_sources", ""),
+            )
+            + mode_instructions
+            + corrections_block
+            + f"\n\nНапиши блоки {block} статьи."
         )
     elif angles_result:
         # Автор одобрил без правок — берём первый вариант
@@ -2281,47 +2420,29 @@ def run_pipeline(
                 print("  [auto-revision] ✅ Черновик исправлен")
             save_state(slug, context, 6)
 
-    # Шаг 6.4: INSUFFICIENT_SOURCES quality gate (пропускается в режиме news)
-    import re as _re_q
-    _isuf_count = len(_re_q.findall(r'\[INSUFFICIENT_SOURCES:', full_draft))
-    if mode == "news":
-        print("  [news] Quality Gate пропущен (режим новость)")
-    elif _isuf_count > 1 and last_step < 6:
-        print(f"  [quality-gate] {_isuf_count} незаполненных секций — ищу дополнительные источники...")
-        tg_notify(f"🔍 <b>Quality Gate</b>: {_isuf_count} пустых секций — дозапрашиваю источники...")
-        # Извлекаем что именно не хватает
-        missing_topics = _re_q.findall(r'\[INSUFFICIENT_SOURCES:\s*([^\]]{10,100})', full_draft)
-        for mt in missing_topics[:3]:
-            # Берём первые значимые слова как поисковый запрос
-            search_q = " ".join(mt.split()[:6]) + " 2026"
-            extra = web_search_deep(search_q, max_results=2)
-            if extra:
-                extra_block = format_raw_sources([], extra)
-                context["raw_sources"] = context.get("raw_sources", "") + "\n\n---\n\n" + extra_block
-                print(f"    +{len(extra)} источников для: {search_q[:50]}")
-        # Перезаписываем черновик с новыми источниками
-        fix_prompt = (
-            AGENT_PROMPTS["content-writer"].format(
-                title=title,
-                rules_excerpt=rules_excerpt,
-                knowledge_pack=context.get("knowledge_pack", ""),
-                web_pack=context.get("web_pack", ""),
-                raw_sources=context.get("raw_sources", ""),
+    # Шаг 6.4: hallucination-detector — блокируем если найдены новые неизвестные сущности
+    halluc_ok, halluc_report = run_hallucination_detector(full_draft, context["raw_sources"])
+    context["hallucination_report"] = halluc_report
+
+    if not halluc_ok:
+        if auto_approve:
+            print(f"\n⚠️ [auto-approve] hallucination-detector FAILED, но продолжаем выполнение из-за --auto-approve:\n{halluc_report}")
+            tg_notify(
+                f"⚠️ <b>hallucination-detector: ПРЕДУПРЕЖДЕНИЕ</b>\n\n"
+                f"В черновике найдены неизвестные сущности, но генерация продолжается из-за --auto-approve.\n\n"
+                f"{halluc_report[:600]}"
             )
-            + corrections_block
-            + f"\n\nВ черновике {_isuf_count} незаполненных секций. "
-            + "Перепиши ТОЛЬКО эти секции, используя дополнительно найденные источники. "
-            + "Если данных по-прежнему нет — убери этот раздел из структуры. "
-            + "Остальной текст оставь без изменений.\n\n"
-            + f"Черновик:\n{full_draft}"
-        )
-        fixed, _ = run_claude(fix_prompt, inject_feedback=True)
-        if len(fixed) >= len(full_draft) * 0.5:
-            full_draft = fixed
-            context["draft_1-3"] = full_draft
-            save_state(slug, context, 6)
-            _isuf_remaining = len(_re_q.findall(r'\[INSUFFICIENT_SOURCES:', full_draft))
-            print(f"  [quality-gate] ✅ Осталось незаполненных секций: {_isuf_remaining}")
+        else:
+            tg_notify(
+                f"🚫 <b>hallucination-detector: СТОП</b>\n\n"
+                f"В черновике найдены введённые сущности, отсутствующие в источниках.\n\n"
+                f"{halluc_report[:1000]}\n\n"
+                f"Генерация прекращена. Проверьте исходные источники или переформулируйте запрос."
+            )
+            print(f"\n🚫 hallucination-detector FAILED:\n{halluc_report}")
+            sys.exit(1)
+
+    print("  [hallucination-detector] ✅ Галлюцинаций не обнаружено")
 
     # Шаг 6.5: fact-checker — блокируем если найдены непроверенные утверждения
     fact_ok, fact_report = run_fact_checker(full_draft, context["raw_sources"], "6.5")
@@ -2362,49 +2483,17 @@ def run_pipeline(
             break  # исправленная версия слишком короткая — прекращаем попытки
 
     if not fact_ok:
-        if _contradicted_count > 0:
-            # Если осталось ≤3 CONTRADICTED после всех попыток — продолжаем с предупреждением
-            # (обычно это формальные расхождения: опущенный квалификатор, синоним)
-            if _contradicted_count <= 3:
-                print(f"  [fact-autofix] ⚠️ Осталось {_contradicted_count} CONTRADICTED — продолжаю с предупреждением (формальные расхождения)")
-                tg_notify(f"⚠️ <b>fact-autofix</b>: осталось {_contradicted_count} CONTRADICTED — продолжаю")
-            else:
-                # CONTRADICTED не уменьшились — останавливаем
-                tg_notify(
-                    f"🚫 <b>fact-checker: СТОП</b>\n\n"
-                    f"В черновике обнаружены противоречия с источниками.\n\n"
-                    f"{fact_report[:1000]}\n\n"
-                    f"Генерация прекращена. Перезапустите с другой темой или добавьте источники."
-                )
-                print(f"\n🚫 fact-checker FAILED (CONTRADICTED):\n{fact_report}")
-                sys.exit(1)
-        elif mode in ("news", "seo") and _unverified_count > 0:
-            # UNVERIFIED в режимах news/seo — вырезаем, не переписываем и не блокируем
-            print(f"  [fact-checker] ✂️ {_unverified_count} UNVERIFIED → вырезаю из черновика (режим {mode})")
-            tg_notify(f"✂️ <b>fact-strip</b>: убираю {_unverified_count} неверифицированных утверждений")
-            strip_prompt = (
-                f"Ты редактор. Из статьи нужно убрать конкретные утверждения, "
-                f"которые не подтверждены источниками.\n\n"
-                f"Список утверждений для удаления (из отчёта фактчекера):\n"
-                f"{fact_report}\n\n"
-                f"Задача: найди в тексте эти конкретные фразы и удали их или замени "
-                f"на более осторожную формулировку без непроверенных деталей. "
-                f"Не добавляй ничего нового. Не переписывай верифицированные части.\n\n"
-                f"Статья:\n{full_draft}"
+        if auto_approve:
+            print(f"\n⚠️ [auto-approve] fact-checker FAILED, но продолжаем выполнение из-за --auto-approve:\n{fact_report}")
+            tg_notify(
+                f"⚠️ <b>fact-checker: ПРЕДУПРЕЖДЕНИЕ</b>\n\n"
+                f"В черновике обнаружены непроверенные утверждения, но генерация продолжается из-за --auto-approve.\n\n"
+                f"{fact_report[:600]}"
             )
-            stripped, _ = run_claude(strip_prompt)
-            if len(stripped) >= len(full_draft) * 0.5:
-                full_draft = stripped
-                context["draft_1-3"] = full_draft
-                print(f"  [fact-checker] ✅ Неверифицированные утверждения убраны")
-                fact_ok = True
-            else:
-                print(f"  [fact-checker] ⚠️ Strip вернул слишком короткий результат — продолжаю с оригиналом")
-                fact_ok = True  # всё равно продолжаем — CONTRADICTED нет
         else:
             tg_notify(
                 f"🚫 <b>fact-checker: СТОП</b>\n\n"
-                f"В черновике обнаружены непроверенные утверждения.\n\n"
+                f"В черновике обнаружены непроверенные или противоречивые утверждения.\n\n"
                 f"{fact_report[:1000]}\n\n"
                 f"Генерация прекращена. Перезапустите с другой темой или добавьте источники."
             )
@@ -2644,11 +2733,25 @@ def run_pipeline(
     files_to_add = [str(article_path), str(plan_path)]
     if html_path and html_path.exists():
         files_to_add.append(str(html_path))
-    subprocess.run(["git", "add"] + files_to_add, cwd=ROOT, capture_output=True)
+    subprocess.run(["git", "add"] + files_to_add, cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
     subprocess.run(
         ["git", "commit", "-m", f"feat: article '{title}' [{slug}]"],
-        cwd=ROOT, capture_output=True, text=True
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace"
     )
+
+    # git push with GITHUB_TOKEN
+    token = os.getenv("GITHUB_TOKEN")
+    repo = os.getenv("GITHUB_REPO", "xopromo/content-factory")
+    branch = os.getenv("GITHUB_BRANCH", "claude/vigilant-einstein-hPa8u")
+    if token:
+        try:
+            auth_url = f"https://x-access-token:{token}@github.com/{repo}.git"
+            subprocess.run(["git", "remote", "set-url", "origin", auth_url], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
+            subprocess.run(["git", "push", "origin", branch], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
+            print("  [deployer-publisher] Изменения успешно отправлены на GitHub")
+        except Exception as e:
+            print(f"  [deployer-publisher] [WARN] Ошибка отправки на GitHub: {e}")
+
     update_step(plan_path, 14)
 
     pages_url = f"https://xopromo.github.io/content-factory/articles/{slug}.html"
@@ -2672,6 +2775,7 @@ if __name__ == "__main__":
     parser.add_argument("--title", required=True, help="Заголовок H1 статьи")
     parser.add_argument("--slug", required=True, help="URL-slug статьи")
     parser.add_argument("--query", required=True, help="Поисковый запрос для GEO-теста")
+    parser.add_argument("--mode", default="🎯 Статья для SEO и GEO", help="Формат статьи")
     parser.add_argument("--auto-approve", action="store_true", help="Пропускать HITL-паузы (тестовый режим)")
     parser.add_argument("--resume", action="store_true", help="Возобновить с последнего сохранённого шага")
     parser.add_argument(
@@ -2685,12 +2789,56 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    run_pipeline(
-        topic=args.topic,
-        title=args.title,
-        slug=args.slug,
-        search_query=args.query,
-        auto_approve=args.auto_approve,
-        resume=args.resume,
-        mode=args.mode,
-    )
+    try:
+        run_pipeline(
+            topic=args.topic,
+            title=args.title,
+            slug=args.slug,
+            search_query=args.query,
+            auto_approve=args.auto_approve,
+            resume=args.resume,
+            mode=args.mode,
+        )
+    except Exception as e:
+        import traceback
+        err_msg = f"❌ <b>Критическая ошибка пайплайна!</b>\n\nТема: <code>{args.topic}</code>\nОшибка: <code>{e}</code>\n\nВы можете попробовать возобновить генерацию с последнего шага."
+        print(f"[FATAL ERROR] {e}")
+        tb_str = traceback.format_exc()
+        print(tb_str)
+        try:
+            import json
+            error_data = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "error": str(e),
+                "traceback": tb_str,
+                "args": {
+                    "topic": args.topic,
+                    "title": args.title,
+                    "slug": args.slug,
+                    "query": args.query,
+                    "mode": args.mode,
+                    "auto_approve": args.auto_approve,
+                    "resume": args.resume
+                }
+            }
+            (ROOT / "critical_error.json").write_text(json.dumps(error_data, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(f"  [auto-healer] Сигнальный файл critical_error.json успешно записан.")
+            
+            # Пытаемся отправить сигнальный файл на GitHub для моментальной реакции
+            token = os.getenv("GITHUB_TOKEN")
+            repo = os.getenv("GITHUB_REPO", "xopromo/content-factory")
+            branch = os.getenv("GITHUB_BRANCH", "claude/vigilant-einstein-hPa8u")
+            if token:
+                subprocess.run(["git", "add", "critical_error.json"], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
+                subprocess.run(["git", "commit", "-m", f"fail: orchestrator crashed on topic '{args.topic}'"], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
+                auth_url = f"https://x-access-token:{token}@github.com/{repo}.git"
+                subprocess.run(["git", "remote", "set-url", "origin", auth_url], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
+                subprocess.run(["git", "push", "origin", branch], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
+                print("  [auto-healer] Сигнальный файл успешно отправлен на GitHub")
+        except Exception as json_err:
+            print(f"[AUTO-HEALER ERROR] Не удалось записать или отправить сигнальный файл: {json_err}")
+        try:
+            tg_notify(err_msg)
+        except Exception as tg_err:
+            print(f"[TG NOTIFY ERROR] {tg_err}")
+        sys.exit(1)

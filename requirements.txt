@@ -1,6 +1,10 @@
-python-telegram-bot==21.6
-groq==0.11.0
-ddgs==6.3.0
-requests==2.32.3
-trafilatura==1.12.2
-htmldate==1.9.2
+python-telegram-bot[webhooks]==21.6
+groq
+ddgs
+requests>=2.32.3
+trafilatura
+htmldate
+markdown
+beautifulsoup4
+lxml
+httpx
