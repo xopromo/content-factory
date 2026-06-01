@@ -1801,28 +1801,9 @@ async def cmd_pushlog(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         content = log_file.read_text(encoding="utf-8", errors="replace")
         
-        # Записываем в публичную директорию docs
-        docs_dir = Path(__file__).parent.parent / "docs" / "articles"
-        docs_dir.mkdir(parents=True, exist_ok=True)
-        log_txt_path = docs_dir / "log.txt"
-        log_txt_path.write_text(content, encoding="utf-8")
-        
-        # Коммитим и пушим
-        import subprocess
-        token = os.getenv("GITHUB_TOKEN")
-        repo = os.getenv("GITHUB_REPO", "xopromo/content-factory")
-        branch = os.getenv("GITHUB_BRANCH", "main")
-        
-        subprocess.run(["git", "add", "docs/articles/log.txt"], cwd=log_file.parent.parent, capture_output=True)
-        subprocess.run(["git", "commit", "-m", "chore: update log.txt from bot"], cwd=log_file.parent.parent, capture_output=True)
-        
-        if token:
-            auth_url = f"https://x-access-token:{token}@github.com/{repo}.git"
-            subprocess.run(["git", "remote", "set-url", "origin", auth_url], cwd=log_file.parent.parent, capture_output=True)
-            subprocess.run(["git", "push", "origin", branch], cwd=log_file.parent.parent, capture_output=True)
-            await update.effective_message.reply_text("✅ Лог успешно отправлен в docs/articles/log.txt на GitHub.")
-        else:
-            await update.effective_message.reply_text("❌ Нет GITHUB_TOKEN для отправки на GitHub.")
+        # Записываем на GitHub через REST API (работает без локального .git)
+        url = gh_write("docs/articles/log.txt", content, "chore: update log.txt from bot")
+        await update.effective_message.reply_text(f"✅ Лог успешно отправлен на GitHub через REST API:\n{url}")
     except Exception as e:
         await update.effective_message.reply_text(f"Ошибка при отправке лога на GitHub: {e}")
 
