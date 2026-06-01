@@ -672,7 +672,7 @@ def validate_numbers(article_text: str, sources: str) -> tuple[bool, str]:
         "ТИП [A/B/C/D]: «цитата из текста» → ПРОБЛЕМА: объяснение → ИСПРАВИТЬ: правильный вариант\n"
         "Перечисляй только реальные ошибки, не придирайся к стилю."
     )
-    result, _ = run_fast(prompt)
+    result, _ = run_fast(prompt, quality="simple")
     ok = "NUMBERS_OK" in result and "NUMBERS_FAIL" not in result
     return ok, result
 
@@ -698,7 +698,7 @@ def detect_semantic_duplicates(article_text: str) -> tuple[bool, str]:
         f"MERGE: «заголовок A» + «заголовок B» → оставить «A» (или «B»), убрать другой\n"
         f"REASON: [одна строка почему они дублируют друг друга]"
     )
-    result, _ = run_fast(prompt)
+    result, _ = run_fast(prompt, quality="strong")
     return "DEDUP_FOUND" in result, result
 
 
@@ -848,7 +848,7 @@ def rewrite_for_coherence(article_text: str, logic_issues: str, sources: str) ->
         "СТАТЬЯ:\n" + article_text + "\n\n"
         "Верни только переписанную статью (без комментариев)."
     )
-    result, _ = run_fast(prompt)
+    result, _ = run_fast(prompt, quality="strong")
     return result
 
 
@@ -1223,7 +1223,8 @@ class StepResult:
 def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: bool = False) -> tuple[str, int]:
     """
     Вызывает LLM для выполнения задачи агента.
-    Использует Groq (llama-3.3-70b) если есть GROQ_KEY, иначе Gemini, иначе claude CLI.
+    Использует Gemini (gemini-2.0-flash) как основной провайдер,
+    затем Groq (llama-3.3-70b) как резервный, иначе Mistral, иначе claude CLI.
     Возвращает (output, estimated_tokens).
     inject_feedback=True только для content-writer (остальным не нужно).
     """
@@ -1243,6 +1244,18 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
     tokens = len(full_prompt.split()) * 2
 
     errors = []
+
+    if _gemini_client:
+        try:
+            resp = _gemini_client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=full_prompt,
+            )
+            return resp.text.strip(), tokens
+        except Exception as e:
+            err_msg = f"Gemini Error: {e}"
+            print(f"[GEMINI ERROR] {e}")
+            errors.append(err_msg)
 
     # Собираем список доступных клиентов Groq
     groq_clients = []
@@ -1279,18 +1292,6 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
         except Exception as e:
             err_msg = f"Mistral Error: {e}"
             print(f"[MISTRAL ERROR] {e}")
-            errors.append(err_msg)
-
-    if _gemini_client:
-        try:
-            resp = _gemini_client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=full_prompt,
-            )
-            return resp.text.strip(), tokens
-        except Exception as e:
-            err_msg = f"Gemini Error: {e}"
-            print(f"[GEMINI ERROR] {e}")
             errors.append(err_msg)
 
     # Fallback: claude CLI
@@ -1711,49 +1712,87 @@ def _source_tier(url: str) -> int:
 _TIER_LABEL = {1: "⭐⭐⭐", 2: "⭐⭐", 3: "⭐"}
 
 
-def run_fast(prompt: str) -> tuple[str, int]:
+def run_fast(prompt: str, quality: str = "strong") -> tuple[str, int]:
     """
-    Быстрый вызов LLM для лёгких задач (проверки, классификации, короткие ответы).
-    Использует llama-3.1-8b-instant (Groq) вместо 70b — экономия ~4x токенов.
+    Быстрый вызов LLM для лёгких или вспомогательных задач.
+    При quality="strong" (по умолчанию) использует умную llama-3.3-70b-versatile, 
+    чтобы обеспечить высокое качество проверок без раздувания токенов.
+    При quality="simple" использует быструю llama-3.1-8b-instant для низкоуровневых задач.
     """
     tokens = len(prompt.split()) * 2
     errors = []
     
+    # Собираем список доступных клиентов Groq
     groq_clients = []
     if _groq_client:
         groq_clients.append(_groq_client)
     if _groq_client2:
         groq_clients.append(_groq_client2)
 
-    if groq_clients:
+    def try_groq(model_name: str) -> str:
+        if not groq_clients:
+            raise ValueError("No Groq clients available")
         for gq in groq_clients:
             try:
                 resp = gq.chat.completions.create(
-                    model="llama-3.1-8b-instant",
+                    model=model_name,
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=1024,
                     temperature=0.2,
                 )
-                return resp.choices[0].message.content.strip(), tokens
+                return resp.choices[0].message.content.strip()
             except Exception as e:
-                err_msg = f"Groq Fast Error (Токен #{groq_clients.index(gq)+1}): {e}"
+                err_msg = f"Groq Fast Error ({model_name} - Токен #{groq_clients.index(gq)+1}): {e}"
                 errors.append(err_msg)
                 print(f"[GROQ FAST ERROR] {err_msg}")
-                
-    if _gemini_client:
+        raise RuntimeError(f"All Groq clients failed for model {model_name}")
+
+    def try_gemini() -> str:
+        if not _gemini_client:
+            raise ValueError("No Gemini client available")
         try:
             resp = _gemini_client.models.generate_content(
                 model="gemini-2.0-flash",
                 contents=prompt,
             )
-            return resp.text.strip(), tokens
+            return resp.text.strip()
         except Exception as e:
-            errors.append(f"Gemini Fast Error: {e}")
+            err_msg = f"Gemini Fast Error: {e}"
+            errors.append(err_msg)
             print(f"[GEMINI FAST ERROR] {e}")
+            raise RuntimeError(err_msg)
+
+    # Определяем порядок провайдеров в зависимости от требуемого качества
+    if quality == "strong":
+        steps_to_try = [
+            ("groq", "llama-3.3-70b-versatile"),
+            ("gemini", None),
+            ("groq", "llama-3.1-8b-instant")
+        ]
+    else:
+        steps_to_try = [
+            ("groq", "llama-3.1-8b-instant"),
+            ("gemini", None),
+            ("groq", "llama-3.3-70b-versatile")
+        ]
+
+    for provider, model in steps_to_try:
+        if provider == "groq" and groq_clients:
+            try:
+                content = try_groq(model)
+                return content, tokens
+            except Exception:
+                continue
+        elif provider == "gemini" and _gemini_client:
+            try:
+                content = try_gemini()
+                return content, tokens
+            except Exception:
+                continue
 
     detailed_errors = "\n".join(f"- {err}" for err in errors)
     raise RuntimeError(
-        f"Не удалось выполнить быстрый запрос к LLM. Все провайдеры вернули ошибку:\n{detailed_errors}"
+        f"Не удалось выполнить быстрый запрос к LLM (quality={quality}). Все провайдеры вернули ошибку:\n{detailed_errors}"
     )
 
 
@@ -1811,7 +1850,8 @@ def parse_editor_min_score(editor_report: str) -> int:
     # Запасной вариант: быстрый LLM-парсинг
     out, _ = run_fast(
         f"Извлеки минимальный балл из этого отчёта редактора. "
-        f"Верни только одно число (целое от 1 до 10).\n\n{editor_report[:600]}"
+        f"Верни только одно число (целое от 1 до 10).\n\n{editor_report[:600]}",
+        quality="simple"
     )
     digits = re.findall(r"\b([1-9]|10)\b", out)
     return int(digits[0]) if digits else 7
@@ -1853,7 +1893,7 @@ def run_temporal_check(article: str) -> tuple[bool, str]:
     """
     print("  [temporal-check] Проверяю временную согласованность...")
     prompt = AGENT_PROMPTS["temporal-verifier"] + f"\n\nСТАТЬЯ:\n{article[:4000]}"
-    output, _ = run_fast(prompt)
+    output, _ = run_fast(prompt, quality="strong")
     has_warns = "TEMPORAL_WARN_FOUND" in output
     return not has_warns, output
 
@@ -1865,7 +1905,7 @@ def run_devil_advocate(article: str) -> tuple[bool, str]:
     """
     print("  [devil-advocate] Проверяю однобокость тезиса...")
     prompt = AGENT_PROMPTS["devil-advocate"] + f"\n\nСТАТЬЯ:\n{article[:4000]}"
-    output, tokens = run_fast(prompt)
+    output, tokens = run_fast(prompt, quality="strong")
     flagged = "ADVOCATE_FLAG" in output
     icon = "⚠️" if flagged else "✅"
     tg_notify(
@@ -2070,7 +2110,7 @@ def run_pipeline(
             f"Если запрос СЛИШКОМ ОБЩИЙ — напиши один более конкретный запрос на русском (одна строка).\n"
             f"Если запрос ДОСТАТОЧНО КОНКРЕТНЫЙ — напиши: SCOPE_OK"
         )
-        scope_result, _ = run_fast(scope_prompt)
+        scope_result, _ = run_fast(scope_prompt, quality="simple")
         scope_result = scope_result.strip()
         if not scope_result or "SCOPE_OK" not in scope_result:
             lines = scope_result.splitlines()
@@ -2209,7 +2249,7 @@ def run_pipeline(
             f"Каждый запрос — отдельная строка, без нумерации и маркеров.\n"
             f"Если источники достаточно полны — напиши: COVERAGE_OK"
         )
-        gap_result, _ = run_fast(gap_prompt)
+        gap_result, _ = run_fast(gap_prompt, quality="strong")
         if "COVERAGE_OK" not in gap_result:
             queries = [
                 line.strip("•-* ").strip()
@@ -2242,7 +2282,7 @@ def run_pipeline(
             f"Важно: предлагай только то, что реально есть в источниках. "
             f"Не придумывай углы, которые нет чем подкрепить."
         )
-        angles_result, _ = run_fast(angles_prompt)
+        angles_result, _ = run_fast(angles_prompt, quality="strong")
         context["angles"] = angles_result
         print(f"\n  [варианты угла]\n{angles_result}")
         save_state(slug, context, 3)
@@ -2427,7 +2467,7 @@ def run_pipeline(
             f"Если есть проблемы → напиши: DRAFT_ISSUES, затем список\n\n"
             f"Черновик:\n{full_draft[:5000]}"
         )
-        revision_check, _ = run_fast(revision_prompt)
+        revision_check, _ = run_fast(revision_prompt, quality="strong")
         if "DRAFT_ISSUES" in revision_check and "INSUFFICIENT_SOURCES" in revision_check:
             print("  [auto-revision] Обнаружены INSUFFICIENT_SOURCES — пересоздаю проблемные блоки")
             tg_notify("🔄 <b>auto-revision</b>: Найдены незаполненные блоки, пересоздаю...")
