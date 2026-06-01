@@ -1253,102 +1253,15 @@ class StepResult:
 
 def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: bool = False) -> tuple[str, int]:
     """
-    Вызывает LLM для выполнения задачи агента.
-    Использует Gemini (gemini-2.0-flash) как основной провайдер,
-    затем Groq (llama-3.3-70b) как резервный, иначе Mistral, иначе claude CLI.
-    Возвращает (output, estimated_tokens).
-    inject_feedback=True только для content-writer (остальным не нужно).
+    Вызывает LLM для выполнения задачи агента через общий llm_client.
     """
+    from scripts.utils.llm_client import run_claude_common
     context = ""
     if context_files:
         for f in context_files:
             if f.exists():
                 context += f"\n\n### {f.name}\n{f.read_text(encoding='utf-8')}"
-
-    parts = []
-    if inject_feedback:
-        parts.append(aggregate_feedback())
-    if context:
-        parts.append(context)
-    parts.append(prompt)
-    full_prompt = "\n\n".join(p for p in parts if p.strip())
-    tokens = len(full_prompt.split()) * 2
-
-    errors = []
-
-    if _gemini_client:
-        try:
-            resp = _gemini_client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=full_prompt,
-            )
-            return resp.text.strip(), tokens
-        except Exception as e:
-            err_msg = f"Gemini Error: {e}"
-            print(f"[GEMINI ERROR] {e}")
-            errors.append(err_msg)
-
-    # Собираем список доступных клиентов Groq
-    groq_clients = []
-    if _groq_client:
-        groq_clients.append(_groq_client)
-    if _groq_client2:
-        groq_clients.append(_groq_client2)
-
-    if groq_clients:
-        for model_name in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"]:
-            # Пробуем отправить запрос по очереди через каждый доступный токен
-            for gq in groq_clients:
-                try:
-                    resp = gq.chat.completions.create(
-                        model=model_name,
-                        messages=[{"role": "user", "content": full_prompt}],
-                        max_tokens=8192,
-                        temperature=0.7,
-                    )
-                    return resp.choices[0].message.content.strip(), tokens
-                except Exception as e:
-                    err_msg = f"Groq Error ({model_name} - Токен #{groq_clients.index(gq)+1}): {e}"
-                    print(f"[GROQ ERROR] {err_msg}")
-                    errors.append(err_msg)
-                    continue
-
-    if _mistral_client:
-        try:
-            resp = _mistral_client.chat.complete(
-                model="mistral-large-latest",
-                messages=[{"role": "user", "content": full_prompt}],
-            )
-            return resp.choices[0].message.content.strip(), tokens
-        except Exception as e:
-            err_msg = f"Mistral Error: {e}"
-            print(f"[MISTRAL ERROR] {e}")
-            errors.append(err_msg)
-
-    # Fallback: claude CLI
-    try:
-        import tempfile
-        tmp_dir = tempfile.gettempdir()
-        result = subprocess.run(
-            ["claude", "-p", full_prompt, "--output-format", "text"],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            cwd=tmp_dir,
-        )
-        if result.returncode == 0:
-            return result.stdout.strip(), tokens
-        else:
-            errors.append(f"claude CLI Error: {result.stderr.strip()}")
-    except Exception as e:
-        errors.append(f"claude CLI execution error: {e}")
-
-    # Если ни один провайдер не сработал
-    detailed_errors = "\n".join(f"- {err}" for err in errors)
-    raise RuntimeError(
-        f"Не удалось выполнить запрос к LLM. Все доступные провайдеры вернули ошибку:\n{detailed_errors}"
-    )
+    return run_claude_common(prompt, context, inject_feedback)
 
 
 # ── Human-in-the-Loop ─────────────────────────────────────────────────────────
@@ -1745,86 +1658,10 @@ _TIER_LABEL = {1: "⭐⭐⭐", 2: "⭐⭐", 3: "⭐"}
 
 def run_fast(prompt: str, quality: str = "strong") -> tuple[str, int]:
     """
-    Быстрый вызов LLM для лёгких или вспомогательных задач.
-    При quality="strong" (по умолчанию) использует умную llama-3.3-70b-versatile, 
-    чтобы обеспечить высокое качество проверок без раздувания токенов.
-    При quality="simple" использует быструю llama-3.1-8b-instant для низкоуровневых задач.
+    Быстрый вызов LLM для лёгких или вспомогательных задач через общий llm_client.
     """
-    tokens = len(prompt.split()) * 2
-    errors = []
-    
-    # Собираем список доступных клиентов Groq
-    groq_clients = []
-    if _groq_client:
-        groq_clients.append(_groq_client)
-    if _groq_client2:
-        groq_clients.append(_groq_client2)
-
-    def try_groq(model_name: str) -> str:
-        if not groq_clients:
-            raise ValueError("No Groq clients available")
-        for gq in groq_clients:
-            try:
-                resp = gq.chat.completions.create(
-                    model=model_name,
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=1024,
-                    temperature=0.2,
-                )
-                return resp.choices[0].message.content.strip()
-            except Exception as e:
-                err_msg = f"Groq Fast Error ({model_name} - Токен #{groq_clients.index(gq)+1}): {e}"
-                errors.append(err_msg)
-                print(f"[GROQ FAST ERROR] {err_msg}")
-        raise RuntimeError(f"All Groq clients failed for model {model_name}")
-
-    def try_gemini() -> str:
-        if not _gemini_client:
-            raise ValueError("No Gemini client available")
-        try:
-            resp = _gemini_client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=prompt,
-            )
-            return resp.text.strip()
-        except Exception as e:
-            err_msg = f"Gemini Fast Error: {e}"
-            errors.append(err_msg)
-            print(f"[GEMINI FAST ERROR] {e}")
-            raise RuntimeError(err_msg)
-
-    # Определяем порядок провайдеров в зависимости от требуемого качества
-    if quality == "strong":
-        steps_to_try = [
-            ("groq", "llama-3.3-70b-versatile"),
-            ("gemini", None),
-            ("groq", "llama-3.1-8b-instant")
-        ]
-    else:
-        steps_to_try = [
-            ("groq", "llama-3.1-8b-instant"),
-            ("gemini", None),
-            ("groq", "llama-3.3-70b-versatile")
-        ]
-
-    for provider, model in steps_to_try:
-        if provider == "groq" and groq_clients:
-            try:
-                content = try_groq(model)
-                return content, tokens
-            except Exception:
-                continue
-        elif provider == "gemini" and _gemini_client:
-            try:
-                content = try_gemini()
-                return content, tokens
-            except Exception:
-                continue
-
-    detailed_errors = "\n".join(f"- {err}" for err in errors)
-    raise RuntimeError(
-        f"Не удалось выполнить быстрый запрос к LLM (quality={quality}). Все провайдеры вернули ошибку:\n{detailed_errors}"
-    )
+    from scripts.utils.llm_client import run_fast_common
+    return run_fast_common(prompt, quality)
 
 
 # ── Material Passport ─────────────────────────────────────────────────────────
