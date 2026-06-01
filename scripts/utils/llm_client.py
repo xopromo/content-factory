@@ -169,35 +169,57 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
 
     # 1. Gemini (как основной бесплатный провайдер с 1M контекстом)
     gemini_key = os.getenv("GEMINI_KEY")
-    if _gemini_client:
-        try:
-            resp = _gemini_client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=full_prompt,
-            )
-            return resp.text.strip(), tokens
-        except Exception as e:
-            err_msg = f"Gemini Error: {e}"
-            print(f"  [LLM CLIENT WARNING] {err_msg}")
-            errors.append(err_msg)
-    elif gemini_key:
-        try:
-            res = run_gemini_rest(full_prompt)
-            return res, tokens
-        except Exception as e:
-            err_msg = f"Gemini REST Error: {e}"
-            print(f"  [LLM CLIENT WARNING] {err_msg}")
-            errors.append(err_msg)
+    gemini_success = False
+    gemini_response = None
+    
+    if _gemini_client or gemini_key:
+        import time as _time
+        for attempt in range(3):
+            try:
+                if _gemini_client:
+                    resp = _gemini_client.models.generate_content(
+                        model="gemini-2.0-flash",
+                        contents=full_prompt,
+                    )
+                    gemini_response = resp.text.strip()
+                    gemini_success = True
+                    break
+                else:
+                    gemini_response = run_gemini_rest(full_prompt)
+                    gemini_success = True
+                    break
+            except Exception as e:
+                err_str = str(e)
+                err_msg = f"Gemini Error (Attempt {attempt+1}/3): {e}"
+                print(f"  [LLM CLIENT WARNING] {err_msg}")
+                errors.append(err_msg)
+                
+                # Если перегружено или превышен лимит запросов в минуту (429/ResourceExhausted), ждем и пробуем снова
+                if "429" in err_str or "ResourceExhausted" in err_str or "rate limit" in err_str.lower():
+                    sleep_time = 2 * (attempt + 1)
+                    print(f"  [LLM CLIENT] Gemini rate limited (429). Retrying in {sleep_time}s...")
+                    _time.sleep(sleep_time)
+                else:
+                    break
+                    
+        if gemini_success:
+            return gemini_response, tokens
 
     # 2. Groq (Llama 3.3 70B с ротацией и авто-бэкоффом)
     groq_clients = get_groq_clients()
     if groq_clients:
         for model in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+            # Проверяем, влезает ли промпт в лимит TPM модели
+            model_tpm = 6000 if "8b" in model else 12000
+            # Если промпт слишком велик (оставляет меньше 1024 токенов на ответ), пропускаем модель
+            if tokens >= model_tpm - 1024:
+                print(f"  [LLM CLIENT SKIP] Пропускаю Groq ({model}): размер промпта {tokens} слишком велик для TPM {model_tpm}")
+                errors.append(f"Groq Skip ({model}): prompt size {tokens} exceeds model TPM limit {model_tpm}")
+                continue
+                
             for idx, gq in enumerate(groq_clients):
                 try:
                     # Вычисляем безопасный max_tokens для провайдеров с низким TPM лимитом (Groq)
-                    model_tpm = 6000 if "8b" in model else 12000
-                    # Оставляем запас 500 токенов
                     safe_max = max(1024, model_tpm - tokens - 500)
                     # Физический лимит длины генерации для стабильности
                     limit = 3000 if "70b" in model else 1024
