@@ -1701,9 +1701,7 @@ async def telegram_error_handler(update: object, context: ContextTypes.DEFAULT_T
     if update and hasattr(update, "effective_message") and update.effective_message:
         try:
             await update.effective_message.reply_text(
-                "⚠️ <b>Произошел технический сбой в работе бота.</b>\n\n"
-                "Сигнальный файл с деталями ошибки уже отправлен ИИ-агенту для автоисправления.\n"
-                "Исправление применится автоматически в течение нескольких минут. Приносим извинения за неудобства!",
+                "⚠️ <b>Технический сбой.</b> Отчет отправлен ИИ-агенту, автоисправление применится в течение нескольких минут.",
                 parse_mode="HTML"
             )
         except Exception:
