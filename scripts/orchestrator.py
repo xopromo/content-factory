@@ -1489,8 +1489,8 @@ def run_pipeline(
         print(f"  [number-validator] ✅ Все числа корректны")
     # save_state вызывается в следующем шаге (7)
 
-    # ── SEO-качество: три дополнительных прохода (только для seo/full) ──────────────
-    if pipeline_mode != "news":
+    # ── SEO-качество: три дополнительных прохода (для всех режимов, включая news, чтобы избежать воды и повторов) ──
+    if True:
         # Шаг 6.8: Semantic dedup — убираем смысловые повторы между H2
         print("  [semantic-dedup] Ищу смысловые повторы между секциями...")
         has_dups, dedup_report = detect_semantic_duplicates(full_draft)
