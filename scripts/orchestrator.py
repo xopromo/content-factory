@@ -863,7 +863,7 @@ def reduce_excessive_headings(article_text: str, max_h2: int = 2, mode: str = "n
     """
     import re
 
-    if mode != "news":
+    if pipeline_mode != "news":
         return article_text
 
     # Оцениваем каждый блок
@@ -1998,6 +1998,7 @@ def run_pipeline(
     topic: str, title: str, slug: str, search_query: str,
     auto_approve: bool = False, resume: bool = False,
     mode: str = "🎯 Статья для SEO и GEO",
+    pipeline_mode: str = "seo",
 ) -> None:
     # ── Resume: загружаем сохранённое состояние ──────────────────────────────
     last_step, saved_ctx = load_state(slug) if resume else (0, {})
@@ -2006,7 +2007,7 @@ def run_pipeline(
         tg_notify(f"▶️ <b>Возобновление пайплайна</b>\nСлуг: {slug}\nПродолжаем с шага {last_step + 1}")
     else:
         print(f"\n🚀 Content Factory — запуск генерации: {title}")
-        tg_notify(f"🚀 <b>Запуск генерации</b>\n📝 {title}\n🔍 {topic}\n⚙️ Формат: {mode}")
+        tg_notify(f"🚀 <b>Запуск генерации</b>\n📝 {title}\n🔍 {topic}\n⚙️ Формат: {mode} (пайплайн: {pipeline_mode})")
 
     plan_path = create_plan(title, slug) if last_step == 0 else (PLANS_DIR / f"*_{slug}.md")
     # Если resume и план уже существует — найти его
@@ -2014,11 +2015,12 @@ def run_pipeline(
         matches = list(PLANS_DIR.glob(f"*_{slug}.md"))
         plan_path = matches[0] if matches else create_plan(title, slug)
 
-    context: dict = {"topic": topic, "title": title, "search_query": search_query, "mode": mode}
+    context: dict = {"topic": topic, "title": title, "search_query": search_query, "mode": mode, "pipeline_mode": pipeline_mode}
     context.update(saved_ctx)  # восстанавливаем сохранённые данные
-    # Синхронизируем search_query из passport (мог быть сужен на шаге 1.5)
+    # ...
     search_query = context.get("search_query", search_query)
     mode = context.get("mode", mode)
+    pipeline_mode = context.get("pipeline_mode", pipeline_mode)
 
     # Шаг 1: Оркестратор читает feedback
     if last_step >= 1:
@@ -2066,7 +2068,7 @@ def run_pipeline(
         save_state(slug, context, 1)
 
     # Шаг 2: knowledge-retriever (пропускается в режиме news)
-    if mode == "news":
+    if pipeline_mode == "news":
         print("  [news] Шаг 2 пропущен (режим новость)")
         context.setdefault("knowledge_pack", "")
         save_state(slug, context, 2)
@@ -2090,7 +2092,7 @@ def run_pipeline(
         r = StepResult(3, "web-researcher")
         _sq = search_query or topic
 
-        if mode == "news":
+        if pipeline_mode == "news":
             # Режим новость: только свежие источники, без глубинного поиска
             print("  [news] Ищу свежие источники (1 слой)...")
             tg_notify(f"🔍 <b>Шаг 03 [новость]</b> — web-researcher\n⏳ Ищу свежие источники...")
@@ -2114,7 +2116,7 @@ def run_pipeline(
             "\n\n⚠️ ВНИМАНИЕ: горячих новостей за последнюю неделю не найдено. "
             "На шаге 4 автор должен решить: использовать имеющееся или выбрать другую тему."
         )
-        if mode == "news":
+        if pipeline_mode == "news":
             synthesis_prompt = (
                 f"Ты редактор новостного раздела. Тема: «{topic}».\n\n"
                 f"Ниже — найденные материалы. Работай ТОЛЬКО с ними.\n\n"
@@ -2171,7 +2173,7 @@ def run_pipeline(
 
     # Шаг 3.6: Gap Analysis — определяем что важно для ЭТОЙ темы, но не попало в источники
     # Пропускается в режиме news (нет времени на дозапросы)
-    if mode == "news":
+    if pipeline_mode == "news":
         print("  [news] Gap Analysis пропущен (режим новость)")
     elif last_step < 3:
         gap_prompt = (
@@ -2251,7 +2253,27 @@ def run_pipeline(
 
     # Шаги 5-6: content-writer (с обязательным grounding по верифицированным источникам)
     rules_excerpt = RULES_FILE.read_text(encoding="utf-8")[:800] if RULES_FILE.exists() else ""
-    corrections_block = f"\n\n## ПРАВКИ И УТОЧНЕНИЯ ОТ АВТОРА:\n{context['corrections']}" if context.get("corrections") else ""
+    
+    # Определяем выбранный угол статьи
+    selected_angle_block = ""
+    if angles_result and context.get("corrections"):
+        selected_angle_block = (
+            f"\n\n## ВЫБРАННЫЙ УГОЛ СТАТЬИ:\n"
+            f"Автор выбрал следующее направление (учти при написании):\n"
+            f"{context['corrections']}\n\n"
+            f"Все доступные варианты были:\n{angles_result}"
+        )
+    elif angles_result:
+        # Автор одобрил без правок — берём первый вариант
+        selected_angle_block = (
+            f"\n\n## УГОЛ СТАТЬИ:\n"
+            f"Пиши по первому варианту из предложенных:\n{angles_result.splitlines()[0] if angles_result else ''}"
+        )
+        
+    corrections_block = (
+        f"\n\n## ПРАВКИ И УТОЧНЕНИЯ ОТ АВТОРА:\n{context['corrections']}"
+        if context.get("corrections") else ""
+    ) + selected_angle_block
     
     current_mode = context.get("mode", "🎯 Статья для SEO и GEO")
     if current_mode == "🔬 Статья-исследование":
@@ -2297,18 +2319,8 @@ def run_pipeline(
             + corrections_block
             + f"\n\nНапиши блоки {block} статьи."
         )
-    elif angles_result:
-        # Автор одобрил без правок — берём первый вариант
-        selected_angle_block = (
-            f"\n\n## УГОЛ СТАТЬИ:\n"
-            f"Пиши по первому варианту из предложенных:\n{angles_result.splitlines()[0] if angles_result else ''}"
-        )
-    corrections_block = (
-        f"\n\n## ПРАВКИ И УТОЧНЕНИЯ ОТ АВТОРА:\n{context['corrections']}"
-        if context.get("corrections") else ""
-    ) + selected_angle_block
 
-    if mode == "news":
+    if pipeline_mode == "news":
         # Режим новость: один вызов, промпт news-writer
         if last_step >= 5 and context.get("draft_1-3"):
             print("  [passport] Шаг 5 пропущен (уже выполнен)")
@@ -2384,7 +2396,7 @@ def run_pipeline(
         full_draft = context.get("draft_1-3", "") + "\n\n" + context.get("draft_4-6", "")
 
     # Auto revision loop: быстрая само-проверка черновика (пропускается в режиме news)
-    if mode == "news":
+    if pipeline_mode == "news":
         print("  [news] Auto-revision пропущен (режим новость)")
     elif last_step < 6:
         revision_prompt = (
@@ -2553,7 +2565,7 @@ def run_pipeline(
     # save_state вызывается в следующем шаге (7)
 
     # ── SEO-качество: три дополнительных прохода (только для seo/full) ──────────────
-    if mode != "news":
+    if pipeline_mode != "news":
         # Шаг 6.8: Semantic dedup — убираем смысловые повторы между H2
         print("  [semantic-dedup] Ищу смысловые повторы между секциями...")
         has_dups, dedup_report = detect_semantic_duplicates(full_draft)
@@ -2610,7 +2622,7 @@ def run_pipeline(
     # ─────────────────────────────────────────────────────────────────────────────────
 
     # Шаг 7: diagram-illustrator (пропускается в режиме news)
-    if mode == "news":
+    if pipeline_mode == "news":
         print("  [news] Диаграммы пропущены (режим новость)")
         context.setdefault("diagrams", "")
     else:
@@ -2638,7 +2650,7 @@ def run_pipeline(
         print("  [passport] Шаги 8-9 пропущены (уже выполнены)")
     else:
         r = StepResult(8, "seo-geo-optimizer")
-        if mode == "news":
+        if pipeline_mode == "news":
             seo_prompt = (
                 "Ты SEO-оптимизатор. Получи короткую новостную статью и: "
                 "1. Интегрируй 3-5 ключевых слов естественно в текст. "
@@ -2657,7 +2669,7 @@ def run_pipeline(
         save_state(slug, context, 8)
 
     # Шаг 10: geo-emulator (пропускается в режиме news)
-    if mode == "news":
+    if pipeline_mode == "news":
         print("  [news] GEO-эмулятор пропущен (режим новость)")
         context.setdefault("geo_report", "")
     else:
@@ -2686,7 +2698,7 @@ def run_pipeline(
         save_state(slug, context, 11)
 
     # Шаг 11.5: devil-advocate (пропускается в режиме news)
-    if mode == "news":
+    if pipeline_mode == "news":
         print("  [news] Devil-advocate пропущен (режим новость)")
         advocate_flagged, advocate_report = False, ""
     else:
@@ -2779,7 +2791,7 @@ if __name__ == "__main__":
     parser.add_argument("--auto-approve", action="store_true", help="Пропускать HITL-паузы (тестовый режим)")
     parser.add_argument("--resume", action="store_true", help="Возобновить с последнего сохранённого шага")
     parser.add_argument(
-        "--mode", choices=["full", "seo", "news"], default="seo",
+        "--pipeline-mode", choices=["full", "seo", "news"], default="seo",
         help=(
             "Режим генерации: "
             "seo — полный пайплайн, гибкий фактчекинг (DEFAULT, ~30 мин); "
@@ -2798,6 +2810,7 @@ if __name__ == "__main__":
             auto_approve=args.auto_approve,
             resume=args.resume,
             mode=args.mode,
+            pipeline_mode=args.pipeline_mode,
         )
     except Exception as e:
         import traceback
