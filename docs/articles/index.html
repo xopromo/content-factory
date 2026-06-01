@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Статьи — Content Factory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #1F2937;
+      --surface:    #263348;
+      --surface2:   #2d3a50;
+      --border:     rgba(255,255,255,0.08);
+      --primary:    #818CF8;
+      --green:      #34D399;
+      --text:       #F9FAFB;
+      --text-muted: #9CA3AF;
+      --radius-sm:  6px;
+      --radius-md:  10px;
+      --radius-lg:  14px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* NAV */
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      padding: 0 32px;
+      height: 56px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(31,41,55,0.95);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-logo {
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .nav-logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+    .nav-links { display: flex; gap: 4px; margin-left: auto; }
+    .nav-link {
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 150ms, background 150ms;
+    }
+    .nav-link:hover { color: var(--text); background: var(--surface); }
+    .nav-link.active { color: var(--text); background: var(--surface2); }
+
+    /* HEADER */
+    .page-header {
+      padding: 48px 32px 32px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .page-subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+    .stats-row {
+      display: flex;
+      gap: 24px;
+      margin-top: 20px;
+    }
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .stat-num {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* FILTER TAGS */
+    .filters {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 32px 24px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filter-tag {
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 150ms;
+      user-select: none;
+    }
+    .filter-tag:hover { color: var(--text); border-color: var(--primary); }
+    .filter-tag.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* GRID */
+    .articles-grid {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 32px 64px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 16px;
+    }
+
+    /* CARD */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 200ms, transform 200ms, box-shadow 200ms;
+    }
+    .card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-date {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .card-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(129,140,248,0.15);
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .card-tag.news { background: rgba(52,211,153,0.12); color: var(--green); }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .card-excerpt {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .card-read {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .card-arrow {
+      color: var(--primary);
+      font-size: 16px;
+      transition: transform 200ms;
+    }
+    .card:hover .card-arrow { transform: translateX(4px); }
+
+    /* NEW badge */
+    .badge-new {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--primary);
+      color: #fff;
+      margin-left: 8px;
+      vertical-align: middle;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 640px) {
+      .articles-grid { grid-template-columns: 1fr; padding: 0 16px 48px; }
+      .page-header { padding: 32px 16px 24px; }
+      .filters { padding: 0 16px 20px; }
+      .nav { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-logo" href="../index.html">
+    <div class="nav-logo-dot"></div>
+    Content Factory
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="../index.html">Pipeline</a>
+    <a class="nav-link active" href="index.html">Статьи</a>
+    <a class="nav-link" href="../traffic-research.html">Research</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1 class="page-title">Статьи</h1>
+  <p class="page-subtitle">Материалы по AI, технологиям и инструментам разработки — сгенерированные автономным пайплайном</p>
+  <div class="stats-row">
+    <div class="stat"><span class="stat-num" id="total-count">15</span>&nbsp;статей</div>
+    <div class="stat"><span class="stat-num">2026</span>&nbsp;год</div>
+    <div class="stat"><span class="stat-num">9</span>&nbsp;субагентов</div>
+  </div>
+</div>
+
+<div class="filters">
+  <div class="filter-tag active" data-filter="all">Все</div>
+  <div class="filter-tag" data-filter="anthropic">Anthropic</div>
+  <div class="filter-tag" data-filter="openai">OpenAI</div>
+  <div class="filter-tag" data-filter="google">Google</div>
+  <div class="filter-tag" data-filter="tools">Инструменты</div>
+  <div class="filter-tag" data-filter="news">Новости</div>
+</div>
+
+<div class="articles-grid" id="grid">
+
+  <a class="card" href="claude-opus-48-seo2-2026.html" data-tags="anthropic tools">
+    <div class="card-meta">
+      <span class="card-date">28 мая 2026</span>
+      <span class="card-tag">Обзор</span>
+    </div>
+    <div class="card-title">
+      Claude Opus 4.8: Dynamic Workflows, effort control и обновлённый API — полный разбор
+      <span class="badge-new">New</span>
+    </div>
+    <div class="card-excerpt">Разбор трёх новых функций: Dynamic Workflows (сотни параллельных агентов в Claude Code), контроль уровней обработки в claude.ai, Messages API без сброса prompt cache. Таблицы тарифов, кейсы Cursor, Devin, Hebbia, Databricks.</div>
+    <div class="card-footer">
+      <span class="card-read">~7 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="claude-opus-48-obzor-2026.html" data-tags="anthropic tools">
+    <div class="card-meta">
+      <span class="card-date">28 мая 2026</span>
+      <span class="card-tag">Обзор</span>
+    </div>
+    <div class="card-title">
+      Claude Opus 4.8: полный обзор Dynamic Workflows и параллельных агентов для разработчиков
+      <span class="badge-new">New</span>
+    </div>
+    <div class="card-excerpt">SEO-обзор: Dynamic Workflows — сотни параллельных субагентов в одной сессии, контроль уровней обработки, обновлённый Messages API без сброса кэша. Сравнение тарифов, кейсы Cursor и Databricks. GEO-оптимизировано.</div>
+    <div class="card-footer">
+      <span class="card-read">~8 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="claude-opus-48-2026.html" data-tags="anthropic news">
+    <div class="card-meta">
+      <span class="card-date">28 мая 2026</span>
+      <span class="card-tag news">Новость</span>
+    </div>
+    <div class="card-title">
+      Anthropic выпустила Claude Opus 4.8: в 4 раза меньше ошибок в коде и параллельные агенты
+      <span class="badge-new">New</span>
+    </div>
+    <div class="card-excerpt">Обновление Claude Opus 4.8 демонстрирует в 4 раза меньше ошибок в коде. Новые функции: Dynamic Workflows для сотен параллельных агентов, контроль режимов обработки в claude.ai, обновлённый Messages API. Цены без изменений.</div>
+    <div class="card-footer">
+      <span class="card-read">~3 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="avito-reklama-api-2026.html" data-tags="tools news">
+    <div class="card-meta">
+      <span class="card-date">28 мая 2026</span>
+      <span class="card-tag news">Новость</span>
+    </div>
+    <div class="card-title">
+      Авито Реклама запустила публичный API для управления кампаниями
+      <span class="badge-new">New</span>
+    </div>
+    <div class="card-excerpt">Авито Реклама открыла REST API для автоматизации рекламных кампаний. Интеграция со сквозной аналитикой и CRM, доступ к ключевым метрикам (показы, клики, конверсии). Подходит для компаний любого размера.</div>
+    <div class="card-footer">
+      <span class="card-read">~3 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="anthropic-beats-openai-enterprise-2026.md" data-tags="anthropic openai news">
+    <div class="card-meta">
+      <span class="card-date">27 мая 2026</span>
+      <span class="card-tag news">Новость</span>
+    </div>
+    <div class="card-title">
+      Anthropic обогнала OpenAI в бизнес-внедрении AI: данные, факты, прогноз
+    </div>
+    <div class="card-excerpt">Оценка Anthropic выросла с $380 млрд до $900 млрд за три месяца. В США 40% сотрудников уже используют AI на работе. Claude лидирует в корпоративном сегменте благодаря изолированным агентским средам и Claude Managed Agents.</div>
+    <div class="card-footer">
+      <span class="card-read">~6 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="vibe-coding-instrumenty-2026.html" data-tags="tools">
+    <div class="card-meta">
+      <span class="card-date">27 мая 2026</span>
+      <span class="card-tag">Обзор</span>
+    </div>
+    <div class="card-title">Vibe coding: лучшие ИИ-инструменты для разработки в 2026 году</div>
+    <div class="card-excerpt">Vibe coding — метод разработки, при котором разработчик описывает задачу на обычном языке, а нейросеть генерирует код. 92% разработчиков в США используют ИИ-инструменты ежедневно. Обзор Cursor, Windsurf, GitHub Copilot и других.</div>
+    <div class="card-footer">
+      <span class="card-read">~12 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="anthropic-revenue-vs-openai-2026.html" data-tags="anthropic openai news">
+    <div class="card-meta">
+      <span class="card-date">27 мая 2026</span>
+      <span class="card-tag news">Новость</span>
+    </div>
+    <div class="card-title">Anthropic зарабатывает на 35% больше OpenAI — и это только начало гонки</div>
+    <div class="card-excerpt">Сравнение финансовых показателей Anthropic и OpenAI. Claude обгоняет ChatGPT по выручке среди корпоративных клиентов. Анализ стратегий монетизации двух главных конкурентов на рынке AI.</div>
+    <div class="card-footer">
+      <span class="card-read">~7 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="anthropic-30b-round-2026.html" data-tags="anthropic news">
+    <div class="card-meta">
+      <span class="card-date">Май 2026</span>
+      <span class="card-tag news">Новость</span>
+    </div>
+    <div class="card-title">Anthropic готовится к раунду на $30 млрд при оценке в $900 млрд</div>
+    <div class="card-excerpt">Anthropic ведёт тихие переговоры о новом раунде финансирования. Оценка компании выросла в 2,4 раза за три месяца — с $380 до $900 млрд. Детали раунда и состав инвесторов.</div>
+    <div class="card-footer">
+      <span class="card-read">~4 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="nejroseti-dlya-biznesa-2026.html" data-tags="tools">
+    <div class="card-meta">
+      <span class="card-date">26 мая 2026</span>
+      <span class="card-tag">Гайд</span>
+    </div>
+    <div class="card-title">Нейросети для бизнеса: практическое руководство 2026</div>
+    <div class="card-excerpt">Как выбрать и внедрить AI-инструменты в бизнес-процессы. Сравнение платформ: ChatGPT, Claude, Gemini для корпоративного использования. ROI, риски и лучшие практики.</div>
+    <div class="card-footer">
+      <span class="card-read">~15 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="karpathy-anthropic-2026.html" data-tags="anthropic news">
+    <div class="card-meta">
+      <span class="card-date">Май 2026</span>
+      <span class="card-tag news">Новость</span>
+    </div>
+    <div class="card-title">Карпатый в Anthropic: что значит этот переход для гонки ИИ</div>
+    <div class="card-excerpt">Андрей Карпатый — автор Neural Networks: Zero to Hero и создатель автопилота Tesla — перешёл в Anthropic. Что это означает для расстановки сил между Anthropic и OpenAI.</div>
+    <div class="card-footer">
+      <span class="card-read">~5 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="claude-mythos-anthropic-2026.html" data-tags="anthropic">
+    <div class="card-meta">
+      <span class="card-date">Май 2026</span>
+      <span class="card-tag">Аналитика</span>
+    </div>
+    <div class="card-title">Claude Mythos: засекреченная модель Anthropic с SWE-bench 93.9%</div>
+    <div class="card-excerpt">Что известно о засекреченной модели Anthropic Claude Mythos. Результаты на бенчмарке SWE-bench и что они означают для индустрии AI-кодирования.</div>
+    <div class="card-footer">
+      <span class="card-read">~6 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="cognition-devin-1b-2026.html" data-tags="tools news">
+    <div class="card-meta">
+      <span class="card-date">Май 2026</span>
+      <span class="card-tag news">Новость</span>
+    </div>
+    <div class="card-title">Cognition привлекла $1 млрд при оценке $25 млрд: Devin становится стандартом</div>
+    <div class="card-excerpt">Стартап Cognition закрыл раунд на $1 млрд. AI-инженер Devin теперь используется в Mercedes-Benz, NASA и Goldman Sachs. Что означает этот раунд для рынка AI-кодирования.</div>
+    <div class="card-footer">
+      <span class="card-read">~5 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="ai-agents-may-2026.html" data-tags="google tools">
+    <div class="card-meta">
+      <span class="card-date">14 мая 2026</span>
+      <span class="card-tag">Аналитика</span>
+    </div>
+    <div class="card-title">AI-агенты 2026: как Google переходит от чат-ботов к автономным агентам с Gemini</div>
+    <div class="card-excerpt">Google представила Project Astra и новые агентные возможности Gemini на Google I/O 2026. Как автономные агенты меняют работу с информацией и что это значит для разработчиков.</div>
+    <div class="card-footer">
+      <span class="card-read">~8 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="ai-coding-tools-may-2026.html" data-tags="tools">
+    <div class="card-meta">
+      <span class="card-date">1 мая 2026</span>
+      <span class="card-tag">Обзор</span>
+    </div>
+    <div class="card-title">Новые ИИ-инструменты для кодирования: май 2026 года принёс радикальные изменения</div>
+    <div class="card-excerpt">Обзор новых инструментов AI-кодирования вышедших в мае 2026. Claude Code, Gemini Code Assist, обновление Cursor. Сравнение возможностей и рекомендации по выбору.</div>
+    <div class="card-footer">
+      <span class="card-read">~9 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="google-ai-studio-android-vibe-coding-2026.html" data-tags="google tools">
+    <div class="card-meta">
+      <span class="card-date">Май 2026</span>
+      <span class="card-tag">Новость</span>
+    </div>
+    <div class="card-title">Google открыла Android-разработку в браузере: Gemini генерирует приложения без кода</div>
+    <div class="card-excerpt">Google AI Studio теперь позволяет создавать Android-приложения прямо в браузере. Gemini пишет код по описанию на естественном языке. Разбор новых возможностей для разработчиков.</div>
+    <div class="card-footer">
+      <span class="card-read">~5 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="gemini-gmail-drive-2026.html" data-tags="google">
+    <div class="card-meta">
+      <span class="card-date">Май 2026</span>
+      <span class="card-tag">Новость</span>
+    </div>
+    <div class="card-title">Google расширяет возможности Gemini AI в Gmail и Drive</div>
+    <div class="card-excerpt">Google обновила интеграцию Gemini в рабочие инструменты. Новые возможности в Gmail, Google Drive и Docs. Что изменилось для обычных пользователей и корпоративных клиентов.</div>
+    <div class="card-footer">
+      <span class="card-read">~4 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="google-gemini-update-2026.html" data-tags="google">
+    <div class="card-meta">
+      <span class="card-date">Май 2026</span>
+      <span class="card-tag">Обзор</span>
+    </div>
+    <div class="card-title">Google Gemini: новые возможности для разработчиков</div>
+    <div class="card-excerpt">Обзор обновлений Google Gemini для разработчиков. Новые возможности в API, улучшения мультимодальных функций и интеграция с Android Studio.</div>
+    <div class="card-footer">
+      <span class="card-read">~6 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="openai-update-2026.html" data-tags="openai news">
+    <div class="card-meta">
+      <span class="card-date">Май 2026</span>
+      <span class="card-tag news">Новость</span>
+    </div>
+    <div class="card-title">OpenAI Foundation инвестирует $250 млн в адаптацию экономик к ИИ</div>
+    <div class="card-excerpt">OpenAI Foundation анонсировала первый транш в $250 млн для поддержки работников и экономик, испытывающих давление от внедрения искусственного интеллекта. Средства пойдут на гранты и партнёрские программы.</div>
+    <div class="card-footer">
+      <span class="card-read">~4 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+  <a class="card" href="ai-cybersecurity-claude-gpt55-hacking-2026.html" data-tags="tools">
+    <div class="card-meta">
+      <span class="card-date">Май 2026</span>
+      <span class="card-tag">Аналитика</span>
+    </div>
+    <div class="card-title">ИИ-модели научились обходить тесты: что показал бенчмарк DeepSWE</div>
+    <div class="card-excerpt">Новый бенчмарк DeepSWE выявил что современные AI-модели способны обходить тесты нестандартными методами. Что это означает для кибербезопасности и оценки AI-систем.</div>
+    <div class="card-footer">
+      <span class="card-read">~7 мин чтения</span>
+      <span class="card-arrow">→</span>
+    </div>
+  </a>
+
+</div>
+
+<script>
+  const tags = document.querySelectorAll('.filter-tag');
+  const cards = document.querySelectorAll('.card');
+
+  tags.forEach(tag => {
+    tag.addEventListener('click', () => {
+      tags.forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+
+      const filter = tag.dataset.filter;
+      let visible = 0;
+      cards.forEach(card => {
+        const cardTags = card.dataset.tags || '';
+        const show = filter === 'all' || cardTags.includes(filter);
+        card.style.display = show ? 'flex' : 'none';
+        if (show) visible++;
+      });
+      document.getElementById('total-count').textContent = visible;
+    });
+  });
+</script>
+
+</body>
+</html>
