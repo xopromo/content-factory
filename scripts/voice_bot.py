@@ -420,6 +420,18 @@ async def go_home(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 # ── Режим: обычная голосовая заметка ─────────────────────────────────────────
 
 async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    # ── Делегирование голосовых сообщений активным сценариям ───────────────────
+    if "article_mode" in ctx.user_data and "article_topic" not in ctx.user_data:
+        return await handle_article_topic(update, ctx)
+    if "expert_question" in ctx.user_data:
+        return await expert_voice(update, ctx)
+    if "biz_question" in ctx.user_data:
+        return await biz_voice(update, ctx)
+    if "aud_index" in ctx.user_data:
+        return await audience_answer(update, ctx)
+    if "news_item" in ctx.user_data:
+        return await news_voice(update, ctx)
+
     review_file = Path("business/review_waiting.txt")
     if review_file.exists():
         text = await _transcribe_voice(update, ctx)
@@ -617,7 +629,7 @@ async def expert_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     if text is None:
         return WAIT_EXPERT_VOICE
 
-    question = ctx.user_data.get("expert_question", "")
+    question = ctx.user_data.pop("expert_question", "")
     full_text = f"**Вопрос:** {question}\n\n**Ответ:** {text}" if question else text
 
     ctx.user_data["text"] = full_text
@@ -709,7 +721,7 @@ async def biz_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     if text is None:
         return WAIT_BIZ_VOICE
 
-    question = ctx.user_data.get("biz_question", "")
+    question = ctx.user_data.pop("biz_question", "")
     topic = ctx.user_data.get("biz_topic", "VK-реклама")
     slug = get_topic_slug(topic)
     now = datetime.now(timezone.utc)
@@ -795,6 +807,7 @@ async def audience_answer(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int
         )
         return WAIT_AUD_ANSWER
 
+    ctx.user_data.pop("aud_index", None)
     topic = ctx.user_data.get("aud_topic", "VK-реклама")
     status_msg = await update.message.reply_text("⏳ Все ответы собраны. Генерирую профиль ЦА...")
     profile = gen_audience_profile(topic, answers)
@@ -1169,7 +1182,7 @@ async def news_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     if text is None:
         return WAIT_NEWS_VOICE
 
-    item = ctx.user_data.get("news_item", {})
+    item = ctx.user_data.pop("news_item", {})
     title = item.get("title", "Новость")
     url = item.get("url", "")
     body_text = item.get("body", "")
