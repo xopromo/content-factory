@@ -17,10 +17,11 @@ results = []
 print("\n=== 1. Импорт и инициализация клиентов ===")
 try:
     import orchestrator as o
+    from scripts.utils.search_helper import _DDGS
     ok("import orchestrator")
     print(f"  Groq:   {'✅ готов' if o._groq_client else '⚠️  нет GROQ_KEY'}")
     print(f"  Gemini: {'✅ готов' if o._gemini_client else '⚠️  нет GEMINI_KEY'}")
-    print(f"  DDGS:   {'✅ готов' if o._DDGS else '❌ не установлен'}")
+    print(f"  DDGS:   {'✅ готов' if _DDGS else '❌ не установлен'}")
     results.append(True)
 except Exception as e:
     fail("import orchestrator", e); results.append(False)

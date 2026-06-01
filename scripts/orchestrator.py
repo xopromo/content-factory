@@ -1269,7 +1269,7 @@ def run_pipeline(
 
         # Шаг 6.3: reduce_excessive_headings для режима NEWS
         print(f"  [news-optim] Проверяю количество заголовков и ценность блоков...")
-        cleaned = reduce_excessive_headings(full_draft, max_h2=2, mode="news")
+        cleaned = reduce_excessive_headings(full_draft, max_h2=2, pipeline_mode="news")
         if len(cleaned) != len(full_draft):
             print(f"  [news-optim] Оптимизация: удалены низкоценностные блоки")
             h2_before = len(__import__('re').findall(r'^## ', full_draft, __import__('re').MULTILINE))

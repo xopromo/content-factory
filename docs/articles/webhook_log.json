@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-01T14:30:36.996126+00:00",
+    "timestamp": "2026-06-01T14:49:47.557690+00:00",
     "update": {
       "message": {
         "channel_chat_created": false,
@@ -15,8 +15,8 @@
           "type": "private",
           "username": "xopromo"
         },
-        "date": 1780324236,
-        "message_id": 595,
+        "date": 1780325387,
+        "message_id": 603,
         "from": {
           "first_name": "Константин",
           "id": 220023136,
@@ -26,7 +26,7 @@
           "username": "xopromo"
         }
       },
-      "update_id": 105152911
+      "update_id": 105152913
     }
   }
 ]
