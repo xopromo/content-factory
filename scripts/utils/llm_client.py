@@ -59,6 +59,39 @@ try:
 except ImportError:
     _openrouter_client = None
 
+def get_gemini_retry_delay(err_str: str) -> float:
+    import re
+    m = re.search(r"Please retry in (\d+\.?\d*)s", err_str)
+    if m:
+        val = float(m.group(1)) + 1.5
+        if val < 70.0:
+            return val
+    m = re.search(r"retryDelay':\s*'(\d+)s'", err_str)
+    if m:
+        val = float(m.group(1)) + 1.5
+        if val < 70.0:
+            return val
+    return 0.0
+
+def get_groq_cooldown_delay(err_str: str) -> float:
+    import re
+    m = re.search(r"Please try again in ([0-9hms\.]+)", err_str)
+    if m:
+        duration_str = m.group(1)
+        seconds = 0.0
+        h_match = re.search(r"(\d+)h", duration_str)
+        m_match = re.search(r"(\d+)m", duration_str)
+        s_match = re.search(r"(\d+(?:\.\d+)?)s", duration_str)
+        if h_match:
+            seconds += int(h_match.group(1)) * 3600
+        if m_match:
+            seconds += int(m_match.group(1)) * 60
+        if s_match:
+            seconds += float(s_match.group(1))
+        if seconds > 0:
+            return seconds + 2.0
+    return 60.0
+
 _groq_cooldown_until = 0.0
 
 
@@ -90,8 +123,9 @@ def call_groq_with_retry(client, model: str, messages: List[Dict], max_tokens: i
             # Проверяем на Rate Limit (обычно код 429 или в тексте ошибки)
             is_rate_limit = "429" in str(e) or "rate limit" in str(e).lower() or "limit exceeded" in str(e).lower()
             if is_rate_limit:
-                _groq_cooldown_until = time.time() + 60.0  # Устанавливаем кулдаун на 60 секунд при ошибке лимита
-                print(f"  [LLM CLIENT] Groq rate limit hit. Groq set on cooldown for 60s.")
+                cooldown_sec = get_groq_cooldown_delay(str(e))
+                _groq_cooldown_until = time.time() + cooldown_sec
+                print(f"  [LLM CLIENT] Groq rate limit hit. Groq set on cooldown for {cooldown_sec}s.")
                 if attempt < retries - 1:
                     delay = base_delay * (2 ** attempt)
                     print(f"  [LLM CLIENT] Retrying in {delay}s... (Attempt {attempt+1}/{retries})")
@@ -150,6 +184,67 @@ def run_gemini_rest(prompt: str) -> str:
     return res["candidates"][0]["content"]["parts"][0]["text"].strip()
 
 
+def run_cerebras_rest(prompt: str, max_tokens: int = 1024) -> str:
+    cerebras_key = os.getenv("CEREBRAS_KEY")
+    if not cerebras_key:
+        raise ValueError("CEREBRAS_KEY is not set")
+    import urllib.request
+    url = "https://api.cerebras.ai/v1/chat/completions"
+    payload = {
+        "model": "llama3.1-8b",
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": max_tokens,
+        "temperature": 0.2
+    }
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {cerebras_key}"
+        },
+        method="POST"
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        res = json.loads(resp.read().decode("utf-8"))
+    return res["choices"][0]["message"]["content"].strip()
+
+
+def run_mistral_rest(prompt: str, model: str = "mistral-small-latest", max_tokens: int = 1024) -> str:
+    mistral_key = os.getenv("MISTRAL_KEY")
+    if not mistral_key:
+        raise ValueError("MISTRAL_KEY is not set")
+    import urllib.request
+    url = "https://api.mistral.ai/v1/chat/completions"
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": max_tokens,
+        "temperature": 0.2
+    }
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {mistral_key}"
+        },
+        method="POST"
+    )
+    for attempt in range(5):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                res = json.loads(resp.read().decode("utf-8"))
+            return res["choices"][0]["message"]["content"].strip()
+        except Exception as e:
+            if "429" in str(e) and attempt < 4:
+                import time as _time
+                _time.sleep(2.0 * (attempt + 1))
+            else:
+                raise e
+    raise RuntimeError("Mistral REST rate limited")
+
+
 def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = False) -> Tuple[str, int]:
     """
     Вызывает LLM для тяжелых задач (написание текстов, глубокий синтез).
@@ -182,7 +277,7 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
     
     if _gemini_client or gemini_key:
         import time as _time
-        for attempt in range(3):
+        for attempt in range(10):
             try:
                 if _gemini_client:
                     resp = _gemini_client.models.generate_content(
@@ -198,13 +293,17 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
                     break
             except Exception as e:
                 err_str = str(e)
-                err_msg = f"Gemini Error (Attempt {attempt+1}/3): {e}"
+                err_msg = f"Gemini Error (Attempt {attempt+1}/10): {e}"
                 print(f"  [LLM CLIENT WARNING] {err_msg}")
                 errors.append(err_msg)
                 
                 # Если перегружено или превышен лимит запросов в минуту (429/ResourceExhausted), ждем и пробуем снова
                 if "429" in err_str or "ResourceExhausted" in err_str or "rate limit" in err_str.lower():
-                    sleep_time = 2 * (attempt + 1)
+                    if "limit: 0" in err_str or "GenerateRequestsPerDay" in err_str:
+                        print("  [LLM CLIENT] Gemini daily/project quota exhausted (limit: 0). Skipping Gemini fallback.")
+                        break
+                    parsed_delay = get_gemini_retry_delay(err_str)
+                    sleep_time = parsed_delay if parsed_delay > 0 else 3 * (attempt + 1)
                     print(f"  [LLM CLIENT] Gemini rate limited (429). Retrying in {sleep_time}s...")
                     _time.sleep(sleep_time)
                 else:
@@ -251,15 +350,36 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
                     errors.append(err_msg)
 
     # 3. Mistral API
-    if _mistral_client:
+    if _mistral_client or os.getenv("MISTRAL_KEY"):
         try:
-            resp = _mistral_client.chat.complete(
-                model="mistral-large-latest",
-                messages=[{"role": "user", "content": full_prompt}],
-            )
-            return resp.choices[0].message.content.strip(), tokens
+            if _mistral_client:
+                resp = _mistral_client.chat.complete(
+                    model="mistral-large-latest",
+                    messages=[{"role": "user", "content": full_prompt}],
+                )
+                content = resp.choices[0].message.content.strip()
+            else:
+                content = run_mistral_rest(full_prompt, model="mistral-large-latest", max_tokens=3000)
+            return content, tokens
         except Exception as e:
             err_msg = f"Mistral Error: {e}"
+            print(f"  [LLM CLIENT WARNING] {err_msg}")
+            errors.append(err_msg)
+
+    # 4. Cerebras
+    if _cerebras_client or os.getenv("CEREBRAS_KEY"):
+        try:
+            if _cerebras_client:
+                resp = _cerebras_client.chat.completions.create(
+                    model="llama3.1-8b",
+                    messages=[{"role": "user", "content": full_prompt}],
+                )
+                content = resp.choices[0].message.content.strip()
+            else:
+                content = run_cerebras_rest(full_prompt, max_tokens=3000)
+            return content, tokens
+        except Exception as e:
+            err_msg = f"Cerebras Error: {e}"
             print(f"  [LLM CLIENT WARNING] {err_msg}")
             errors.append(err_msg)
 
@@ -290,8 +410,8 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
 def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
     """
     Быстрый вызов LLM для технических проверок и вспомогательных задач.
-    Качество 'strong': Groq 70B ➔ Gemini ➔ Groq 8B
-    Качество 'simple': Groq 8B ➔ Gemini ➔ Groq 70B
+    Качество 'strong': Groq 70B ➔ Gemini ➔ Groq 8B ➔ Mistral ➔ Cerebras
+    Качество 'simple': Groq 8B ➔ Gemini ➔ Groq 70B ➔ Cerebras ➔ Mistral
     """
     if os.getenv("MOCK_LLM") == "1":
         return get_mock_response(prompt, is_fast=True), 10
@@ -321,40 +441,94 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
     def try_gemini() -> str:
         gemini_key = os.getenv("GEMINI_KEY")
         if _gemini_client:
-            try:
-                resp = _gemini_client.models.generate_content(
-                    model="gemini-2.0-flash",
-                    contents=prompt,
-                )
-                return resp.text.strip()
-            except Exception as e:
-                err_msg = f"Gemini Fast Error: {e}"
-                errors.append(err_msg)
-                print(f"  [LLM CLIENT WARNING] {err_msg}")
-                raise RuntimeError(err_msg)
+            for attempt in range(10):
+                try:
+                    resp = _gemini_client.models.generate_content(
+                        model="gemini-2.0-flash",
+                        contents=prompt,
+                    )
+                    return resp.text.strip()
+                except Exception as e:
+                    err_str = str(e)
+                    err_msg = f"Gemini Fast Error (Attempt {attempt+1}/10): {e}"
+                    errors.append(err_msg)
+                    print(f"  [LLM CLIENT WARNING] {err_msg}")
+                    if "429" in err_str or "ResourceExhausted" in err_str or "rate limit" in err_str.lower():
+                        if "limit: 0" in err_str or "GenerateRequestsPerDay" in err_str:
+                            print("  [LLM CLIENT] Gemini daily/project quota exhausted (limit: 0). Skipping Gemini.")
+                            break
+                        parsed_delay = get_gemini_retry_delay(err_str)
+                        sleep_time = parsed_delay if parsed_delay > 0 else 3 * (attempt + 1)
+                        print(f"  [LLM CLIENT] Gemini rate limited (429). Retrying in {sleep_time}s...")
+                        time.sleep(sleep_time)
+                    else:
+                        raise e
+            raise RuntimeError("Gemini Fast Error after retries")
         elif gemini_key:
-            try:
-                return run_gemini_rest(prompt)
-            except Exception as e:
-                err_msg = f"Gemini Fast REST Error: {e}"
-                errors.append(err_msg)
-                print(f"  [LLM CLIENT WARNING] {err_msg}")
-                raise RuntimeError(err_msg)
+            for attempt in range(10):
+                try:
+                    return run_gemini_rest(prompt)
+                except Exception as e:
+                    err_str = str(e)
+                    err_msg = f"Gemini Fast REST Error (Attempt {attempt+1}/10): {e}"
+                    errors.append(err_msg)
+                    print(f"  [LLM CLIENT WARNING] {err_msg}")
+                    if "429" in err_str or "ResourceExhausted" in err_str or "rate limit" in err_str.lower():
+                        if "limit: 0" in err_str or "GenerateRequestsPerDay" in err_str:
+                            print("  [LLM CLIENT] Gemini daily/project quota exhausted (limit: 0). Skipping Gemini REST.")
+                            break
+                        parsed_delay = get_gemini_retry_delay(err_str)
+                        sleep_time = parsed_delay if parsed_delay > 0 else 3 * (attempt + 1)
+                        print(f"  [LLM CLIENT] Gemini REST rate limited (429). Retrying in {sleep_time}s...")
+                        time.sleep(sleep_time)
+                    else:
+                        raise e
+            raise RuntimeError("Gemini Fast REST Error after retries")
         else:
             raise ValueError("No Gemini client or key available")
+
+    def try_mistral() -> str:
+        if _mistral_client:
+            try:
+                resp = _mistral_client.chat.complete(
+                    model="mistral-large-latest",
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                return resp.choices[0].message.content.strip()
+            except Exception:
+                pass
+        return run_mistral_rest(prompt, model="mistral-large-latest")
+
+    def try_cerebras() -> str:
+        if _cerebras_client:
+            try:
+                resp = _cerebras_client.chat.completions.create(
+                    model="llama3.1-8b",
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                return resp.choices[0].message.content.strip()
+            except Exception:
+                pass
+        return run_cerebras_rest(prompt)
 
     # Задаем порядок опроса
     if quality == "strong":
         steps_to_try = [
             ("groq", "llama-3.3-70b-versatile"),
             ("gemini", None),
-            ("groq", "llama-3.1-8b-instant")
+            ("groq", "llama-3.1-8b-instant"),
+            ("mistral", None),
+            ("cerebras", None),
+            ("claude_cli", None)
         ]
     else:
         steps_to_try = [
             ("groq", "llama-3.1-8b-instant"),
             ("gemini", None),
-            ("groq", "llama-3.3-70b-versatile")
+            ("groq", "llama-3.3-70b-versatile"),
+            ("cerebras", None),
+            ("mistral", None),
+            ("claude_cli", None)
         ]
 
     for provider, model in steps_to_try:
@@ -374,6 +548,36 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
             try:
                 return try_gemini(), tokens
             except Exception:
+                continue
+        elif provider == "mistral" and (_mistral_client or os.getenv("MISTRAL_KEY")):
+            try:
+                return try_mistral(), tokens
+            except Exception as e:
+                errors.append(f"Mistral Fast Error: {e}")
+                continue
+        elif provider == "cerebras" and (_cerebras_client or os.getenv("CEREBRAS_KEY")):
+            try:
+                return try_cerebras(), tokens
+            except Exception as e:
+                errors.append(f"Cerebras Fast Error: {e}")
+                continue
+        elif provider == "claude_cli":
+            try:
+                import subprocess
+                import tempfile
+                tmp_dir = tempfile.gettempdir()
+                result = subprocess.run(
+                    ["claude", "-p", prompt, "--output-format", "text"],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    cwd=tmp_dir,
+                )
+                if result.returncode == 0:
+                    return result.stdout.strip(), tokens
+            except Exception as e:
+                errors.append(f"Claude CLI Fast Error: {e}")
                 continue
 
     detailed_errors = "\n".join(f"- {err}" for err in errors)
@@ -401,24 +605,38 @@ def summarize_article_common(title: str, article_text: str, platform: str) -> st
     # 1. Gemini REST (для стабильности в средах без SDK)
     gemini_key = os.getenv("GEMINI_KEY")
     if gemini_key:
-        try:
-            import urllib.request
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
-            payload = {
-                "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-                "generationConfig": {"temperature": 0.2, "maxOutputTokens": 1024}
-            }
-            req = urllib.request.Request(
-                url,
-                data=json.dumps(payload).encode("utf-8"),
-                headers={"Content-Type": "application/json"},
-                method="POST"
-            )
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                res = json.loads(resp.read().decode("utf-8"))
-            return res["candidates"][0]["content"]["parts"][0]["text"].strip()
-        except Exception as e:
-            errors.append(f"Gemini REST Error: {e}")
+        for attempt in range(10):
+            try:
+                import urllib.request
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
+                payload = {
+                    "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                    "generationConfig": {"temperature": 0.2, "maxOutputTokens": 1024}
+                }
+                req = urllib.request.Request(
+                    url,
+                    data=json.dumps(payload).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST"
+                )
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    res = json.loads(resp.read().decode("utf-8"))
+                return res["candidates"][0]["content"]["parts"][0]["text"].strip()
+            except Exception as e:
+                err_str = str(e)
+                err_msg = f"Gemini REST Error (Attempt {attempt+1}/10): {e}"
+                print(f"  [LLM CLIENT WARNING] {err_msg}")
+                errors.append(err_msg)
+                if "429" in err_str or "rate limit" in err_str.lower() or "ResourceExhausted" in err_str:
+                    if "limit: 0" in err_str or "GenerateRequestsPerDay" in err_str:
+                        print("  [LLM CLIENT] Gemini daily/project quota exhausted (limit: 0). Skipping Gemini REST.")
+                        break
+                    parsed_delay = get_gemini_retry_delay(err_str)
+                    sleep_time = parsed_delay if parsed_delay > 0 else 3 * (attempt + 1)
+                    print(f"  [LLM CLIENT] Gemini REST rate limited. Retrying in {sleep_time}s...")
+                    time.sleep(sleep_time)
+                else:
+                    break
 
     # 2. Groq (через SDK с авто-бэкоффом)
     groq_clients = get_groq_clients()
@@ -439,24 +657,30 @@ def summarize_article_common(title: str, article_text: str, platform: str) -> st
                     errors.append(f"Groq SDK Error: {e}")
 
     # 3. Mistral API
-    if _mistral_client:
+    if _mistral_client or os.getenv("MISTRAL_KEY"):
         try:
-            resp = _mistral_client.chat.complete(
-                model="mistral-small-latest",
-                messages=[{"role": "user", "content": prompt}],
-            )
-            return resp.choices[0].message.content.strip()
+            if _mistral_client:
+                resp = _mistral_client.chat.complete(
+                    model="mistral-small-latest",
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                return resp.choices[0].message.content.strip()
+            else:
+                return run_mistral_rest(prompt, model="mistral-small-latest")
         except Exception as e:
             errors.append(f"Mistral Error: {e}")
 
     # 4. Cerebras
-    if _cerebras_client:
+    if _cerebras_client or os.getenv("CEREBRAS_KEY"):
         try:
-            resp = _cerebras_client.chat.completions.create(
-                model="llama3.1-8b",
-                messages=[{"role": "user", "content": prompt}],
-            )
-            return resp.choices[0].message.content.strip()
+            if _cerebras_client:
+                resp = _cerebras_client.chat.completions.create(
+                    model="llama3.1-8b",
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                return resp.choices[0].message.content.strip()
+            else:
+                return run_cerebras_rest(prompt)
         except Exception as e:
             errors.append(f"Cerebras Error: {e}")
 

@@ -484,7 +484,7 @@ def _tg_wait_reply(timeout: int = 600) -> tuple[str, str]:
     chat_id = str(os.getenv("TG_CHAT_ID", ""))
     
     # Файловый мост для Webhook
-    reply_file = Path("business/latest_reply.json")
+    reply_file = ROOT / "business" / "latest_reply.json"
     initial_time = 0.0
     if reply_file.exists():
         try:
@@ -602,8 +602,8 @@ def human_review(title: str, content: str, step: int, auto: bool = False) -> tup
 
     # Сигнализируем боту о начале ожидания ответа
     try:
-        Path("business").mkdir(parents=True, exist_ok=True)
-        Path("business/review_waiting.txt").write_text(str(step), encoding="utf-8")
+        (ROOT / "business").mkdir(parents=True, exist_ok=True)
+        (ROOT / "business" / "review_waiting.txt").write_text(str(step), encoding="utf-8")
     except Exception:
         pass
 
@@ -612,7 +612,7 @@ def human_review(title: str, content: str, step: int, auto: bool = False) -> tup
     finally:
         # Убираем сигнал ожидания
         try:
-            Path("business/review_waiting.txt").unlink(missing_ok=True)
+            (ROOT / "business" / "review_waiting.txt").unlink(missing_ok=True)
         except Exception:
             pass
 
@@ -788,6 +788,12 @@ def run_hallucination_detector(draft: str, raw_sources: str) -> tuple[bool, str]
         'May', 'June', 'July', 'August', 'AI', 'ML', 'NLP', 'CV', 'LLM',
         'Yandex', 'ITMO', 'Skolkovo', 'Director', 'Directors', 'Studio', 'University',
         'School', 'Russian', 'Russia', 'Telegram', 'Bot', 'Google', 'Microsoft',
+        'YouTube', 'Shorts', 'Instagram', 'TikTok', 'Canva', 'Zapier', 'Bing',
+        'Ads', 'Chrome', 'Edge', 'Adobe', 'Premiere', 'Final', 'Cut', 'Imagen',
+        'Ultra', 'Pro', 'Nano', 'Flash', 'Online', 'Generated', 'Kling', 'Runway',
+        'Sora', 'Midjourney', 'ChatGPT', 'OpenAI', 'Anthropic', 'Claude', 'Copilot',
+        'Github', 'Facebook', 'Apple', 'iOS', 'Android', 'Windows', 'Mac', 'Linux',
+        'Slack', 'Zoom'
     }
 
     def extract_entities(text):
@@ -1097,7 +1103,7 @@ def run_pipeline(
         print("  [passport] FINER gate пропущен (уже выполнен на шаге 3)")
         finer_report = context.get("finer_report", "")
     else:
-        finer_ok, finer_report = finer_gate(topic, fresh, deep, mode=mode)
+        finer_ok, finer_report = finer_gate(topic, fresh, deep, mode=pipeline_mode)
         context["finer_report"] = finer_report
         print(f"\n  [FINER gate]\n{finer_report}")
         if not finer_ok:
@@ -1676,7 +1682,7 @@ def run_pipeline(
         cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace"
     )
 
-    # git push with GITHUB_TOKEN
+    # git push with GITHUB_TOKEN / Local fallback
     token = os.getenv("GITHUB_TOKEN")
     repo = os.getenv("GITHUB_REPO", "xopromo/content-factory")
     branch = os.getenv("GITHUB_BRANCH", "main")
@@ -1685,9 +1691,19 @@ def run_pipeline(
             auth_url = f"https://x-access-token:{token}@github.com/{repo}.git"
             subprocess.run(["git", "remote", "set-url", "origin", auth_url], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
             subprocess.run(["git", "push", "origin", branch], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
-            print("  [deployer-publisher] Изменения успешно отправлены на GitHub")
+            print("  [deployer-publisher] Изменения успешно отправлены на GitHub с помощью GITHUB_TOKEN")
         except Exception as e:
-            print(f"  [deployer-publisher] [WARN] Ошибка отправки на GitHub: {e}")
+            print(f"  [deployer-publisher] [WARN] Ошибка отправки на GitHub с GITHUB_TOKEN: {e}")
+    else:
+        try:
+            print("  [deployer-publisher] GITHUB_TOKEN не найден, пробуем обычный git push...")
+            res = subprocess.run(["git", "push", "origin", branch], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
+            if res.returncode == 0:
+                print("  [deployer-publisher] Изменения успешно отправлены на GitHub (local push)")
+            else:
+                print(f"  [deployer-publisher] [WARN] Ошибка git push: {res.stderr.strip()}")
+        except Exception as e:
+            print(f"  [deployer-publisher] [WARN] Не удалось выполнить локальный git push: {e}")
 
     update_step(plan_path, 14)
 

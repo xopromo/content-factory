@@ -16,7 +16,8 @@ Voice Bot — голосовые заметки + распаковка эксп�
 
 import os, re, sys, base64, logging, tempfile, urllib.request, urllib.parse, json, asyncio, time, subprocess
 from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent))
+ROOT = Path(__file__).parent.parent
+sys.path.append(str(ROOT))
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -433,11 +434,11 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     if "news_item" in ctx.user_data:
         return await news_voice(update, ctx)
 
-    review_file = Path("business/review_waiting.txt")
+    review_file = ROOT / "business" / "review_waiting.txt"
     if review_file.exists():
         text = await _transcribe_voice(update, ctx)
         if text:
-            latest_reply = Path("business/latest_reply.json")
+            latest_reply = ROOT / "business" / "latest_reply.json"
             latest_reply.write_text(json.dumps({
                 "timestamp": time.time(),
                 "type": "voice",
@@ -1695,10 +1696,10 @@ async def menu_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
-    review_file = Path("business/review_waiting.txt")
+    review_file = ROOT / "business" / "review_waiting.txt"
     if review_file.exists():
         text = update.message.text.strip()
-        latest_reply = Path("business/latest_reply.json")
+        latest_reply = ROOT / "business" / "latest_reply.json"
         latest_reply.write_text(json.dumps({
             "timestamp": time.time(),
             "type": "text",
