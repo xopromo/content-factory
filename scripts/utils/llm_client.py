@@ -59,6 +59,8 @@ try:
 except ImportError:
     _openrouter_client = None
 
+_groq_cooldown_until = 0.0
+
 
 # Получение доступных клиентов Groq с ротацией
 def get_groq_clients() -> List:
@@ -72,6 +74,7 @@ def get_groq_clients() -> List:
 
 # Вспомогательная функция для авто-бэкоффа при ошибке 429
 def call_groq_with_retry(client, model: str, messages: List[Dict], max_tokens: int = 1024, temperature: float = 0.7) -> str:
+    global _groq_cooldown_until
     retries = 3
     base_delay = 3.0
     for attempt in range(retries):
@@ -86,10 +89,15 @@ def call_groq_with_retry(client, model: str, messages: List[Dict], max_tokens: i
         except Exception as e:
             # Проверяем на Rate Limit (обычно код 429 или в тексте ошибки)
             is_rate_limit = "429" in str(e) or "rate limit" in str(e).lower() or "limit exceeded" in str(e).lower()
-            if is_rate_limit and attempt < retries - 1:
-                delay = base_delay * (2 ** attempt)
-                print(f"  [LLM CLIENT] Groq rate limit hit. Retrying in {delay}s... (Attempt {attempt+1}/{retries})")
-                time.sleep(delay)
+            if is_rate_limit:
+                _groq_cooldown_until = time.time() + 60.0  # Устанавливаем кулдаун на 60 секунд при ошибке лимита
+                print(f"  [LLM CLIENT] Groq rate limit hit. Groq set on cooldown for 60s.")
+                if attempt < retries - 1:
+                    delay = base_delay * (2 ** attempt)
+                    print(f"  [LLM CLIENT] Retrying in {delay}s... (Attempt {attempt+1}/{retries})")
+                    time.sleep(delay)
+                else:
+                    raise e
             else:
                 raise e
     raise RuntimeError("Failed after retries")
@@ -209,6 +217,10 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
     groq_clients = get_groq_clients()
     if groq_clients:
         for model in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+            if time.time() < _groq_cooldown_until:
+                print(f"  [LLM CLIENT SKIP] Пропускаю Groq ({model}): Groq временно на кулдауне")
+                errors.append(f"Groq Skip ({model}): Groq is on cooldown")
+                continue
             # Проверяем, влезает ли промпт в лимит TPM модели
             model_tpm = 6000 if "8b" in model else 12000
             # Если промпт слишком велик (оставляет меньше 1024 токенов на ответ), пропускаем модель
@@ -347,6 +359,13 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
 
     for provider, model in steps_to_try:
         if provider == "groq" and groq_clients:
+            if time.time() < _groq_cooldown_until:
+                print(f"  [LLM CLIENT SKIP] Пропускаю Groq ({model}) для быстрой задачи: Groq на кулдауне")
+                continue
+            model_tpm = 6000 if "8b" in model else 12000
+            if tokens >= model_tpm - 1024:
+                print(f"  [LLM CLIENT SKIP] Пропускаю Groq ({model}) для быстрой задачи: размер промпта {tokens} велик для TPM {model_tpm}")
+                continue
             try:
                 return try_groq(model), tokens
             except Exception:
@@ -403,18 +422,21 @@ def summarize_article_common(title: str, article_text: str, platform: str) -> st
 
     # 2. Groq (через SDK с авто-бэкоффом)
     groq_clients = get_groq_clients()
-    if groq_clients:
-        for client in groq_clients:
-            try:
-                return call_groq_with_retry(
-                    client=client,
-                    model="llama-3.3-70b-versatile",
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=1024,
-                    temperature=0.2
-                )
-            except Exception as e:
-                errors.append(f"Groq SDK Error: {e}")
+    if groq_clients and time.time() >= _groq_cooldown_until:
+        model_tpm = 12000
+        tokens = len(prompt.split()) * 2
+        if tokens < model_tpm - 1024:
+            for client in groq_clients:
+                try:
+                    return call_groq_with_retry(
+                        client=client,
+                        model="llama-3.3-70b-versatile",
+                        messages=[{"role": "user", "content": prompt}],
+                        max_tokens=1024,
+                        temperature=0.2
+                    )
+                except Exception as e:
+                    errors.append(f"Groq SDK Error: {e}")
 
     # 3. Mistral API
     if _mistral_client:
