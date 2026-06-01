@@ -621,7 +621,7 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
     errors = []
 
     if _groq_client:
-        for model_name in ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "llama-3.1-8b-instant"]:
+        for model_name in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"]:
             try:
                 resp = _groq_client.chat.completions.create(
                     model=model_name,
@@ -634,11 +634,7 @@ def run_claude(prompt: str, context_files: list[Path] = None, inject_feedback: b
                 err_msg = f"Groq Error ({model_name}): {e}"
                 print(f"[GROQ ERROR - {model_name}] {e}")
                 errors.append(err_msg)
-                # Если превышена квота или лимит токенов, переходим к следующей модели Groq
-                if "limit" in str(e).lower() or "tpm" in str(e).lower() or "rate" in str(e).lower():
-                    continue
-                else:
-                    break
+                continue
 
     if _mistral_client:
         try:
@@ -1743,7 +1739,28 @@ if __name__ == "__main__":
         import traceback
         err_msg = f"❌ <b>Критическая ошибка пайплайна!</b>\n\nТема: <code>{args.topic}</code>\nОшибка: <code>{e}</code>\n\nВы можете попробовать возобновить генерацию с последнего шага."
         print(f"[FATAL ERROR] {e}")
-        traceback.print_exc()
+        tb_str = traceback.format_exc()
+        print(tb_str)
+        try:
+            import json
+            error_data = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "error": str(e),
+                "traceback": tb_str,
+                "args": {
+                    "topic": args.topic,
+                    "title": args.title,
+                    "slug": args.slug,
+                    "query": args.query,
+                    "mode": args.mode,
+                    "auto_approve": args.auto_approve,
+                    "resume": args.resume
+                }
+            }
+            (ROOT / "critical_error.json").write_text(json.dumps(error_data, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(f"  [auto-healer] Сигнальный файл critical_error.json успешно записан.")
+        except Exception as json_err:
+            print(f"[AUTO-HEALER ERROR] Не удалось записать сигнальный файл: {json_err}")
         try:
             tg_notify(err_msg)
         except Exception as tg_err:
