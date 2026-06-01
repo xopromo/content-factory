@@ -1,29 +1,39 @@
 [
   {
-    "timestamp": "2026-06-01T13:43:39.254466+00:00",
+    "timestamp": "2026-06-01T14:05:56.134518+00:00",
     "update": {
       "message": {
         "channel_chat_created": false,
         "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 7,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
         "group_chat_created": false,
         "supergroup_chat_created": false,
-        "text": "/pushlog",
+        "text": "/cancel",
         "chat": {
           "first_name": "Константин",
           "id": 220023136,
+          "last_name": "Крестинин",
           "type": "private",
           "username": "xopromo"
         },
-        "date": 1780321110,
-        "message_id": 551,
+        "date": 1780322755,
+        "message_id": 552,
         "from": {
           "first_name": "Константин",
           "id": 220023136,
           "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
           "username": "xopromo"
         }
       },
-      "update_id": 105152900
+      "update_id": 105152898
     }
   }
 ]
