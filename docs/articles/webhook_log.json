@@ -1,43 +1,6 @@
 [
   {
-    "timestamp": "2026-06-01T13:09:47.269916+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "entities": [
-          {
-            "length": 4,
-            "offset": 0,
-            "type": "bot_command"
-          }
-        ],
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "text": "/log",
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780319387,
-        "message_id": 518,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        }
-      },
-      "update_id": 105152885
-    }
-  },
-  {
-    "timestamp": "2026-06-01T13:10:14.133027+00:00",
+    "timestamp": "2026-06-01T13:36:39.239305+00:00",
     "update": {
       "message": {
         "channel_chat_created": false,
@@ -59,8 +22,8 @@
           "type": "private",
           "username": "xopromo"
         },
-        "date": 1780319414,
-        "message_id": 520,
+        "date": 1780320999,
+        "message_id": 532,
         "from": {
           "first_name": "Константин",
           "id": 220023136,
@@ -70,171 +33,7 @@
           "username": "xopromo"
         }
       },
-      "update_id": 105152886
-    }
-  },
-  {
-    "timestamp": "2026-06-01T13:10:17.320373+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "entities": [
-          {
-            "length": 6,
-            "offset": 0,
-            "type": "bot_command"
-          }
-        ],
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "text": "/start",
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780319417,
-        "message_id": 521,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        }
-      },
-      "update_id": 105152887
-    }
-  },
-  {
-    "timestamp": "2026-06-01T13:10:24.738675+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "entities": [
-          {
-            "length": 4,
-            "offset": 0,
-            "type": "bot_command"
-          }
-        ],
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "text": "/log",
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780319424,
-        "message_id": 523,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        }
-      },
-      "update_id": 105152888
-    }
-  },
-  {
-    "timestamp": "2026-06-01T13:10:30.151659+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "text": "🚀 Создать статью",
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780319430,
-        "message_id": 525,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        }
-      },
-      "update_id": 105152889
-    }
-  },
-  {
-    "timestamp": "2026-06-01T13:10:33.679235+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "text": "📰 Новостной обзор",
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780319433,
-        "message_id": 527,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        }
-      },
-      "update_id": 105152890
-    }
-  },
-  {
-    "timestamp": "2026-06-01T13:10:53.648400+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "text": "про новыую модель грок имэджн",
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780319453,
-        "message_id": 529,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        }
-      },
-      "update_id": 105152891
+      "update_id": 105152892
     }
   }
 ]
