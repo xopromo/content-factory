@@ -1,0 +1,7 @@
+{
+  "timestamp": "2026-06-01 03:50:00",
+  "error_type": "ZeroDivisionError",
+  "error_message": "division by zero",
+  "traceback": "Traceback (most recent call last):\n  File \"scripts/voice_bot.py\", line 1880, in <module>\n    main()\n  File \"scripts/voice_bot.py\", line 1718, in main\n    result = 1 / 0\nZeroDivisionError: division by zero",
+  "source": "telegram_bot_startup"
+}
