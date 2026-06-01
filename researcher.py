@@ -13,6 +13,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 import hashlib
+import sys
+
+if sys.platform.startswith("win"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass
+
 
 
 def search_web(query: str, max_results: int = 5, region: str = "ru-ru",
