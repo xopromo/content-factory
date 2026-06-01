@@ -48,6 +48,67 @@ def call_gemini(prompt: str) -> str:
     except (KeyError, IndexError) as e:
         raise ValueError(f"Некорректный ответ от API Gemini: {res}") from e
 
+def call_groq(prompt: str) -> str:
+    api_key = os.getenv("GROQ_KEY")
+    if not api_key:
+        raise ValueError("GROQ_KEY не задан в переменных окружения")
+        
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    payload = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "temperature": 0.1,
+        "max_tokens": 8192
+    }
+    
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+            "User-Agent": "Mozilla/5.0"
+        },
+        method="POST"
+    )
+    
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        res = json.loads(resp.read().decode("utf-8"))
+        
+    try:
+        text = res["choices"][0]["message"]["content"]
+        return text
+    except (KeyError, IndexError) as e:
+        raise ValueError(f"Некорректный ответ от API Groq: {res}") from e
+
+def call_llm(prompt: str) -> str:
+    errors = []
+    
+    # 1. Пробуем Gemini
+    try:
+        print("Обращение к API Gemini...")
+        return call_gemini(prompt)
+    except Exception as e:
+        err_msg = f"Gemini Error: {e}"
+        print(err_msg)
+        errors.append(err_msg)
+        
+    # 2. Пробуем Groq
+    try:
+        print("Обращение к API Groq...")
+        return call_groq(prompt)
+    except Exception as e:
+        err_msg = f"Groq Error: {e}"
+        print(err_msg)
+        errors.append(err_msg)
+        
+    raise ValueError(f"Все провайдеры LLM вернули ошибку: {'; '.join(errors)}")
+
 def extract_code(llm_response: str) -> str:
     # Ищем код внутри ```python и ``` или ```
     lines = llm_response.splitlines()
@@ -191,7 +252,7 @@ def main() -> None:
 
 Пожалуйста, исправь эту синтаксическую ошибку и верни ИСПРАВЛЕННЫЙ КОД ФАЙЛА ПОЛНОСТЬЮ внутри markdown-блока ```python ... ```. Без объяснений!"""
 
-            llm_resp = call_gemini(prompt)
+            llm_resp = call_llm(prompt)
             current_code = extract_code(llm_resp)
             
             # Проверяем синтаксис
@@ -202,9 +263,9 @@ def main() -> None:
             else:
                 compilation_error = err
                 print(f"Синтаксическая ошибка в коде: {err}")
-        except Exception as gemini_err:
-            compilation_error = str(gemini_err)
-            print(f"Ошибка обращения к Gemini API: {gemini_err}")
+        except Exception as err_api:
+            compilation_error = str(err_api)
+            print(f"Ошибка обращения к API моделей: {err_api}")
             
     if success and current_code:
         # Сохраняем исправленный код

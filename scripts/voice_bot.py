@@ -1715,7 +1715,6 @@ async def post_init(application: Application) -> None:
     ])
 
 def main() -> None:
-    result = 1 / 0
     try:
         asyncio.get_event_loop()
     except RuntimeError:
