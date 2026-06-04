@@ -264,8 +264,9 @@ def llm_chat(prompt: str, system: str = "") -> str:
 
 def gen_expert_questions(topic: str, context: str) -> list[str]:
     existing = f"Уже есть в базе знаний по этой теме:\n{context}" if context.strip() else "База знаний пока пуста."
-    result = llm_chat(
-        f"""{existing}
+    try:
+        result = llm_chat(
+            f"""{existing}
 
 Придумай ровно 3 глубоких вопроса для распаковки практического опыта эксперта в теме: «{topic}».
 Требования:
@@ -274,28 +275,48 @@ def gen_expert_questions(topic: str, context: str) -> list[str]:
 - Вопросы должны провоцировать истории, а не общие ответы
 - Пример хорошего вопроса: «Расскажи про клиента, которому ты отказал — почему?»
 - Только 3 вопроса, каждый на отдельной строке, без нумерации и маркеров""",
-        f"Ты помогаешь эксперту распаковать знания в теме «{topic}» для наполнения контент-базы.",
-    )
-    questions = [q.strip() for q in result.splitlines() if q.strip() and not q.strip().startswith("#")]
-    return questions[:3]
+            f"Ты помогаешь эксперту распаковать знания в теме «{topic}» для наполнения контент-базы.",
+        )
+        questions = [q.strip() for q in result.splitlines() if q.strip() and not q.strip().startswith("#")]
+        if questions:
+            return questions[:3]
+    except Exception as e:
+        log.error("Failed to generate expert questions: %s", e)
+    
+    return [
+        f"Расскажи про свой самый интересный кейс в теме «{topic}».",
+        f"Какие главные ошибки совершают специалисты в теме «{topic}»?",
+        f"С чего лучше всего начать продвижение/работу в теме «{topic}»?"
+    ]
 
 def gen_business_questions(topic: str, existing: str) -> list[str]:
     context = f"Уже описано для направления «{topic}»:\n{existing[:1500]}" if existing.strip() and existing.strip() != "# Продукты и услуги" else "Описания пока нет."
-    result = llm_chat(
-        f"""{context}
+    try:
+        result = llm_chat(
+            f"""{context}
 
 Придумай ровно 3 вопроса для описания продуктов, услуг и офферов в теме/направлении: «{topic}».
 Спрашивай то, чего ещё нет выше: конкретные офферы, цены, тарифы, результаты клиентов, УТП, гарантии.
 Только 3 вопроса, каждый на отдельной строке, без нумерации.""",
-        f"Ты помогаешь заполнить описание бизнеса в направлении «{topic}» для контент-маркетинга.",
-    )
-    questions = [q.strip() for q in result.splitlines() if q.strip() and not q.strip().startswith("#")]
-    return questions[:3]
+            f"Ты помогаешь заполнить описание бизнеса в направлении «{topic}» для контент-маркетинга.",
+        )
+        questions = [q.strip() for q in result.splitlines() if q.strip() and not q.strip().startswith("#")]
+        if questions:
+            return questions[:3]
+    except Exception as e:
+        log.error("Failed to generate business questions: %s", e)
+        
+    return [
+        f"Какие продукты или услуги ты предлагаешь по направлению «{topic}»?",
+        f"Какова стоимость твоих услуг или тарифная сетка в направлении «{topic}»?",
+        f"Какое главное преимущество (УТП) твоих предложений по теме «{topic}»?"
+    ]
 
 def gen_audience_profile(topic: str, answers: list[tuple[str, str]]) -> str:
     qa_text = "\n\n".join(f"Вопрос: {q}\nОтвет: {a}" for q, a in answers)
-    return llm_chat(
-        f"""На основе ответов эксперта составь профиль целевой аудитории для проекта «{topic}» в Markdown:
+    try:
+        return llm_chat(
+            f"""На основе ответов эксперта составь профиль целевой аудитории для проекта «{topic}» в Markdown:
 
 {qa_text}
 
@@ -307,8 +328,32 @@ def gen_audience_profile(topic: str, answers: list[tuple[str, str]]) -> str:
 ## Ключевые возражения
 ## Желаемый результат
 ## Поисковые запросы (5–7 фраз)""",
-        f"Ты маркетолог, составляешь профиль ЦА в проекте «{topic}» для контент-стратегии эксперта.",
-    )
+            f"Ты маркетолог, составляешь профиль ЦА в проекте «{topic}» для контент-стратегии эксперта.",
+        )
+    except Exception as e:
+        log.error("Failed to generate audience profile: %s", e)
+        return f"""## Демография
+- Целевая аудитория в теме: {topic}
+
+## Главная боль и запрос
+- Требуется детальное описание болей (ошибка генерации профиля).
+
+## Что пробовал раньше
+- Различные стандартные решения.
+
+## Где находится онлайн
+- Социальные сети, тематические сообщества.
+
+## Ключевые возражения
+- Стоимость, сомнения в результате, нехватка времени.
+
+## Желаемый результат
+- Быстрый и качественный результат.
+
+## Поисковые запросы (5–7 фраз)
+- Как настроить {topic}
+- Продвижение {topic}
+- Обучение {topic}"""
 
 def gen_article_metadata(topic: str, mode: str) -> tuple[str, str, str]:
     mode_desc = ""
