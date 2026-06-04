@@ -56,6 +56,8 @@ WAIT_ARTICLE_CONFIRM = 20
 WAIT_ARTICLE_MODE = 21
 WAIT_FORWARD_ACTION = 22
 WAIT_VOICE_NOTE = 23
+WAIT_TRANSCRIPT_ACTION = 24
+WAIT_SUMMARY_ACTION = 25
 
 # ── Константы ─────────────────────────────────────────────────────────────────
 CATEGORIES = ["💼 Кейс", "💡 Инсайт", "📋 Гайд", "🎯 Стратегия", "❓ Гипотеза", "📝 Мысль"]
@@ -374,32 +376,119 @@ def fmt_questions(questions: list[str]) -> str:
         lines.append(f"{emoji} {q}")
     return "\n\n".join(lines)
 
-async def _transcribe_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Optional[str]:
-    voice = update.message.voice or update.message.audio
-    if not voice:
+async def _download_and_transcribe_media(message, ctx: ContextTypes.DEFAULT_TYPE, status_msg=None) -> Optional[str]:
+    media_obj = None
+    media_type = None  # "audio" or "video"
+    
+    if message.voice:
+        media_obj = message.voice
+        media_type = "audio"
+    elif message.audio:
+        media_obj = message.audio
+        media_type = "audio"
+    elif message.video:
+        media_obj = message.video
+        media_type = "video"
+    elif message.video_note:
+        media_obj = message.video_note
+        media_type = "video"
+    elif message.document:
+        mime = message.document.mime_type or ""
+        if mime.startswith("audio/"):
+            media_obj = message.document
+            media_type = "audio"
+        elif mime.startswith("video/"):
+            media_obj = message.document
+            media_type = "video"
+            
+    if not media_obj:
         return None
-    status_msg = await update.message.reply_text("Транскрибирую...")
-    file = await ctx.bot.get_file(voice.file_id)
-    with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
-        tmp_path = Path(tmp.name)
-    await file.download_to_drive(tmp_path)
-    try:
-        res = transcribe(tmp_path)
+        
+    if status_msg:
         try:
-            await status_msg.delete()
+            await status_msg.edit_text("Скачиваю медиафайл...")
         except Exception:
             pass
+        
+    file = await ctx.bot.get_file(media_obj.file_id)
+    
+    # Generate appropriate suffix
+    orig_name = getattr(media_obj, "file_name", None) or "input"
+    suffix = Path(orig_name).suffix or (".mp4" if media_type == "video" else ".ogg")
+    
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+        
+    await file.download_to_drive(tmp_path)
+    
+    transcribe_path = tmp_path
+    extracted_audio_path = None
+    
+    try:
+        if media_type == "video":
+            if status_msg:
+                try:
+                    await status_msg.edit_text("Извлекаю аудиодорожку...")
+                except Exception:
+                    pass
+            ffmpeg_exe = "ffmpeg"
+            try:
+                import imageio_ffmpeg
+                ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+            except ImportError:
+                pass
+            
+            extracted_audio_path = tmp_path.with_suffix(".ogg")
+            # Run ffmpeg to extract audio
+            cmd = [
+                ffmpeg_exe, "-y", "-i", str(tmp_path),
+                "-vn", "-acodec", "libvorbis", "-ac", "1", "-ar", "16000",
+                str(extracted_audio_path)
+            ]
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            await process.wait()
+            if extracted_audio_path.exists() and extracted_audio_path.stat().st_size > 0:
+                transcribe_path = extracted_audio_path
+            else:
+                log.warning("ffmpeg audio extraction failed, attempting direct Whisper transcription of video")
+                
+        if status_msg:
+            try:
+                await status_msg.edit_text("Транскрибирую...")
+            except Exception:
+                pass
+        res = transcribe(transcribe_path)
         return res
     except Exception as e:
         log.error("Transcription error: %s", e)
-        try:
-            await status_msg.delete()
-        except Exception:
-            pass
-        await update.message.reply_text(f"Ошибка транскрипции: {e}", reply_markup=MAIN_KEYBOARD)
+        if status_msg:
+            try:
+                await status_msg.edit_text(f"Ошибка транскрипции: {e}")
+            except Exception:
+                pass
         return None
     finally:
         tmp_path.unlink(missing_ok=True)
+        if extracted_audio_path:
+            extracted_audio_path.unlink(missing_ok=True)
+
+async def _transcribe_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Optional[str]:
+    message = update.message
+    if not message:
+        return None
+    status_msg = await message.reply_text("Получаю медиафайл...")
+    res = await _download_and_transcribe_media(message, ctx, status_msg)
+    try:
+        await status_msg.delete()
+    except Exception:
+        pass
+    if res is None:
+        await message.reply_text("Не удалось транскрибировать медиафайл.", reply_markup=MAIN_KEYBOARD)
+    return res
 
 # ── Команды ───────────────────────────────────────────────────────────────────
 
@@ -452,16 +541,158 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         return ConversationHandler.END
 
     ctx.user_data["text"] = text
-    ctx.user_data["duration"] = getattr(update.message.voice or update.message.audio, "duration", 0)
+    media = update.message.voice or update.message.audio or update.message.video or update.message.video_note
+    ctx.user_data["duration"] = getattr(media, "duration", 0) if media else 0
 
     await send_transcript(update, text)
 
-    keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
+    keyboard = [
+        ["💾 Сохранить в базу"],
+        ["✨ Восстановить речь", "📊 Сделать саммари"],
+        ["🏠 Главное меню"]
+    ]
     await update.message.reply_text(
-        "Выбери категорию:",
+        "Что сделать с этой записью?",
         reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
     )
-    return WAIT_CATEGORY
+    return WAIT_TRANSCRIPT_ACTION
+
+async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    action = update.message.text.strip()
+    text = ctx.user_data.get("text", "")
+    
+    if action == "🏠 Главное меню":
+        ctx.user_data.clear()
+        await update.message.reply_text("Главное меню:", reply_markup=MAIN_KEYBOARD)
+        return ConversationHandler.END
+        
+    elif action == "💾 Сохранить в базу":
+        keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
+        await update.message.reply_text(
+            "Выбери категорию для сохранения:",
+            reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+        )
+        return WAIT_CATEGORY
+        
+    elif action == "✨ Восстановить речь":
+        if not text:
+            await update.message.reply_text("Нет текста для восстановления.")
+            return WAIT_TRANSCRIPT_ACTION
+            
+        status_msg = await update.message.reply_text("✨ Восстанавливаю речь с помощью AI (убираю заикания, исправляю ошибки)...")
+        clean_prompt = (
+            "Ты профессиональный редактор. Твоя задача — очистить транскрибированный текст голосовой заметки.\n"
+            "1. Удали все заикания, повторы слов, междометия и слова-паразиты (э-э, ну, как бы, типа, вот, значит, это самое и т.д.).\n"
+            "2. Исправь грамматические, пунктуационные и орфографические ошибки.\n"
+            "3. Сделай предложения более плавными и логичными, но ПОЛНОСТЬЮ сохрани исходный смысл, ключевые факты и тон автора.\n"
+            "4. НЕ добавляй никаких собственных выводов, комментариев, приветствий или объяснений. Верни ТОЛЬКО очищенный текст."
+        )
+        try:
+            cleaned_text = llm_chat(text, system=clean_prompt)
+            ctx.user_data["text"] = cleaned_text
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await send_transcript(update, cleaned_text)
+            
+            keyboard = [
+                ["💾 Сохранить в базу"],
+                ["📊 Сделать саммари"],
+                ["🏠 Главное меню"]
+            ]
+            await update.message.reply_text(
+                "Речь успешно восстановлена! Что сделать дальше?",
+                reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+            )
+        except Exception as e:
+            log.error("Speech restoration failed: %s", e)
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await update.message.reply_text(f"Не удалось восстановить речь: {e}")
+            
+        return WAIT_TRANSCRIPT_ACTION
+        
+    elif action == "📊 Сделать саммари":
+        if not text:
+            await update.message.reply_text("Нет текста для саммаризации.")
+            return WAIT_TRANSCRIPT_ACTION
+            
+        status_msg = await update.message.reply_text("📊 Создаю саммари с помощью AI...")
+        summary_prompt = (
+            "Сделай краткое структурированное саммари (выжимку) следующего текста на русском языке.\n"
+            "Выдели ключевые мысли, важные факты, цифры и выводы в виде маркированного списка.\n"
+            "Будь лаконичен и структурирован. Не пиши приветствий или мета-комментариев."
+        )
+        try:
+            summary_text = llm_chat(text, system=summary_prompt)
+            ctx.user_data["summary_text"] = summary_text
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await update.message.reply_text(f"📊 *Саммари записи:*\n\n{summary_text}", parse_mode="Markdown")
+            
+            keyboard = [
+                ["💾 Сохранить саммари в базу"],
+                ["💾 Сохранить весь текст"],
+                ["🏠 Главное меню"]
+            ]
+            await update.message.reply_text(
+                "Что сделать дальше?",
+                reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+            )
+            return WAIT_SUMMARY_ACTION
+        except Exception as e:
+            log.error("Summarization failed: %s", e)
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await update.message.reply_text(f"Не удалось сгенерировать саммари: {e}")
+            
+        return WAIT_TRANSCRIPT_ACTION
+        
+    else:
+        await update.message.reply_text("Пожалуйста, выберите одно из действий на клавиатуре.")
+        return WAIT_TRANSCRIPT_ACTION
+
+async def handle_summary_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    action = update.message.text.strip()
+    
+    if action == "🏠 Главное меню":
+        ctx.user_data.clear()
+        await update.message.reply_text("Главное меню:", reply_markup=MAIN_KEYBOARD)
+        return ConversationHandler.END
+        
+    elif action == "💾 Сохранить саммари в базу":
+        summary_text = ctx.user_data.get("summary_text", "")
+        if not summary_text:
+            await update.message.reply_text("Нет саммари для сохранения.")
+            return WAIT_TRANSCRIPT_ACTION
+        # Replace main text with summary so handle_category saves it
+        ctx.user_data["text"] = summary_text
+        
+        keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
+        await update.message.reply_text(
+            "Выбери категорию для сохранения саммари:",
+            reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+        )
+        return WAIT_CATEGORY
+        
+    elif action == "💾 Сохранить весь текст":
+        keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
+        await update.message.reply_text(
+            "Выбери категорию для сохранения всего текста:",
+            reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+        )
+        return WAIT_CATEGORY
+        
+    else:
+        await update.message.reply_text("Пожалуйста, выберите одно из действий на клавиатуре.")
+        return WAIT_SUMMARY_ACTION
 
 async def handle_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     category = update.message.text.strip()
@@ -635,7 +866,8 @@ async def expert_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     full_text = f"**Вопрос:** {question}\n\n**Ответ:** {text}" if question else text
 
     ctx.user_data["text"] = full_text
-    ctx.user_data["duration"] = getattr(update.message.voice or update.message.audio, "duration", 0)
+    media = update.message.voice or update.message.audio or update.message.video or update.message.video_note
+    ctx.user_data["duration"] = getattr(media, "duration", 0) if media else 0
 
     await send_transcript(update, text)
 
@@ -1311,7 +1543,7 @@ async def choose_article_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
 
 async def handle_article_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     # If voice, transcribe it first
-    if update.message.voice or update.message.audio:
+    if update.message.voice or update.message.audio or update.message.video or update.message.video_note:
         text = await _transcribe_voice(update, ctx)
         if text is None:
             return WAIT_ARTICLE_TOPIC
@@ -1447,20 +1679,7 @@ async def handle_article_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
     return WAIT_ARTICLE_CONFIRM
 
 async def _transcribe_voice_msg(message, ctx: ContextTypes.DEFAULT_TYPE) -> Optional[str]:
-    voice = message.voice or message.audio
-    if not voice:
-        return None
-    file = await ctx.bot.get_file(voice.file_id)
-    with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
-        tmp_path = Path(tmp.name)
-    await file.download_to_drive(tmp_path)
-    try:
-        return transcribe(tmp_path)
-    except Exception as e:
-        log.error("Transcription error: %s", e)
-        return None
-    finally:
-        tmp_path.unlink(missing_ok=True)
+    return await _download_and_transcribe_media(message, ctx, status_msg=None)
 
 async def handle_reply_entry(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     original_msg = update.message.reply_to_message
@@ -1473,8 +1692,8 @@ async def handle_reply_entry(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> 
         original_text = original_msg.text
     elif original_msg.caption:
         original_text = original_msg.caption
-    elif original_msg.voice or original_msg.audio:
-        status_msg = await update.message.reply_text("Транскрибирую исходное голосовое сообщение...")
+    elif original_msg.voice or original_msg.audio or original_msg.video or original_msg.video_note:
+        status_msg = await update.message.reply_text("Транскрибирую исходное медиасообщение...")
         original_text = await _transcribe_voice_msg(original_msg, ctx)
         try:
             await status_msg.delete()
@@ -1484,7 +1703,7 @@ async def handle_reply_entry(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> 
     reply_text = ""
     if update.message.text:
         reply_text = update.message.text.strip()
-    elif update.message.voice or update.message.audio:
+    elif update.message.voice or update.message.audio or update.message.video or update.message.video_note:
         reply_text = await _transcribe_voice(update, ctx)
 
     if not reply_text:
@@ -2026,10 +2245,11 @@ def main() -> None:
     app.add_error_handler(telegram_error_handler)
 
     home_filter = filters.Regex("^(🏠|🏠 Главное меню)$")
+    media_filter = filters.VOICE | filters.AUDIO | filters.VIDEO | filters.VIDEO_NOTE
 
     conv = ConversationHandler(
         entry_points=[
-            MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
+            MessageHandler(media_filter, handle_voice),
             MessageHandler(filters.Regex("^💡 Экспертиза$"), choose_expert_topic),
             MessageHandler(filters.Regex("^💼 Бизнес$"), choose_biz_topic),
             MessageHandler(filters.Regex("^🎯 Аудитория$"), choose_aud_topic),
@@ -2063,7 +2283,7 @@ def main() -> None:
             ],
             WAIT_EXPERT_VOICE: [
                 MessageHandler(home_filter, go_home),
-                MessageHandler(filters.VOICE | filters.AUDIO, expert_voice),
+                MessageHandler(media_filter, expert_voice),
             ],
             WAIT_BIZ_TOPIC: [
                 MessageHandler(home_filter, go_home),
@@ -2079,7 +2299,7 @@ def main() -> None:
             ],
             WAIT_BIZ_VOICE: [
                 MessageHandler(home_filter, go_home),
-                MessageHandler(filters.VOICE | filters.AUDIO, biz_voice),
+                MessageHandler(media_filter, biz_voice),
             ],
             WAIT_AUD_TOPIC: [
                 MessageHandler(home_filter, go_home),
@@ -2091,7 +2311,7 @@ def main() -> None:
             ],
             WAIT_AUD_ANSWER: [
                 MessageHandler(home_filter, go_home),
-                MessageHandler(filters.VOICE | filters.AUDIO, audience_answer),
+                MessageHandler(media_filter, audience_answer),
             ],
             WAIT_AUD_CONFIRM: [
                 MessageHandler(home_filter, go_home),
@@ -2111,7 +2331,7 @@ def main() -> None:
             ],
             WAIT_NEWS_VOICE: [
                 MessageHandler(home_filter, go_home),
-                MessageHandler(filters.VOICE | filters.AUDIO, news_voice),
+                MessageHandler(media_filter, news_voice),
             ],
             WAIT_ARTICLE_MODE: [
                 MessageHandler(home_filter, go_home),
@@ -2120,7 +2340,7 @@ def main() -> None:
             WAIT_ARTICLE_TOPIC: [
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_article_topic),
-                MessageHandler(filters.VOICE | filters.AUDIO, handle_article_topic),
+                MessageHandler(media_filter, handle_article_topic),
             ],
             WAIT_ARTICLE_CONFIRM: [
                 MessageHandler(home_filter, go_home),
@@ -2132,7 +2352,15 @@ def main() -> None:
             ],
             WAIT_VOICE_NOTE: [
                 MessageHandler(home_filter, go_home),
-                MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
+                MessageHandler(media_filter, handle_voice),
+            ],
+            WAIT_TRANSCRIPT_ACTION: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_transcript_action),
+            ],
+            WAIT_SUMMARY_ACTION: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_summary_action),
             ],
         },
         fallbacks=[CommandHandler("cancel", cmd_cancel)],
