@@ -584,6 +584,23 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         reply_markup=MAIN_KEYBOARD,
     )
 
+async def cmd_version(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    commit_hash = "Unknown"
+    try:
+        import subprocess
+        commit_hash = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode().strip()
+    except Exception:
+        pass
+    
+    await update.message.reply_text(
+        f"🤖 <b>Версия бота:</b>\n"
+        f"• <b>Коммит:</b> <code>{commit_hash}</code>\n"
+        f"• <b>Дата сборки:</b> 04.06.2026 22:45\n"
+        f"• <b>Провайдеры LLM:</b> Gemini, Groq, Mistral, Cerebras, Pollinations AI\n"
+        f"• <b>Режим:</b> Webhook (Render)",
+        parse_mode="HTML"
+    )
+
 async def cmd_cancel(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     ctx.user_data.clear()
     await update.message.reply_text("Отменено.", reply_markup=MAIN_KEYBOARD)
@@ -2411,7 +2428,8 @@ async def post_init(application: Application) -> None:
         BotCommand("cancel", "Сбросить текущий режим / Отмена"),
         BotCommand("log", "Показать лог оркестратора"),
         BotCommand("pushlog", "Отправить лог в репозиторий GitHub"),
-        BotCommand("resume", "Возобновить генерацию статьи")
+        BotCommand("resume", "Возобновить генерацию статьи"),
+        BotCommand("version", "Показать текущую версию бота")
     ])
 
 def main() -> None:
@@ -2557,6 +2575,7 @@ def main() -> None:
 
     app.add_handler(TypeHandler(Update, global_update_logger), group=-1)
     app.add_handler(CommandHandler("start", cmd_start))
+    app.add_handler(CommandHandler("version", cmd_version))
     app.add_handler(CommandHandler("log", cmd_log))
     app.add_handler(CommandHandler("pushlog", cmd_pushlog))
     app.add_handler(CommandHandler("resume", cmd_resume))
