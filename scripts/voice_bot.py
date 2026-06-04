@@ -2139,12 +2139,15 @@ async def global_update_logger(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
         updates = updates[-50:]
         log_file.write_text(json.dumps(updates, ensure_ascii=False, indent=2), encoding="utf-8")
         
-        # Записываем на GitHub
-        gh_write("docs/articles/webhook_log.json", json.dumps(updates, ensure_ascii=False, indent=2), "diagnostics: log webhook update")
+        # Записываем на GitHub только если запущен локально (чтобы не зацикливать сборки на Render)
+        if not os.getenv("PORT"):
+            gh_write("docs/articles/webhook_log.json", json.dumps(updates, ensure_ascii=False, indent=2), "diagnostics: log webhook update")
     except Exception as e:
         log.error("Error in global_update_logger: %s", e)
 
 def log_bot_startup() -> None:
+    if os.getenv("PORT"):
+        return
     try:
         import subprocess
         commit = ""
