@@ -245,6 +245,25 @@ def run_mistral_rest(prompt: str, model: str = "mistral-small-latest", max_token
     raise RuntimeError("Mistral REST rate limited")
 
 
+def run_pollinations_rest(prompt: str, model: str = "qwen-2.5-72b") -> str:
+    import urllib.request
+    import json
+    url = "https://text.pollinations.ai/"
+    payload = {
+        "messages": [{"role": "user", "content": prompt}],
+        "model": model,
+        "json": False
+    }
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
+        method="POST"
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return resp.read().decode("utf-8").strip()
+
+
 def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = False) -> Tuple[str, int]:
     """
     Вызывает LLM для тяжелых задач (написание текстов, глубокий синтез).
@@ -383,7 +402,17 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
             print(f"  [LLM CLIENT WARNING] {err_msg}")
             errors.append(err_msg)
 
-    # 4. Fallback: claude CLI
+    # 5. Pollinations (Qwen 2.5 72B)
+    try:
+        content = run_pollinations_rest(full_prompt, model="qwen-2.5-72b")
+        if content:
+            return content, tokens
+    except Exception as e:
+        err_msg = f"Pollinations Error (qwen-2.5-72b): {e}"
+        print(f"  [LLM CLIENT WARNING] {err_msg}")
+        errors.append(err_msg)
+
+    # 6. Fallback: claude CLI
     try:
         import subprocess
         import tempfile
@@ -519,6 +548,7 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
             ("groq", "llama-3.1-8b-instant"),
             ("mistral", None),
             ("cerebras", None),
+            ("pollinations", "qwen-2.5-72b"),
             ("claude_cli", None)
         ]
     else:
@@ -528,6 +558,7 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
             ("groq", "llama-3.3-70b-versatile"),
             ("cerebras", None),
             ("mistral", None),
+            ("pollinations", "qwen-2.5-72b"),
             ("claude_cli", None)
         ]
 
@@ -560,6 +591,12 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
                 return try_cerebras(), tokens
             except Exception as e:
                 errors.append(f"Cerebras Fast Error: {e}")
+                continue
+        elif provider == "pollinations":
+            try:
+                return run_pollinations_rest(prompt, model=model), tokens
+            except Exception as e:
+                errors.append(f"Pollinations Fast Error: {e}")
                 continue
         elif provider == "claude_cli":
             try:
@@ -683,6 +720,12 @@ def summarize_article_common(title: str, article_text: str, platform: str) -> st
                 return run_cerebras_rest(prompt)
         except Exception as e:
             errors.append(f"Cerebras Error: {e}")
+
+    # 5. Pollinations (Qwen 2.5 72B)
+    try:
+        return run_pollinations_rest(prompt, model="qwen-2.5-72b")
+    except Exception as e:
+        errors.append(f"Pollinations Error: {e}")
 
     detailed_errors = "\n".join(f"- {err}" for err in errors)
     raise RuntimeError(
