@@ -35,5 +35,108 @@
       },
       "update_id": 105152945
     }
+  },
+  {
+    "timestamp": "2026-06-04T16:04:28.150766+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "video": {
+          "duration": 461,
+          "file_name": "0514(19).mp4",
+          "height": 1080,
+          "mime_type": "video/mp4",
+          "width": 1922,
+          "thumbnail": {
+            "height": 179,
+            "width": 320,
+            "file_id": "AAMCAQADGQEAAgObaiGiCyyhapy6KnOPyYtC46Of6OMAAlAIAALdLwhFtQUX8w3yDjMBAAdtAAM7BA",
+            "file_size": 8860,
+            "file_unique_id": "AQADUAgAAt0vCEVy"
+          },
+          "file_id": "BAACAgEAAxkBAAIDm2ohogssoWqcuipzj8mLQuOjn-jjAAJQCAAC3S8IRbUFF_MN8g4zOwQ",
+          "file_size": 294654798,
+          "file_unique_id": "AgADUAgAAt0vCEU",
+          "thumb": {
+            "file_id": "AAMCAQADGQEAAgObaiGiCyyhapy6KnOPyYtC46Of6OMAAlAIAALdLwhFtQUX8w3yDjMBAAdtAAM7BA",
+            "file_unique_id": "AQADUAgAAt0vCEVy",
+            "file_size": 8860,
+            "width": 320,
+            "height": 179
+          },
+          "qualities": [
+            {
+              "width": 1920,
+              "height": 1076,
+              "codec": "av01",
+              "file_id": "BAACAgEAAxkBAAIDm2ohogtqEGazw7_6J2rwdpscURTWAALoBgAC7L4RRbCmDXKFmn31OwQ",
+              "file_unique_id": "AgAD6AYAAuy-EUU",
+              "file_size": 96255120
+            },
+            {
+              "width": 1920,
+              "height": 1076,
+              "codec": "h264",
+              "file_id": "BAACAgEAAxkBAAIDm2ohoguSnXvSp1j6R-cpC8lmY94LAAIdEAAC8koIRcK6WGtJBmjROwQ",
+              "file_unique_id": "AgADHRAAAvJKCEU",
+              "file_size": 128244257
+            },
+            {
+              "width": 1280,
+              "height": 716,
+              "codec": "av01",
+              "file_id": "BAACAgEAAxkBAAIDm2ohogtfvTlT52X1zdFyCuVRr7ZBAAJYBwACXlEQRXwZlk0n-SuZOwQ",
+              "file_unique_id": "AgADWAcAAl5REEU",
+              "file_size": 46086285
+            },
+            {
+              "width": 1280,
+              "height": 716,
+              "codec": "h264",
+              "file_id": "BAACAgEAAxkBAAIDm2ohogsdZc30tlx6fDmOk-hnmL1MAAILCQAC1YIQRXSdQnEaxLnYOwQ",
+              "file_unique_id": "AgADCwkAAtWCEEU",
+              "file_size": 59917910
+            },
+            {
+              "width": 852,
+              "height": 480,
+              "codec": "av01",
+              "file_id": "BAACAgEAAxkBAAIDm2ohogsey-IiIqGqwahp6g2ki_6GAAJUEAAC2MkJRRUs_9PHzzTOOwQ",
+              "file_unique_id": "AgADVBAAAtjJCUU",
+              "file_size": 24977213
+            },
+            {
+              "width": 852,
+              "height": 480,
+              "codec": "h264",
+              "file_id": "BAACAgEAAxkBAAIDm2ohogtY2zqFauctqAABw_GgbBCPfQACowYAAsjPEUWYFyx5qcxcdjsE",
+              "file_unique_id": "AgADowYAAsjPEUU",
+              "file_size": 30691799
+            }
+          ]
+        },
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780589068,
+        "message_id": 923,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152946
+    }
   }
 ]
