@@ -598,5 +598,41 @@
       },
       "update_id": 105152941
     }
+  },
+  {
+    "timestamp": "2026-06-04T12:29:37.271408+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 6,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/start",
+        "chat": {
+          "first_name": "Яна",
+          "id": 185312793,
+          "type": "private",
+          "username": "nmchk1"
+        },
+        "date": 1780576177,
+        "message_id": 853,
+        "from": {
+          "first_name": "Яна",
+          "id": 185312793,
+          "is_bot": false,
+          "is_premium": true,
+          "language_code": "ru",
+          "username": "nmchk1"
+        }
+      },
+      "update_id": 105152942
+    }
   }
 ]
