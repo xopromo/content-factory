@@ -100,7 +100,7 @@ TRANSCRIPT_ACTION_KEYBOARD = ReplyKeyboardMarkup(
         ["💾 Сохранить в базу"],
         ["✨ Восстановить речь", "📖 Разбить на абзацы"],
         ["🎬 Свернутый конспект", "📊 Сделать саммари"],
-        ["🏠 Главное меню"]
+        ["🚀 Создать статью", "🏠 Главное меню"]
     ],
     resize_keyboard=True,
     one_time_keyboard=True
@@ -719,6 +719,31 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
             
         return WAIT_TRANSCRIPT_ACTION
         
+    elif action in ["🚀 Создать статью", "🚀 Создать статью на эту тему"]:
+        if not text:
+            await update.message.reply_text("Нет темы/текста для генерации статьи.")
+            return WAIT_TRANSCRIPT_ACTION
+            
+        instruction = ctx.user_data.get("reply_instruction", "")
+        topic = f"Контекст: {text}\nИнструкция: {instruction}" if instruction else text
+        ctx.user_data["article_topic"] = topic
+        ctx.user_data.pop("reply_instruction", None)
+        
+        keyboard = [
+            ["🎯 Статья для SEO и GEO"],
+            ["🔬 Статья-исследование"],
+            ["📰 Новостной обзор"],
+            ["🏠"]
+        ]
+        await update.message.reply_text(
+            f"🚀 <b>Создание задачи на написание статьи</b>\n\n"
+            f"Тема сформирована из выбранного сообщения.\n"
+            f"Выберите формат статьи:",
+            parse_mode="HTML",
+            reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+        )
+        return WAIT_ARTICLE_MODE
+
     elif action == "📊 Сделать саммари":
         if not text:
             await update.message.reply_text("Нет текста для саммаризации.")
@@ -1814,25 +1839,29 @@ async def handle_reply_entry(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> 
         await update.message.reply_text("Не удалось распознать текст вашего ответа.")
         return ConversationHandler.END
 
-    topic = f"Контекст: {original_text}\nИнструкция: {reply_text}" if original_text else reply_text
-    
-    ctx.user_data.clear()
-    ctx.user_data["article_topic"] = topic
-
-    keyboard = [
-        ["🎯 Статья для SEO и GEO"],
-        ["🔬 Статья-исследование"],
-        ["📰 Новостной обзор"],
-        ["🏠"]
+    FORMAT_ACTIONS = [
+        "✨ Восстановить речь",
+        "📖 Разбить на абзацы",
+        "🎬 Свернутый конспект",
+        "📊 Сделать саммари",
+        "💾 Сохранить в базу"
     ]
+    if reply_text in FORMAT_ACTIONS:
+        ctx.user_data["text"] = original_text
+        return await handle_transcript_action(update, ctx)
+
+    ctx.user_data["text"] = original_text
+    ctx.user_data["reply_instruction"] = reply_text
+
     await update.message.reply_text(
-        f"🚀 <b>Создание задачи из Reply</b>\n\n"
-        f"Тема сформирована из ответа на сообщение.\n"
-        f"Выберите формат статьи:",
+        f"📥 <b>Получен текст сообщения и ваша инструкция.</b>\n\n"
+        f"<b>Текст:</b>\n<i>{original_text[:300]}...</i>\n\n"
+        f"<b>Инструкция:</b>\n<i>{reply_text}</i>\n\n"
+        f"Выберите действие с этим материалом:",
         parse_mode="HTML",
-        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+        reply_markup=TRANSCRIPT_ACTION_KEYBOARD
     )
-    return WAIT_ARTICLE_MODE
+    return WAIT_TRANSCRIPT_ACTION
 
 async def handle_forwarded_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     if "forward_buffer" not in ctx.user_data:
