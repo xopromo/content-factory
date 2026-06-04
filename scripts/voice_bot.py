@@ -640,9 +640,11 @@ async def cmd_version(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         except Exception:
             pass
     commit_hash = "Unknown"
+    commit_date = "04.06.2026 22:45"
     try:
         import subprocess
         commit_hash = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode().strip()
+        commit_date = subprocess.check_output(["git", "log", "-1", "--format=%cd", "--date=format:%d.%m.%Y %H:%M"]).decode().strip()
     except Exception:
         pass
     
@@ -651,7 +653,7 @@ async def cmd_version(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         text=(
             f"🤖 <b>Версия бота:</b>\n"
             f"• <b>Коммит:</b> <code>{commit_hash}</code>\n"
-            f"• <b>Дата сборки:</b> 04.06.2026 22:45\n"
+            f"• <b>Дата сборки:</b> {commit_date}\n"
             f"• <b>Провайдеры LLM:</b> Gemini, Groq, Mistral, Cerebras, Pollinations AI\n"
             f"• <b>Режим:</b> Webhook (Render)"
         ),
