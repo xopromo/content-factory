@@ -550,27 +550,28 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
                 pass
         return run_cerebras_rest(prompt)
 
-    # Задаем порядок опроса
+    # Задаем порядок опроса (Pollinations AI идет первым, чтобы сберегать лимиты других API)
     if quality == "strong":
         steps_to_try = [
+            ("pollinations", "qwen-2.5-72b"),
             ("groq", "llama-3.3-70b-versatile"),
             ("gemini", None),
             ("groq", "llama-3.1-8b-instant"),
             ("mistral", None),
             ("cerebras", None),
-            ("pollinations", "qwen-2.5-72b"),
             ("claude_cli", None)
         ]
     else:
         steps_to_try = [
+            ("pollinations", "qwen-2.5-72b"),
             ("groq", "llama-3.1-8b-instant"),
             ("gemini", None),
             ("groq", "llama-3.3-70b-versatile"),
             ("cerebras", None),
             ("mistral", None),
-            ("pollinations", "qwen-2.5-72b"),
             ("claude_cli", None)
         ]
+
 
     for provider, model in steps_to_try:
         if provider == "groq" and groq_clients:
