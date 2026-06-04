@@ -95,6 +95,17 @@ NAV_KEYBOARD = ReplyKeyboardMarkup(
     resize_keyboard=True,
 )
 
+TRANSCRIPT_ACTION_KEYBOARD = ReplyKeyboardMarkup(
+    [
+        ["💾 Сохранить в базу"],
+        ["✨ Восстановить речь", "📖 Разбить на абзацы"],
+        ["🎬 Свернутый конспект", "📊 Сделать саммари"],
+        ["🏠 Главное меню"]
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=True
+)
+
 NUMS = {"1️⃣": 0, "2️⃣": 1, "3️⃣": 2}
 
 # ── Работа с файлами (GitHub API или локальный диск) ──────────────────────────
@@ -352,13 +363,22 @@ def format_voice_note(text: str, category: str, duration: int = 0) -> tuple[str,
 async def send_transcript(update: Update, text: str) -> None:
     """Отправляет полный транскрипт, разбивая на части если > 4000 символов."""
     LIMIT = 4000
+    parse_mode = "HTML" if ("<" in text and ">" in text) else "Markdown"
+    
+    if parse_mode == "HTML":
+        header_fn = lambda idx, total: f"📝 <b>Транскрипт ({idx}/{total}):</b>\n\n" if total > 1 else "📝 <b>Транскрипт:</b>\n\n"
+    else:
+        header_fn = lambda idx, total: f"📝 *Транскрипт ({idx}/{total}):*\n\n" if total > 1 else "📝 *Транскрипт:*\n\n"
+
     if len(text) <= LIMIT:
-        await update.message.reply_text(f"📝 *Транскрипт:*\n\n{text}", parse_mode="Markdown")
+        header = header_fn(1, 1)
+        await update.message.reply_text(header + text, parse_mode=parse_mode)
         return
+        
     chunks = [text[i:i + LIMIT] for i in range(0, len(text), LIMIT)]
     for idx, chunk in enumerate(chunks, 1):
-        header = f"📝 *Транскрипт ({idx}/{len(chunks)}):*\n\n" if idx == 1 else f"📝 *Транскрипт (часть {idx}/{len(chunks)}):*\n\n"
-        await update.message.reply_text(header + chunk, parse_mode="Markdown")
+        header = header_fn(idx, len(chunks))
+        await update.message.reply_text(header + chunk, parse_mode=parse_mode)
 
 def questions_keyboard(questions: list[str]) -> ReplyKeyboardMarkup:
     """Показывает вопросы в сообщении, кнопки — номера + навигация."""
@@ -480,6 +500,20 @@ async def _transcribe_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> O
     message = update.message
     if not message:
         return None
+        
+    media_obj = message.voice or message.audio or message.video or message.video_note or message.document
+    if media_obj:
+        file_size = getattr(media_obj, "file_size", 0)
+        MAX_SIZE = 20 * 1024 * 1024  # 20 MB
+        if file_size > MAX_SIZE:
+            size_mb = file_size / (1024 * 1024)
+            await message.reply_text(
+                f"⚠️ Файл слишком большой ({size_mb:.1f} МБ).\n"
+                f"Telegram Bot API разрешает скачивать файлы размером не более 20 МБ.\n"
+                f"Пожалуйста, сожмите видео или отправьте файл меньшего размера."
+            )
+            return None
+
     status_msg = await message.reply_text("Получаю медиафайл...")
     res = await _download_and_transcribe_media(message, ctx, status_msg)
     try:
@@ -546,14 +580,9 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
     await send_transcript(update, text)
 
-    keyboard = [
-        ["💾 Сохранить в базу"],
-        ["✨ Восстановить речь", "📊 Сделать саммари"],
-        ["🏠 Главное меню"]
-    ]
     await update.message.reply_text(
         "Что сделать с этой записью?",
-        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+        reply_markup=TRANSCRIPT_ACTION_KEYBOARD,
     )
     return WAIT_TRANSCRIPT_ACTION
 
@@ -596,14 +625,9 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                 pass
             await send_transcript(update, cleaned_text)
             
-            keyboard = [
-                ["💾 Сохранить в базу"],
-                ["📊 Сделать саммари"],
-                ["🏠 Главное меню"]
-            ]
             await update.message.reply_text(
                 "Речь успешно восстановлена! Что сделать дальше?",
-                reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+                reply_markup=TRANSCRIPT_ACTION_KEYBOARD,
             )
         except Exception as e:
             log.error("Speech restoration failed: %s", e)
@@ -612,6 +636,86 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
             except Exception:
                 pass
             await update.message.reply_text(f"Не удалось восстановить речь: {e}")
+            
+        return WAIT_TRANSCRIPT_ACTION
+        
+    elif action == "📖 Разбить на абзацы":
+        if not text:
+            await update.message.reply_text("Нет текста для разбиения на абзацы.")
+            return WAIT_TRANSCRIPT_ACTION
+            
+        status_msg = await update.message.reply_text("📖 Разбиваю текст на логические абзацы с помощью AI...")
+        paragraph_prompt = (
+            "Разбей следующий транскрибированный текст на логические абзацы.\n"
+            "Правила:\n"
+            "1. Раздели текст на смысловые абзацы с помощью пустых строк (двойного переноса строки).\n"
+            "2. НЕ изменяй слова, формулировки или смысл. НЕ исправляй ошибки и не редактируй сам текст.\n"
+            "3. НЕ добавляй никаких собственных выводов, комментариев, приветствий или объяснений. Верни ТОЛЬКО исходный текст, разделенный на абзацы."
+        )
+        try:
+            paragraphed_text = llm_chat(text, system=paragraph_prompt)
+            ctx.user_data["text"] = paragraphed_text
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await send_transcript(update, paragraphed_text)
+            
+            await update.message.reply_text(
+                "Текст успешно разбит на абзацы! Что сделать дальше?",
+                reply_markup=TRANSCRIPT_ACTION_KEYBOARD,
+            )
+        except Exception as e:
+            log.error("Paragraph splitting failed: %s", e)
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await update.message.reply_text(f"Не удалось разбить текст на абзацы: {e}")
+            
+        return WAIT_TRANSCRIPT_ACTION
+
+    elif action == "🎬 Свернутый конспект":
+        if not text:
+            await update.message.reply_text("Нет текста для создания конспекта.")
+            return WAIT_TRANSCRIPT_ACTION
+            
+        status_msg = await update.message.reply_text("🎬 Создаю свернутый интерактивный конспект с помощью AI...")
+        collapse_prompt = (
+            "Сделай структурированный интерактивный конспект (outline) следующего транскрибированного текста.\n"
+            "Правила оформления:\n"
+            "1. Раздели текст на смысловые блоки.\n"
+            "2. Для каждого блока напиши емкий жирный заголовок-тезис с помощью HTML-тега <b>Заголовок-тезис</b>.\n"
+            "3. Помести подробный текст этого блока внутрь тега раскрывающейся цитаты Telegram: <blockquote expandable>текст блока</blockquote>. Это критически важно! Тег должен быть строго в формате <blockquote expandable>...</blockquote>.\n"
+            "4. Убедись, что все HTML-теги правильно закрыты (<b>...</b> и <blockquote expandable>...</blockquote>) и не пересекаются.\n"
+            "5. НЕ используй никакую Markdown-разметку (никаких *, _, ` и т.д.), чтобы избежать ошибок разметки в Telegram.\n"
+            "6. НЕ добавляй приветствий, мета-комментариев или объяснений. Верни ТОЛЬКО структурированный HTML-текст конспекта."
+        )
+        try:
+            collapsed_text = llm_chat(text, system=collapse_prompt)
+            # Remove any markdown code blocks model might wrap it in, e.g. ```html ... ```
+            collapsed_text = re.sub(r"^```[a-zA-Z0-9]*\n", "", collapsed_text)
+            collapsed_text = re.sub(r"\n```$", "", collapsed_text)
+            collapsed_text = collapsed_text.strip()
+            
+            ctx.user_data["text"] = collapsed_text
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await send_transcript(update, collapsed_text)
+            
+            await update.message.reply_text(
+                "Свернутый конспект готов! Что сделать дальше?",
+                reply_markup=TRANSCRIPT_ACTION_KEYBOARD,
+            )
+        except Exception as e:
+            log.error("Collapsible outline failed: %s", e)
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await update.message.reply_text(f"Не удалось создать свернутый конспект: {e}")
             
         return WAIT_TRANSCRIPT_ACTION
         
