@@ -634,5 +634,40 @@
       },
       "update_id": 105152942
     }
+  },
+  {
+    "timestamp": "2026-06-04T12:30:10.553162+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "voice": {
+          "duration": 16,
+          "mime_type": "audio/ogg",
+          "file_id": "AwACAgIAAxkBAAIDV2ohb9Jfcmi_QI3Z5IIGysxW8MFXAAIToAACnLMRSXNpg3xR2RRuOwQ",
+          "file_size": 65239,
+          "file_unique_id": "AgADE6AAApyzEUk"
+        },
+        "chat": {
+          "first_name": "Яна",
+          "id": 185312793,
+          "type": "private",
+          "username": "nmchk1"
+        },
+        "date": 1780576210,
+        "message_id": 855,
+        "from": {
+          "first_name": "Яна",
+          "id": 185312793,
+          "is_bot": false,
+          "is_premium": true,
+          "language_code": "ru",
+          "username": "nmchk1"
+        }
+      },
+      "update_id": 105152943
+    }
   }
 ]
