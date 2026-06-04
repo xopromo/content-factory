@@ -577,15 +577,68 @@ async def _transcribe_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> O
         await message.reply_text("Не удалось транскрибировать медиафайл.", reply_markup=MAIN_KEYBOARD)
     return res
 
+# ── Вспомогательные функции очистки чата ──────────────────────────────────────
+
+async def _delete_message_after_delay(bot, chat_id: int, message_id: int, delay: int = 5):
+    await asyncio.sleep(delay)
+    try:
+        await bot.delete_message(chat_id=chat_id, message_id=message_id)
+    except Exception:
+        pass
+
+async def _send_menu_with_cleanup(update: Update, ctx: ContextTypes.DEFAULT_TYPE, text: str, reply_markup=None, parse_mode="HTML"):
+    # Удаляем входящую команду / клик пользователя, если это текст и не медиафайл
+    if update.message:
+        has_media = any([
+            update.message.voice, update.message.audio, update.message.video,
+            update.message.video_note, update.message.document, update.message.photo
+        ])
+        if not has_media:
+            try:
+                await update.message.delete()
+            except Exception:
+                pass
+    # Удаляем предыдущее меню
+    old_id = ctx.user_data.get("last_menu_msg_id")
+    if old_id:
+        try:
+            await ctx.bot.delete_message(chat_id=update.effective_chat.id, message_id=old_id)
+        except Exception:
+            pass
+    # Отправляем новое меню
+    msg = await ctx.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=text,
+        reply_markup=reply_markup,
+        parse_mode=parse_mode
+    )
+    ctx.user_data["last_menu_msg_id"] = msg.message_id
+    return msg
+
+def _clear_user_data_except_menu(ctx: ContextTypes.DEFAULT_TYPE):
+    menu_id = ctx.user_data.get("last_menu_msg_id")
+    forward_id = ctx.user_data.get("forward_status_msg_id")
+    ctx.user_data.clear()
+    if menu_id is not None:
+        ctx.user_data["last_menu_msg_id"] = menu_id
+    if forward_id is not None:
+        ctx.user_data["forward_status_msg_id"] = forward_id
+
 # ── Команды ───────────────────────────────────────────────────────────────────
 
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(
+    await _send_menu_with_cleanup(
+        update, ctx,
         "Привет! Выбери режим или просто отправь голосовое.",
         reply_markup=MAIN_KEYBOARD,
     )
 
 async def cmd_version(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.message:
+        try:
+            await update.message.delete()
+        except Exception:
+            pass
     commit_hash = "Unknown"
     try:
         import subprocess
@@ -593,23 +646,40 @@ async def cmd_version(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception:
         pass
     
-    await update.message.reply_text(
-        f"🤖 <b>Версия бота:</b>\n"
-        f"• <b>Коммит:</b> <code>{commit_hash}</code>\n"
-        f"• <b>Дата сборки:</b> 04.06.2026 22:45\n"
-        f"• <b>Провайдеры LLM:</b> Gemini, Groq, Mistral, Cerebras, Pollinations AI\n"
-        f"• <b>Режим:</b> Webhook (Render)",
+    msg = await ctx.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=(
+            f"🤖 <b>Версия бота:</b>\n"
+            f"• <b>Коммит:</b> <code>{commit_hash}</code>\n"
+            f"• <b>Дата сборки:</b> 04.06.2026 22:45\n"
+            f"• <b>Провайдеры LLM:</b> Gemini, Groq, Mistral, Cerebras, Pollinations AI\n"
+            f"• <b>Режим:</b> Webhook (Render)"
+        ),
         parse_mode="HTML"
     )
+    asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 30))
 
 async def cmd_cancel(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
-    ctx.user_data.clear()
-    await update.message.reply_text("Отменено.", reply_markup=MAIN_KEYBOARD)
+    _clear_user_data_except_menu(ctx)
+    msg = await ctx.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Отменено."
+    )
+    asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 5))
+    await _send_menu_with_cleanup(
+        update, ctx,
+        "Главное меню:",
+        reply_markup=MAIN_KEYBOARD,
+    )
     return ConversationHandler.END
 
 async def go_home(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
-    ctx.user_data.clear()
-    await update.message.reply_text("Главное меню:", reply_markup=MAIN_KEYBOARD)
+    _clear_user_data_except_menu(ctx)
+    await _send_menu_with_cleanup(
+        update, ctx,
+        "Главное меню:",
+        reply_markup=MAIN_KEYBOARD,
+    )
     return ConversationHandler.END
 
 # ── Режим: обычная голосовая заметка ─────────────────────────────────────────
@@ -650,7 +720,8 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
     await send_transcript(update, text)
 
-    await update.message.reply_text(
+    await _send_menu_with_cleanup(
+        update, ctx,
         "Что сделать с этой записью?",
         reply_markup=TRANSCRIPT_ACTION_KEYBOARD,
     )
@@ -661,13 +732,14 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
     text = ctx.user_data.get("text", "")
     
     if action == "🏠 Главное меню":
-        ctx.user_data.clear()
-        await update.message.reply_text("Главное меню:", reply_markup=MAIN_KEYBOARD)
+        _clear_user_data_except_menu(ctx)
+        await _send_menu_with_cleanup(update, ctx, "Главное меню:", reply_markup=MAIN_KEYBOARD)
         return ConversationHandler.END
         
     elif action == "💾 Сохранить в базу":
         keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
-        await update.message.reply_text(
+        await _send_menu_with_cleanup(
+            update, ctx,
             "Выбери категорию для сохранения:",
             reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
         )
@@ -675,7 +747,8 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
         
     elif action == "✨ Восстановить речь":
         if not text:
-            await update.message.reply_text("Нет текста для восстановления.")
+            msg = await update.message.reply_text("Нет текста для восстановления.")
+            asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 5))
             return WAIT_TRANSCRIPT_ACTION
             
         status_msg = await update.message.reply_text("✨ Восстанавливаю речь с помощью AI (убираю заикания, исправляю ошибки)...")
@@ -695,7 +768,8 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                 pass
             await send_transcript(update, cleaned_text)
             
-            await update.message.reply_text(
+            await _send_menu_with_cleanup(
+                update, ctx,
                 "Речь успешно восстановлена! Что сделать дальше?",
                 reply_markup=TRANSCRIPT_ACTION_KEYBOARD,
             )
@@ -705,13 +779,15 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                 await status_msg.delete()
             except Exception:
                 pass
-            await update.message.reply_text(f"Не удалось восстановить речь: {e}")
+            msg = await update.message.reply_text(f"Не удалось восстановить речь: {e}")
+            asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
             
         return WAIT_TRANSCRIPT_ACTION
         
     elif action == "📖 Разбить на абзацы":
         if not text:
-            await update.message.reply_text("Нет текста для разбиения на абзацы.")
+            msg = await update.message.reply_text("Нет текста для разбиения на абзацы.")
+            asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 5))
             return WAIT_TRANSCRIPT_ACTION
             
         status_msg = await update.message.reply_text("📖 Разбиваю текст на логические абзацы с помощью AI...")
@@ -731,7 +807,8 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                 pass
             await send_transcript(update, paragraphed_text)
             
-            await update.message.reply_text(
+            await _send_menu_with_cleanup(
+                update, ctx,
                 "Текст успешно разбит на абзацы! Что сделать дальше?",
                 reply_markup=TRANSCRIPT_ACTION_KEYBOARD,
             )
@@ -741,13 +818,15 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                 await status_msg.delete()
             except Exception:
                 pass
-            await update.message.reply_text(f"Не удалось разбить текст на абзацы: {e}")
+            msg = await update.message.reply_text(f"Не удалось разбить текст на абзацы: {e}")
+            asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
             
         return WAIT_TRANSCRIPT_ACTION
 
     elif action == "🎬 Свернутый конспект":
         if not text:
-            await update.message.reply_text("Нет текста для создания конспекта.")
+            msg = await update.message.reply_text("Нет текста для создания конспекта.")
+            asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 5))
             return WAIT_TRANSCRIPT_ACTION
             
         status_msg = await update.message.reply_text("🎬 Создаю свернутый интерактивный конспект с помощью AI...")
@@ -757,7 +836,7 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
             "1. Раздели текст на смысловые блоки.\n"
             "2. Для каждого блока напиши емкий жирный заголовок-тезис с помощью HTML-тега <b>Заголовок-тезис</b>.\n"
             "3. Помести подробный текст этого блока внутрь тега раскрывающейся цитаты Telegram: <blockquote expandable>текст блока</blockquote>. Это критически важно! Тег должен быть строго в формате <blockquote expandable>...</blockquote>.\n"
-            "4. Убедись, что все HTML-теги правильно закрыты (<b>...</b> и <blockquote expandable>...</blockquote>) и не пересекаются.\n"
+            "4. Убедись, что все HTML-теги правильно закрыты (<b>...</b> и <blockquote expandable>...</blockquote>) and не пересекаются.\n"
             "5. НЕ используй никакую Markdown-разметку (никаких *, _, ` и т.д.), чтобы избежать ошибок разметки в Telegram.\n"
             "6. НЕ добавляй приветствий, мета-комментариев или объяснений. Верни ТОЛЬКО структурированный HTML-текст конспекта."
         )
@@ -775,7 +854,8 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                 pass
             await send_transcript(update, collapsed_text)
             
-            await update.message.reply_text(
+            await _send_menu_with_cleanup(
+                update, ctx,
                 "Свернутый конспект готов! Что сделать дальше?",
                 reply_markup=TRANSCRIPT_ACTION_KEYBOARD,
             )
@@ -785,13 +865,15 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                 await status_msg.delete()
             except Exception:
                 pass
-            await update.message.reply_text(f"Не удалось создать свернутый конспект: {e}")
+            msg = await update.message.reply_text(f"Не удалось создать свернутый конспект: {e}")
+            asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
             
         return WAIT_TRANSCRIPT_ACTION
         
     elif action in ["🚀 Создать статью", "🚀 Создать статью на эту тему"]:
         if not text:
-            await update.message.reply_text("Нет темы/текста для генерации статьи.")
+            msg = await update.message.reply_text("Нет темы/текста для генерации статьи.")
+            asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 5))
             return WAIT_TRANSCRIPT_ACTION
             
         instruction = ctx.user_data.get("reply_instruction", "")
@@ -805,18 +887,19 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
             ["📰 Новостной обзор"],
             ["🏠"]
         ]
-        await update.message.reply_text(
+        await _send_menu_with_cleanup(
+            update, ctx,
             f"🚀 <b>Создание задачи на написание статьи</b>\n\n"
             f"Тема сформирована из выбранного сообщения.\n"
             f"Выберите формат статьи:",
-            parse_mode="HTML",
             reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         )
         return WAIT_ARTICLE_MODE
 
     elif action == "📊 Сделать саммари":
         if not text:
-            await update.message.reply_text("Нет текста для саммаризации.")
+            msg = await update.message.reply_text("Нет текста для саммаризации.")
+            asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 5))
             return WAIT_TRANSCRIPT_ACTION
             
         status_msg = await update.message.reply_text("📊 Создаю саммари с помощью AI...")
@@ -839,7 +922,8 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                 ["💾 Сохранить весь текст"],
                 ["🏠 Главное меню"]
             ]
-            await update.message.reply_text(
+            await _send_menu_with_cleanup(
+                update, ctx,
                 "Что сделать дальше?",
                 reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
             )
@@ -850,32 +934,36 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                 await status_msg.delete()
             except Exception:
                 pass
-            await update.message.reply_text(f"Не удалось сгенерировать саммари: {e}")
+            msg = await update.message.reply_text(f"Не удалось сгенерировать саммари: {e}")
+            asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
             
         return WAIT_TRANSCRIPT_ACTION
         
     else:
-        await update.message.reply_text("Пожалуйста, выберите одно из действий на клавиатуре.")
+        msg = await update.message.reply_text("Пожалуйста, выберите одно из действий на клавиатуре.")
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 5))
         return WAIT_TRANSCRIPT_ACTION
 
 async def handle_summary_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     action = update.message.text.strip()
     
     if action == "🏠 Главное меню":
-        ctx.user_data.clear()
-        await update.message.reply_text("Главное меню:", reply_markup=MAIN_KEYBOARD)
+        _clear_user_data_except_menu(ctx)
+        await _send_menu_with_cleanup(update, ctx, "Главное меню:", reply_markup=MAIN_KEYBOARD)
         return ConversationHandler.END
         
     elif action == "💾 Сохранить саммари в базу":
         summary_text = ctx.user_data.get("summary_text", "")
         if not summary_text:
-            await update.message.reply_text("Нет саммари для сохранения.")
+            msg = await update.message.reply_text("Нет саммари для сохранения.")
+            asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 5))
             return WAIT_TRANSCRIPT_ACTION
         # Replace main text with summary so handle_category saves it
         ctx.user_data["text"] = summary_text
         
         keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
-        await update.message.reply_text(
+        await _send_menu_with_cleanup(
+            update, ctx,
             "Выбери категорию для сохранения саммари:",
             reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
         )
@@ -883,14 +971,16 @@ async def handle_summary_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) 
         
     elif action == "💾 Сохранить весь текст":
         keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
-        await update.message.reply_text(
+        await _send_menu_with_cleanup(
+            update, ctx,
             "Выбери категорию для сохранения всего текста:",
             reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
         )
         return WAIT_CATEGORY
         
     else:
-        await update.message.reply_text("Пожалуйста, выберите одно из действий на клавиатуре.")
+        msg = await update.message.reply_text("Пожалуйста, выберите одно из действий на клавиатуре.")
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 5))
         return WAIT_SUMMARY_ACTION
 
 async def handle_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
@@ -899,7 +989,8 @@ async def handle_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int
     duration = ctx.user_data.get("duration", 0)
 
     if category == "➕ Своя категория":
-        await update.message.reply_text(
+        await _send_menu_with_cleanup(
+            update, ctx,
             "Введите название вашей категории:",
             reply_markup=NAV_KEYBOARD
         )
@@ -909,7 +1000,7 @@ async def handle_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int
         note_text = "\n\n---\n\n".join(ctx.user_data["forward_buffer"])
 
     if not note_text:
-        await update.message.reply_text("Что-то пошло не так, попробуй ещё раз.", reply_markup=MAIN_KEYBOARD)
+        await _send_menu_with_cleanup(update, ctx, "Что-то пошло не так, попробуй ещё раз.", reply_markup=MAIN_KEYBOARD)
         return ConversationHandler.END
 
     status_msg = await update.message.reply_text("Сохраняю...", reply_markup=ReplyKeyboardRemove())
@@ -927,20 +1018,23 @@ async def handle_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int
             keyboard.append([InlineKeyboardButton("🔍 Проверить на GitHub", url=url_or_path)])
         reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
         
-        await update.message.reply_text(
-            f"✅ Сохранено: `{filename}`", 
+        msg_saved = await ctx.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"✅ Сохранено: `{filename}`", 
             parse_mode="Markdown", 
             reply_markup=reply_markup
         )
-        await update.message.reply_text("Возвращаюсь в главное меню:", reply_markup=MAIN_KEYBOARD)
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg_saved.message_id, 10))
+        
+        await _send_menu_with_cleanup(update, ctx, "Возвращаюсь в главное меню:", reply_markup=MAIN_KEYBOARD)
     except Exception as e:
         try:
             await status_msg.delete()
         except Exception:
             pass
-        await update.message.reply_text(f"Ошибка сохранения: {e}", reply_markup=MAIN_KEYBOARD)
+        await _send_menu_with_cleanup(update, ctx, f"Ошибка сохранения: {e}", reply_markup=MAIN_KEYBOARD)
 
-    ctx.user_data.clear()
+    _clear_user_data_except_menu(ctx)
     return ConversationHandler.END
 
 async def handle_custom_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
@@ -952,7 +1046,7 @@ async def handle_custom_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
         note_text = "\n\n---\n\n".join(ctx.user_data["forward_buffer"])
 
     if not note_text:
-        await update.message.reply_text("Что-то пошло не так, попробуй ещё раз.", reply_markup=MAIN_KEYBOARD)
+        await _send_menu_with_cleanup(update, ctx, "Что-то пошло не так, попробуй ещё раз.", reply_markup=MAIN_KEYBOARD)
         return ConversationHandler.END
 
     status_msg = await update.message.reply_text("Сохраняю...", reply_markup=ReplyKeyboardRemove())
@@ -970,20 +1064,23 @@ async def handle_custom_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
             keyboard.append([InlineKeyboardButton("🔍 Проверить на GitHub", url=url_or_path)])
         reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
 
-        await update.message.reply_text(
-            f"✅ Сохранено в категорию «{category}»: `{filename}`", 
+        msg_saved = await ctx.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"✅ Сохранено в категорию «{category}»: `{filename}`", 
             parse_mode="Markdown", 
             reply_markup=reply_markup
         )
-        await update.message.reply_text("Возвращаюсь в главное меню:", reply_markup=MAIN_KEYBOARD)
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg_saved.message_id, 10))
+        
+        await _send_menu_with_cleanup(update, ctx, "Возвращаюсь в главное меню:", reply_markup=MAIN_KEYBOARD)
     except Exception as e:
         try:
             await status_msg.delete()
         except Exception:
             pass
-        await update.message.reply_text(f"Ошибка сохранения: {e}", reply_markup=MAIN_KEYBOARD)
+        await _send_menu_with_cleanup(update, ctx, f"Ошибка сохранения: {e}", reply_markup=MAIN_KEYBOARD)
 
-    ctx.user_data.clear()
+    _clear_user_data_except_menu(ctx)
     return ConversationHandler.END
 
 # ── Режим: Экспертиза ─────────────────────────────────────────────────────────
@@ -994,7 +1091,8 @@ async def choose_expert_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         ["🪙 Криптовалюта", "➕ Другая тема"],
         ["🏠"]
     ]
-    await update.message.reply_text(
+    await _send_menu_with_cleanup(
+        update, ctx,
         "Выбери тему для генерации вопросов экспертизы или нажми «➕ Другая тема»:",
         reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     )
@@ -1003,7 +1101,7 @@ async def choose_expert_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
 async def handle_expert_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     text = update.message.text.strip()
     if text == "➕ Другая тема":
-        await update.message.reply_text("Введите тему вашей экспертизы:", reply_markup=NAV_KEYBOARD)
+        await _send_menu_with_cleanup(update, ctx, "Введите тему вашей экспертизы:", reply_markup=NAV_KEYBOARD)
         return WAIT_EXPERT_QUERY
         
     if text in NEWS_TOPICS:
@@ -1087,7 +1185,8 @@ async def choose_biz_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> in
         ["🪙 Криптовалюта", "➕ Другая тема"],
         ["🏠"]
     ]
-    await update.message.reply_text(
+    await _send_menu_with_cleanup(
+        update, ctx,
         "Выбери направление бизнеса для генерации вопросов или нажми «➕ Другая тема»:",
         reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     )
@@ -1096,7 +1195,7 @@ async def choose_biz_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> in
 async def handle_biz_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     text = update.message.text.strip()
     if text == "➕ Другая тема":
-        await update.message.reply_text("Введите направление/тему бизнеса:", reply_markup=NAV_KEYBOARD)
+        await _send_menu_with_cleanup(update, ctx, "Введите направление/тему бизнеса:", reply_markup=NAV_KEYBOARD)
         return WAIT_BIZ_QUERY
         
     if text in NEWS_TOPICS:
@@ -1184,7 +1283,8 @@ async def choose_aud_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> in
         ["🪙 Криптовалюта", "➕ Другая тема"],
         ["🏠"]
     ]
-    await update.message.reply_text(
+    await _send_menu_with_cleanup(
+        update, ctx,
         "Выбери направление для анализа целевой аудитории или нажми «➕ Другая тема»:",
         reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     )
@@ -1193,7 +1293,7 @@ async def choose_aud_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> in
 async def handle_aud_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     text = update.message.text.strip()
     if text == "➕ Другая тема":
-        await update.message.reply_text("Введите направление/тему проекта:", reply_markup=NAV_KEYBOARD)
+        await _send_menu_with_cleanup(update, ctx, "Введите направление/тему проекта:", reply_markup=NAV_KEYBOARD)
         return WAIT_AUD_QUERY
         
     if text in NEWS_TOPICS:
@@ -1468,7 +1568,8 @@ async def choose_news_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> i
         ["🪙 Криптовалюта", "➕ Другая тема"],
         ["🏠"]
     ]
-    await update.message.reply_text(
+    await _send_menu_with_cleanup(
+        update, ctx,
         "Выбери тему новостей или нажми «➕ Другая тема», чтобы ввести свой запрос:",
         reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     )
@@ -1478,7 +1579,8 @@ async def handle_news_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> i
     text = update.message.text.strip()
     
     if text == "➕ Другая тема":
-        await update.message.reply_text(
+        await _send_menu_with_cleanup(
+            update, ctx,
             "Введите ваш поисковый запрос для поиска новостей:",
             reply_markup=NAV_KEYBOARD
         )
@@ -1675,10 +1777,10 @@ async def choose_article_mode(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         ["📰 Новостной обзор"],
         ["🏠"]
     ]
-    await update.message.reply_text(
+    await _send_menu_with_cleanup(
+        update, ctx,
         "🚀 <b>Создание статьи с помощью AI-агентов</b>\n\n"
         "Выберите формат статьи:",
-        parse_mode="HTML",
         reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     )
     return WAIT_ARTICLE_MODE
@@ -1723,19 +1825,19 @@ async def handle_article_mode(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         )
         return WAIT_ARTICLE_CONFIRM
 
-    await update.message.reply_text(
+    await _send_menu_with_cleanup(
+        update, ctx,
         f"Выбран формат: <b>{mode}</b>\n\n"
         f"Отправьте тему статьи текстовым сообщением или запишите голосовое с подробным описанием идеи:",
-        parse_mode="HTML",
         reply_markup=NAV_KEYBOARD
     )
     return WAIT_ARTICLE_TOPIC
 
 async def choose_article_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text(
+    await _send_menu_with_cleanup(
+        update, ctx,
         "🚀 <b>Создание статьи с помощью AI-агентов</b>\n\n"
         "Отправьте тему статьи текстовым сообщением или запишите голосовое с подробным описанием идеи:",
-        parse_mode="HTML",
         reply_markup=NAV_KEYBOARD
     )
     return WAIT_ARTICLE_TOPIC
@@ -2281,9 +2383,15 @@ async def telegram_error_handler(update: object, context: ContextTypes.DEFAULT_T
             pass
 
 async def cmd_log(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.message:
+        try:
+            await update.message.delete()
+        except Exception:
+            pass
     log_file = Path(__file__).parent.parent / "orchestrator.log"
     if not log_file.exists():
-        await update.effective_message.reply_text("Файл orchestrator.log не найден.")
+        msg = await update.effective_message.reply_text("Файл orchestrator.log не найден.")
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
         return
     try:
         # Читаем лог-файл безопасно с заменой некорректных байтов
@@ -2295,34 +2403,49 @@ async def cmd_log(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         content_tail_escaped = html.escape(content_tail)
         
         try:
-            await update.effective_message.reply_text(
+            msg = await update.effective_message.reply_text(
                 f"📋 <b>Последние строки orchestrator.log:</b>\n\n<code>{content_tail_escaped}</code>",
                 parse_mode="HTML"
             )
         except Exception as html_err:
             # Если разметка сломалась или сообщение слишком длинное, отправляем как обычный текст
-            await update.effective_message.reply_text(
+            msg = await update.effective_message.reply_text(
                 f"📋 Последние строки orchestrator.log (Plain Text):\n\n{content_tail}",
                 parse_mode=None
             )
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 60))
     except Exception as e:
-        await update.effective_message.reply_text(f"Ошибка при чтении лога: {e}")
+        msg = await update.effective_message.reply_text(f"Ошибка при чтении лога: {e}")
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
 
 async def cmd_pushlog(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.message:
+        try:
+            await update.message.delete()
+        except Exception:
+            pass
     log_file = Path(__file__).parent.parent / "orchestrator.log"
     if not log_file.exists():
-        await update.effective_message.reply_text("Файл orchestrator.log не найден для отправки.")
+        msg = await update.effective_message.reply_text("Файл orchestrator.log не найден для отправки.")
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
         return
     try:
         content = log_file.read_text(encoding="utf-8", errors="replace")
         
         # Записываем на GitHub через REST API (работает без локального .git)
         url = gh_write("docs/articles/log.txt", content, "chore: update log.txt from bot")
-        await update.effective_message.reply_text(f"✅ Лог успешно отправлен на GitHub через REST API:\n{url}")
+        msg = await update.effective_message.reply_text(f"✅ Лог успешно отправлен на GitHub через REST API:\n{url}")
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 15))
     except Exception as e:
-        await update.effective_message.reply_text(f"Ошибка при отправке лога на GitHub: {e}")
+        msg = await update.effective_message.reply_text(f"Ошибка при отправке лога на GitHub: {e}")
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 15))
 
 async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.message:
+        try:
+            await update.message.delete()
+        except Exception:
+            pass
     slug = None
     if ctx.args:
         slug = ctx.args[0].strip()
@@ -2338,14 +2461,16 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         if not state_files_info:
             state_files = sorted(state_dir.glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True)
             if not state_files:
-                await update.message.reply_text("Активные состояния для возобновления не найдены ни локально, ни на GitHub.")
+                msg = await update.effective_message.reply_text("Активные состояния для возобновления не найдены ни локально, ни на GitHub.")
+                asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
                 return
             latest_file = state_files[0]
             try:
                 state_data = json.loads(latest_file.read_text(encoding="utf-8"))
                 slug = state_data.get("slug")
             except Exception as e:
-                await update.message.reply_text(f"Ошибка чтения локального файла состояния {latest_file.name}: {e}")
+                msg = await update.effective_message.reply_text(f"Ошибка чтения локального файла состояния {latest_file.name}: {e}")
+                asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
                 return
         else:
             state_files_info = sorted(state_files_info, key=lambda x: x.get("name", ""), reverse=True)
@@ -2353,24 +2478,29 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
             slug = latest_file_name.replace(".json", "")
 
     if not slug:
-        await update.message.reply_text("Не удалось определить slug статьи.")
+        msg = await update.effective_message.reply_text("Не удалось определить slug статьи.")
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
         return
 
     state_file = state_dir / f"{slug}.json"
     
     # Загружаем из GitHub если локально файла нет
     if not state_file.exists():
-        await update.message.reply_text(f"⏳ Файл состояния '{slug}.json' не найден локально. Пытаюсь загрузить из GitHub...")
+        msg_state = await update.effective_message.reply_text(f"⏳ Файл состояния '{slug}.json' не найден локально. Пытаюсь загрузить из GitHub...")
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg_state.message_id, 15))
         remote_content = gh_read(f"plans/.state/{slug}.json")
         if remote_content:
             try:
                 state_file.write_text(remote_content, encoding="utf-8")
-                await update.message.reply_text("✅ Файл состояния успешно скачан с GitHub.")
+                msg_ok = await update.effective_message.reply_text("✅ Файл состояния успешно скачан с GitHub.")
+                asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg_ok.message_id, 10))
             except Exception as e:
-                await update.message.reply_text(f"❌ Ошибка сохранения скачанного файла состояния: {e}")
+                msg_err = await update.effective_message.reply_text(f"❌ Ошибка сохранения скачанного файла состояния: {e}")
+                asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg_err.message_id, 15))
                 return
         else:
-            await update.message.reply_text(f"❌ Файл состояния для '{slug}' не найден ни локально, ни на GitHub.")
+            msg_fail = await update.effective_message.reply_text(f"❌ Файл состояния для '{slug}' не найден ни локально, ни на GitHub.")
+            asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg_fail.message_id, 15))
             return
 
     try:
@@ -2383,11 +2513,13 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         mode = saved_ctx.get("mode")
         pipeline_mode = saved_ctx.get("pipeline_mode", "seo")
     except Exception as e:
-        await update.message.reply_text(f"Ошибка парсинга файла состояния: {e}")
+        msg_parse = await update.effective_message.reply_text(f"Ошибка парсинга файла состояния: {e}")
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg_parse.message_id, 15))
         return
 
     if not all([topic, title, slug, query]):
-        await update.message.reply_text(f"Недостаточно данных в файле состояния для возобновления '{slug}'.")
+        msg_data = await update.effective_message.reply_text(f"Недостаточно данных в файле состояния для возобновления '{slug}'.")
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg_data.message_id, 15))
         return
 
     # Запускаем оркестратор в фоне
@@ -2411,16 +2543,18 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         log_file = open(log_file_path, "a", encoding="utf-8")
         subprocess.Popen(cmd, cwd=project_root, stdout=log_file, stderr=log_file)
         
-        await update.message.reply_text(
+        msg_resume = await update.effective_message.reply_text(
             f"▶️ <b>Возобновляю генерацию статьи!</b>\n\n"
             f"⚙️ <b>Формат:</b> {mode}\n"
             f"🔗 <b>Slug:</b> {slug}\n"
             f"Пайплайн продолжит работу с шага {completed_step + 1}.",
             parse_mode="HTML"
         )
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg_resume.message_id, 15))
     except Exception as e:
         log.error("Failed to resume orchestrator: %s", e)
-        await update.message.reply_text(f"❌ Ошибка возобновления: {e}")
+        msg_fail = await update.effective_message.reply_text(f"❌ Ошибка возобновления: {e}")
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg_fail.message_id, 15))
 
 async def post_init(application: Application) -> None:
     from telegram import BotCommand

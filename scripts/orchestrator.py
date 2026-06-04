@@ -175,7 +175,17 @@ def tg_notify(text: str) -> None:
     if not token or not chat_id:
         print(f"[TG SKIP] {text}")
         return
-    
+
+    # Проверяем, является ли сообщение критическим или важным
+    is_critical_error = any(keyword in text.lower() for keyword in ["ошибка", "error", "критическ", "🚫", "🛑", "⚠️", "❌"])
+    is_interaction = any(keyword in text for keyword in ["Подтвердите", "HUMAN REVIEW", "Ответьте:"])
+    is_final = "опубликована" in text.lower() or "статья готова" in text.lower()
+
+    if not (is_critical_error or is_interaction or is_final):
+        # Пишем прогресс в логи консоли, но не шлем в Telegram
+        print(f"[TG SILENT PROGRESS] {text.splitlines()[0] if text else ''}")
+        return
+
     # Авто-определение шага для отображения прогресс-бара
     import re
     step_match = re.search(r"Шаг\s*0*(\d+)", text, re.IGNORECASE)
@@ -196,6 +206,13 @@ def tg_notify(text: str) -> None:
                     text = text + "\n" + progress
         except Exception:
             pass
+
+    # Форматирование длинных ошибок в разворачиваемый блок <details>
+    if is_critical_error and len(text) > 300:
+        lines = text.split("\n")
+        summary_title = lines[0] if lines else "Критическая ошибка"
+        body = "\n".join(lines[1:])
+        text = f"{summary_title}\n\n<details><summary>Подробнее об ошибке</summary>\n<pre>{body}</pre>\n</details>"
 
     import urllib.request, urllib.parse
     payload = json.dumps({
@@ -1775,9 +1792,17 @@ if __name__ == "__main__":
         )
     except Exception as e:
         import traceback
-        err_msg = f"❌ <b>Критическая ошибка пайплайна!</b>\n\nТема: <code>{args.topic}</code>\nОшибка: <code>{e}</code>\n\nВы можете попробовать возобновить генерацию с последнего шага."
-        print(f"[FATAL ERROR] {e}")
         tb_str = traceback.format_exc()
+        import html
+        tb_str_escaped = html.escape(tb_str)
+        err_msg = (
+            f"❌ <b>Критическая ошибка пайплайна!</b>\n\n"
+            f"Тема: <code>{args.topic}</code>\n"
+            f"Ошибка: <code>{html.escape(str(e))}</code>\n\n"
+            f"<details><summary>Стек-трейс (Traceback)</summary>\n<pre>{tb_str_escaped}</pre>\n</details>\n\n"
+            f"Вы можете попробовать возобновить генерацию с последнего шага."
+        )
+        print(f"[FATAL ERROR] {e}")
         print(tb_str)
         try:
             import json
