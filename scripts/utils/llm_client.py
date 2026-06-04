@@ -168,6 +168,7 @@ def run_gemini_rest(prompt: str) -> str:
     if not gemini_key:
         raise ValueError("GEMINI_KEY is not set")
     import urllib.request
+    import urllib.error
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
     payload = {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
@@ -179,9 +180,17 @@ def run_gemini_rest(prompt: str) -> str:
         headers={"Content-Type": "application/json"},
         method="POST"
     )
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        res = json.loads(resp.read().decode("utf-8"))
-    return res["candidates"][0]["content"]["parts"][0]["text"].strip()
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            res = json.loads(resp.read().decode("utf-8"))
+        return res["candidates"][0]["content"]["parts"][0]["text"].strip()
+    except urllib.error.HTTPError as e:
+        error_body = ""
+        try:
+            error_body = e.read().decode("utf-8")
+        except Exception:
+            pass
+        raise RuntimeError(f"Gemini REST Error {e.code}: {e.reason}. Body: {error_body}") from e
 
 
 def run_cerebras_rest(prompt: str, max_tokens: int = 1024) -> str:
@@ -424,6 +433,7 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
             encoding="utf-8",
             errors="replace",
             cwd=tmp_dir,
+            timeout=15
         )
         if result.returncode == 0:
             return result.stdout.strip(), tokens
@@ -610,6 +620,7 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
                     encoding="utf-8",
                     errors="replace",
                     cwd=tmp_dir,
+                    timeout=15
                 )
                 if result.returncode == 0:
                     return result.stdout.strip(), tokens
