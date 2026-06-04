@@ -1,0 +1,44 @@
+
+🚀 Content Factory — запуск генерации: Новая Модель от Google: Gemma 12B Вышла на Сцену
+  [scope] ✅ Запрос достаточно конкретен
+  [news] Шаг 2 пропущен (режим новость)
+  [news] Ищу свежие источники (1 слой)...
+  [SEARCH] news/w ошибка: No results found.
+  [SEARCH] news/m ошибка: No results found.
+  [SEARCH] DuckDuckGo news failed. Trying Yandex Search API...
+  Найдено свежих: 0
+  [LLM CLIENT WARNING] Gemini Error (Attempt 1/10): HTTP Error 429: Too Many Requests
+  [LLM CLIENT] Gemini rate limited (429). Retrying in 3s...
+  [LLM CLIENT WARNING] Gemini Error (Attempt 2/10): HTTP Error 429: Too Many Requests
+  [LLM CLIENT] Gemini rate limited (429). Retrying in 6s...
+  [LLM CLIENT WARNING] Gemini Error (Attempt 3/10): HTTP Error 429: Too Many Requests
+  [LLM CLIENT] Gemini rate limited (429). Retrying in 9s...
+  [LLM CLIENT WARNING] Gemini Error (Attempt 4/10): HTTP Error 429: Too Many Requests
+  [LLM CLIENT] Gemini rate limited (429). Retrying in 12s...
+  [LLM CLIENT WARNING] Gemini Error (Attempt 5/10): HTTP Error 429: Too Many Requests
+  [LLM CLIENT] Gemini rate limited (429). Retrying in 15s...
+  [LLM CLIENT WARNING] Gemini Error (Attempt 6/10): HTTP Error 429: Too Many Requests
+  [LLM CLIENT] Gemini rate limited (429). Retrying in 18s...
+  [LLM CLIENT WARNING] Gemini Error (Attempt 7/10): HTTP Error 429: Too Many Requests
+  [LLM CLIENT] Gemini rate limited (429). Retrying in 21s...
+  [LLM CLIENT WARNING] Gemini Error (Attempt 8/10): HTTP Error 429: Too Many Requests
+  [LLM CLIENT] Gemini rate limited (429). Retrying in 24s...
+  [LLM CLIENT WARNING] Gemini Error (Attempt 9/10): HTTP Error 429: Too Many Requests
+  [LLM CLIENT] Gemini rate limited (429). Retrying in 27s...
+  [LLM CLIENT WARNING] Gemini Error (Attempt 10/10): HTTP Error 429: Too Many Requests
+  [LLM CLIENT] Gemini rate limited (429). Retrying in 30s...
+
+  [FINER gate]
+## FINER-оценка темы
+❌ F Feasible: 0 источников, 0 симв.
+⚠️ I Interesting: нет новостей за неделю
+⚠️ N Novel: 0 разных доменов (риск однобокости)
+⚠️ E Engaging: тема вне AI/tech ниши
+⚠️ R Relevant: только вторичные источники
+
+⚠️ Предупреждения: нет горячего инфоповода; мало разных доменов — риск однобокости; нет первичных источников — факты сложнее верифицировать
+
+❌ СТОП: недостаточно источников для написания статьи.
+Рекомендация: смените тему или расширьте поисковый запрос.
+
+🚫 FINER gate: нет источников. Генерация остановлена.
