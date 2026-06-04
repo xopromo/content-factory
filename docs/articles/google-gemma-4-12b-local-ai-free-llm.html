@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Gemma 4 12B: как запустить локальный мультимодальный ИИ на обычном ноутбуке</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #1F2937; --surface: #263348; --surface2: #2d3a50;
+      --border: rgba(255,255,255,0.08); --primary: #818CF8;
+      --text: #F9FAFB; --text-muted: #9CA3AF;
+      --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
+    .nav {
+      display: flex; align-items: center; gap: 24px; padding: 0 32px; height: 52px;
+      border-bottom: 1px solid var(--border); background: rgba(31,41,55,0.95);
+      backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .nav-logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+    .nav-back { margin-left: auto; font-size: 13px; color: var(--text-muted); text-decoration: none; }
+    .nav-back:hover { color: var(--text); }
+    .article-wrap { max-width: 780px; margin: 48px auto; padding: 0 24px 80px; }
+    .article-wrap h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; margin-bottom: 24px; }
+    .article-wrap h2 { font-size: 22px; font-weight: 600; margin: 40px 0 12px; letter-spacing: -0.01em; }
+    .article-wrap h3 { font-size: 17px; font-weight: 600; margin: 28px 0 10px; }
+    .article-wrap h4 { font-size: 15px; font-weight: 600; margin: 20px 0 8px; color: var(--text-muted); }
+    .article-wrap p { margin-bottom: 16px; }
+    .article-wrap ul, .article-wrap ol { margin: 0 0 16px 24px; }
+    .article-wrap li { margin-bottom: 6px; }
+    .article-wrap table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; }
+    .article-wrap th { background: var(--surface2); padding: 10px 14px; text-align: left; font-weight: 600; border: 1px solid var(--border); }
+    .article-wrap td { padding: 9px 14px; border: 1px solid var(--border); }
+    .article-wrap tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .article-wrap code { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: 4px; }
+    .article-wrap pre { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; overflow-x: auto; margin: 20px 0; }
+    .article-wrap pre code { background: none; padding: 0; }
+    .article-wrap blockquote { border-left: 3px solid var(--primary); padding: 12px 20px; margin: 20px 0; background: var(--surface); border-radius: 0 var(--radius-md) var(--radius-md) 0; color: var(--text-muted); }
+    .article-wrap a { color: var(--primary); text-decoration: none; }
+    .article-wrap a:hover { text-decoration: underline; }
+    .article-wrap hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .mermaid { background: var(--surface); border-radius: var(--radius-md); padding: 20px; margin: 20px 0; overflow-x: auto; }
+    .code-wrap { margin: 20px 0; }
+    .code-wrap pre { margin: 0; border-radius: var(--radius-md) var(--radius-md) 0 0; }
+    .code-wrap.collapsed pre { max-height: 104px; overflow: hidden; position: relative; }
+    .code-wrap.collapsed pre::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 48px;
+      background: linear-gradient(transparent, var(--surface)); pointer-events: none;
+    }
+    .code-toggle {
+      display: block; width: 100%; padding: 8px 16px;
+      background: var(--surface2); border: 1px solid var(--border); border-top: none;
+      color: var(--text-muted); cursor: pointer; font-size: 12px;
+      border-radius: 0 0 var(--radius-md) var(--radius-md); text-align: center;
+    }
+    .code-toggle:hover { color: var(--text); }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({startOnLoad:true, theme:'dark'});</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.code-wrap').forEach(function(wrap) {
+        var btn = wrap.querySelector('.code-toggle');
+        if (!btn) return;
+        btn.addEventListener('click', function() {
+          wrap.classList.toggle('collapsed');
+          btn.textContent = wrap.classList.contains('collapsed')
+            ? btn.dataset.expand : btn.dataset.collapse;
+        });
+      });
+    });
+  </script>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-logo"><div class="nav-logo-dot"></div>Content Factory</div>
+    <a class="nav-back" href="/content-factory/">← Все статьи</a>
+  </nav>
+  <div class="article-wrap">
+    <h1 id="google-gemma-4-12b">Google Gemma 4 12B: как запустить локальный мультимодальный ИИ на обычном ноутбуке</h1>
+<p>Gemma 4 12B — новая мультимодальная модель от Google DeepMind, способная обрабатывать текст, изображения, аудио и видео без отдельных энкодеров. Модель оптимизирована для работы на устройствах с ограниченными ресурсами, включая ноутбуки с 16 ГБ оперативной памяти [1][8].</p>
+<h2 id="gemma-4-12b">Что такое Gemma 4 12B?</h2>
+<p>Gemma 4 12B — это открытая ИИ-модель с 12 миллиардами параметров, разработанная Google DeepMind. Она поддерживает мультимодальную обработку данных (текст, изображения, аудио, видео) и распространяется под лицензией Apache 2.0, что позволяет использовать ее в коммерческих продуктах без ограничений [1][8].</p>
+<p>Модель занимает промежуточное положение между компактной версией E4B и более крупной моделью MoE на 26 миллиардов параметров. Gemma 4 12B демонстрирует производительность, близкую к модели 26B, но при этом может работать на менее мощном оборудовании [4][8].</p>
+<h2 id="gemma-4-12b_1">Архитектура и особенности Gemma 4 12B</h2>
+<p>Архитектура Gemma 4 12B основана на единой декодерной архитектуре без отдельных энкодеров для разных типов данных. Это позволяет модели эффективно обрабатывать мультимодальные входные данные, сохраняя высокую производительность [1][2].</p>
+<p>Ключевые особенности архитектуры:
+- Единый декодер: Обработка текста, изображений, аудио и видео осуществляется в рамках одной архитектуры без дополнительных энкодеров [1][2].
+- Оптимизация для локального запуска: Модель адаптирована для работы на устройствах с ограниченными вычислительными ресурсами, включая ноутбуки с 16 ГБ оперативной памяти [1][3].
+- Открытая лицензия: Gemma 4 12B распространяется под лицензией Apache 2.0, что позволяет использовать ее в любых проектах, включая коммерческие [1][8].</p>
+<h2 id="gemma-4-12b_2">Применение и возможности Gemma 4 12B</h2>
+<p>Gemma 4 12B может использоваться для решения широкого спектра задач, включая генерацию текста, обработку естественного языка, анализ изображений и аудио. Модель поддерживает интеграцию с популярными платформами, такими как Hugging Face и Kaggle, что упрощает ее внедрение в существующие проекты [1][5].</p>
+<p>Примеры применения:
+- Генерация текста: Модель способна создавать текстовые ответы на основе заданных промптов, что полезно для чат-ботов и виртуальных ассистентов [1].
+- Анализ изображений: Gemma 4 12B может распознавать объекты на изображениях и видео, что делает ее полезной для задач компьютерного зрения [1][5].
+- Обработка аудио: Модель поддерживает анализ аудиоданных, включая распознавание речи и классификацию звуков [1][5].</p>
+<h2 id="gemma-4-12b_3">Как запустить Gemma 4 12B на ноутбуке</h2>
+<p>Для запуска Gemma 4 12B на ноутбуке потребуется устройство с 16 ГБ оперативной памяти и поддержкой GPU. Модель доступна для скачивания на платформе Hugging Face [1].</p>
+<p>Основные шаги для запуска:
+1. Скачайте модель: Перейдите на страницу модели на Hugging Face и загрузите необходимые файлы [1].
+2. Установите зависимости: Убедитесь, что на вашем устройстве установлены все необходимые библиотеки, такие как PyTorch и Transformers [1].
+3. Запустите модель: Используйте примеры кода, предоставленные на Hugging Face, для запуска модели на вашем ноутбуке [1].</p>
+<p>Пример кода для запуска модели:</p>
+<div class="code-wrap collapsed"><pre><code class="language-python">from transformers import AutoModelForCausalLM, AutoTokenizer
+
+model_name = &quot;google/gemma-4-12B&quot;
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+
+input_text = &quot;Опишите изображение:&quot;
+input_ids = tokenizer(input_text, return_tensors=&quot;pt&quot;)
+outputs = model.generate(**input_ids)
+print(tokenizer.decode(outputs[0]))
+</code></pre><button class="code-toggle" data-expand="↓ показать все 10 строк" data-collapse="↑ свернуть">↓ показать все 10 строк</button></div>
+<h2 id="_1">Заключение</h2>
+<p>Gemma 4 12B открывает новые возможности для разработчиков и исследователей, позволяя запускать мощные мультимодальные модели на обычных ноутбуках. Это снижает порог входа для использования ИИ в локальных приложениях и ускоряет разработку инновационных решений. Однако ключевой вызов теперь — не столько техническая возможность запуска моделей на устройствах, сколько создание приложений, которые эффективно используют мультимодальные возможности Gemma 4 12B для решения реальных задач [1][5][8].</p>
+  </div>
+</body>
+</html>
