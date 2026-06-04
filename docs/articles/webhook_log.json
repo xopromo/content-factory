@@ -1000,5 +1000,41 @@
       },
       "update_id": 105152966
     }
+  },
+  {
+    "timestamp": "2026-06-04T19:42:20.208077+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "voice": {
+          "duration": 3,
+          "mime_type": "audio/ogg",
+          "file_id": "AwACAgIAAxkBAAIDyGoh1RwV4feYWU3ilIY7lHjjwO_RAAIJpwACluMQSRQ7dT_dBPaaOwQ",
+          "file_size": 63496,
+          "file_unique_id": "AgADCacAApbjEEk"
+        },
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780602140,
+        "message_id": 968,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152967
+    }
   }
 ]
