@@ -560,5 +560,43 @@
       },
       "update_id": 105152940
     }
+  },
+  {
+    "timestamp": "2026-06-04T11:39:50.971805+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 6,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/start",
+        "chat": {
+          "first_name": "Александр",
+          "id": 260365773,
+          "last_name": "Киреев",
+          "type": "private",
+          "username": "kireev_ohh"
+        },
+        "date": 1780573190,
+        "message_id": 851,
+        "from": {
+          "first_name": "Александр",
+          "id": 260365773,
+          "is_bot": false,
+          "is_premium": true,
+          "language_code": "ru",
+          "last_name": "Киреев",
+          "username": "kireev_ohh"
+        }
+      },
+      "update_id": 105152941
+    }
   }
 ]
