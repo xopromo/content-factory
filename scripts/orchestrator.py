@@ -322,18 +322,29 @@ def md_to_html(md_path: Path, html_path: Path, title: str) -> Path:
         md_text = outer.group(1)
 
     # Отделяем JSON-LD блок — два формата: raw <script> или ```json code block
-    jsonld_block = ""
-    # Формат 1: <script type="application/ld+json">...</script> прямо в тексте
-    m = re.search(r'<script type="application/ld\+json">([\s\S]*?)</script>', md_text)
-    if m:
-        jsonld_block = f'<script type="application/ld+json">{m.group(1)}</script>'
-        md_text = md_text[:m.start()] + md_text[m.end():]
-    elif "```json" in md_text and "@context" in md_text:
-        # Формат 2: ```json { ... } ```
-        m2 = re.search(r"```json\s*(\{[\s\S]*?\})\s*```", md_text)
-        if m2:
-            jsonld_block = f'<script type="application/ld+json">{m2.group(1)}</script>'
-            md_text = md_text[:m2.start()] + md_text[m2.end():]
+    jsonld_blocks = []
+    
+    # 1. Поиск всех тегов <script type="application/ld+json">
+    for m in re.finditer(r'<script type="application/ld\+json">([\s\S]*?)</script>', md_text):
+        jsonld_blocks.append(f'<script type="application/ld+json">{m.group(1).strip()}</script>')
+    
+    # Удаляем их из текста
+    md_text = re.sub(r'<script type="application/ld\+json">([\s\S]*?)</script>', '', md_text)
+    
+    # 2. Поиск всех ```json с @context (если они еще не обернуты в <script>)
+    for m2 in re.finditer(r"```json\s*([{\[][\s\S]*?[}\]])\s*```", md_text):
+        content = m2.group(1)
+        if "@context" in content:
+            jsonld_blocks.append(f'<script type="application/ld+json">{content.strip()}</script>')
+            
+    # Удаляем ```json блоки, содержащие @context, из текста
+    def _remove_json_context(match):
+        if "@context" in match.group(0):
+            return ""
+        return match.group(0)
+    md_text = re.sub(r"```json\s*([{\[][\s\S]*?[}\]])\s*```", _remove_json_context, md_text)
+
+    jsonld_block = "\n  ".join(jsonld_blocks)
 
     # Убираем служебные секции SEO-оптимизатора — они не часть статьи
     _seo_sections = [
@@ -793,7 +804,8 @@ def run_hallucination_detector(draft: str, raw_sources: str) -> tuple[bool, str]
         'Ultra', 'Pro', 'Nano', 'Flash', 'Online', 'Generated', 'Kling', 'Runway',
         'Sora', 'Midjourney', 'ChatGPT', 'OpenAI', 'Anthropic', 'Claude', 'Copilot',
         'Github', 'Facebook', 'Apple', 'iOS', 'Android', 'Windows', 'Mac', 'Linux',
-        'Slack', 'Zoom'
+        'Slack', 'Zoom', 'Ollama', 'Hugging', 'Face', 'Gemma', 'VRAM', 'RAM',
+        'Macbook', 'Llama'
     }
 
     def extract_entities(text):
@@ -1301,30 +1313,34 @@ def run_pipeline(
             full_draft = cleaned
             context["draft_1-3"] = cleaned
     else:
-        for step in (5, 6):
-            block = "1-3" if step == 5 else "4-6"
-            if last_step >= step and context.get(f"draft_{block}"):
-                print(f"  [passport] Шаг {step} пропущен (уже выполнен)")
-                continue
-            r = StepResult(step, "content-writer")
-            prompt = (
-                AGENT_PROMPTS["content-writer"].format(
-                    title=title,
-                    rules_excerpt=rules_excerpt,
-                    knowledge_pack=context.get("knowledge_pack", ""),
-                    web_pack=context.get("web_pack", ""),
-                    raw_sources=context.get("raw_sources", ""),
+        if last_step >= 6 and context.get("draft_1-3"):
+            print("  [passport] Шаги 5-6 пропущены (уже выполнены)")
+        else:
+            if last_step < 5:
+                r = StepResult(5, "content-writer")
+                prompt = (
+                    AGENT_PROMPTS["content-writer"].format(
+                        title=title,
+                        rules_excerpt=rules_excerpt,
+                        knowledge_pack=context.get("knowledge_pack", ""),
+                        web_pack=context.get("web_pack", ""),
+                        raw_sources=context.get("raw_sources", ""),
+                    )
+                    + mode_instructions
+                    + corrections_block
+                    + "\n\nНапиши всю статью целиком от введения до заключения по предложенной структуре."
                 )
-                + mode_instructions
-                + corrections_block
-                + f"\n\nНапиши блоки {block} статьи."
-            )
-            output, tokens = run_claude(prompt, inject_feedback=True)
-            context[f"draft_{block}"] = output
-            update_step(plan_path, step)
-            r.finish(output, tokens=tokens)
-            save_state(slug, context, step)
-        full_draft = context.get("draft_1-3", "") + "\n\n" + context.get("draft_4-6", "")
+                output, tokens = run_claude(prompt, inject_feedback=True)
+                context["draft_1-3"] = output
+                context["draft_4-6"] = ""
+                update_step(plan_path, 5)
+                r.finish(output, tokens=tokens)
+                save_state(slug, context, 5)
+
+            if last_step < 6:
+                update_step(plan_path, 6)
+                save_state(slug, context, 6)
+        full_draft = context.get("draft_1-3", "")
 
     # Auto revision loop: быстрая само-проверка черновика (пропускается в режиме news)
     if pipeline_mode == "news":
