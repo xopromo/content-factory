@@ -18,6 +18,13 @@ import os, re, sys, base64, logging, tempfile, urllib.request, urllib.parse, jso
 from pathlib import Path
 ROOT = Path(__file__).parent.parent
 sys.path.append(str(ROOT))
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT / ".env")
+except ImportError:
+    pass
+
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -320,8 +327,8 @@ def gen_article_metadata(topic: str, mode: str) -> tuple[str, str, str]:
 
 Верни ТОЛЬКО валидный JSON без разметки markdown и без каких-либо комментариев."""
     
-    result = llm_chat(prompt, system="Ты помощник по планированию контента.")
     try:
+        result = llm_chat(prompt, system="Ты помощник по планированию контента.")
         cleaned = result.strip()
         if cleaned.startswith("```json"):
             cleaned = cleaned[7:]
@@ -330,9 +337,9 @@ def gen_article_metadata(topic: str, mode: str) -> tuple[str, str, str]:
         data = json.loads(cleaned.strip())
         return data["title"], data["slug"], data["query"]
     except Exception as e:
-        log.error("Failed to parse article metadata: %s, raw: %s", e, result)
+        log.error("Failed to generate/parse article metadata: %s", e)
         slug = get_topic_slug(topic)
-        return f"Новое исследование: {topic}", slug, topic
+        return f"Статья: {topic}", slug, topic
 
 # ── Вспомогательные ───────────────────────────────────────────────────────────
 
@@ -2381,7 +2388,7 @@ def main() -> None:
     app.add_error_handler(telegram_error_handler)
 
     home_filter = filters.Regex("^(🏠|🏠 Главное меню)$")
-    media_filter = filters.VOICE | filters.AUDIO | filters.VIDEO | filters.VIDEO_NOTE
+    media_filter = filters.VOICE | filters.AUDIO | filters.VIDEO | filters.VIDEO_NOTE | filters.Document.AUDIO | filters.Document.VIDEO
 
     conv = ConversationHandler(
         entry_points=[
