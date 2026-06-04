@@ -18,6 +18,13 @@ import os, re, sys, base64, logging, tempfile, urllib.request, urllib.parse, jso
 from pathlib import Path
 ROOT = Path(__file__).parent.parent
 sys.path.append(str(ROOT))
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT / ".env")
+except ImportError:
+    pass
+
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -56,6 +63,8 @@ WAIT_ARTICLE_CONFIRM = 20
 WAIT_ARTICLE_MODE = 21
 WAIT_FORWARD_ACTION = 22
 WAIT_VOICE_NOTE = 23
+WAIT_TRANSCRIPT_ACTION = 24
+WAIT_SUMMARY_ACTION = 25
 
 # ── Константы ─────────────────────────────────────────────────────────────────
 CATEGORIES = ["💼 Кейс", "💡 Инсайт", "📋 Гайд", "🎯 Стратегия", "❓ Гипотеза", "📝 Мысль"]
@@ -91,6 +100,17 @@ NEWS_TOPICS = {
 NAV_KEYBOARD = ReplyKeyboardMarkup(
     [["🏠"]],
     resize_keyboard=True,
+)
+
+TRANSCRIPT_ACTION_KEYBOARD = ReplyKeyboardMarkup(
+    [
+        ["💾 Сохранить в базу"],
+        ["✨ Восстановить речь", "📖 Разбить на абзацы"],
+        ["🎬 Свернутый конспект", "📊 Сделать саммари"],
+        ["🚀 Создать статью", "🏠 Главное меню"]
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=True
 )
 
 NUMS = {"1️⃣": 0, "2️⃣": 1, "3️⃣": 2}
@@ -244,8 +264,9 @@ def llm_chat(prompt: str, system: str = "") -> str:
 
 def gen_expert_questions(topic: str, context: str) -> list[str]:
     existing = f"Уже есть в базе знаний по этой теме:\n{context}" if context.strip() else "База знаний пока пуста."
-    result = llm_chat(
-        f"""{existing}
+    try:
+        result = llm_chat(
+            f"""{existing}
 
 Придумай ровно 3 глубоких вопроса для распаковки практического опыта эксперта в теме: «{topic}».
 Требования:
@@ -254,28 +275,48 @@ def gen_expert_questions(topic: str, context: str) -> list[str]:
 - Вопросы должны провоцировать истории, а не общие ответы
 - Пример хорошего вопроса: «Расскажи про клиента, которому ты отказал — почему?»
 - Только 3 вопроса, каждый на отдельной строке, без нумерации и маркеров""",
-        f"Ты помогаешь эксперту распаковать знания в теме «{topic}» для наполнения контент-базы.",
-    )
-    questions = [q.strip() for q in result.splitlines() if q.strip() and not q.strip().startswith("#")]
-    return questions[:3]
+            f"Ты помогаешь эксперту распаковать знания в теме «{topic}» для наполнения контент-базы.",
+        )
+        questions = [q.strip() for q in result.splitlines() if q.strip() and not q.strip().startswith("#")]
+        if questions:
+            return questions[:3]
+    except Exception as e:
+        log.error("Failed to generate expert questions: %s", e)
+    
+    return [
+        f"Расскажи про свой самый интересный кейс в теме «{topic}».",
+        f"Какие главные ошибки совершают специалисты в теме «{topic}»?",
+        f"С чего лучше всего начать продвижение/работу в теме «{topic}»?"
+    ]
 
 def gen_business_questions(topic: str, existing: str) -> list[str]:
     context = f"Уже описано для направления «{topic}»:\n{existing[:1500]}" if existing.strip() and existing.strip() != "# Продукты и услуги" else "Описания пока нет."
-    result = llm_chat(
-        f"""{context}
+    try:
+        result = llm_chat(
+            f"""{context}
 
 Придумай ровно 3 вопроса для описания продуктов, услуг и офферов в теме/направлении: «{topic}».
 Спрашивай то, чего ещё нет выше: конкретные офферы, цены, тарифы, результаты клиентов, УТП, гарантии.
 Только 3 вопроса, каждый на отдельной строке, без нумерации.""",
-        f"Ты помогаешь заполнить описание бизнеса в направлении «{topic}» для контент-маркетинга.",
-    )
-    questions = [q.strip() for q in result.splitlines() if q.strip() and not q.strip().startswith("#")]
-    return questions[:3]
+            f"Ты помогаешь заполнить описание бизнеса в направлении «{topic}» для контент-маркетинга.",
+        )
+        questions = [q.strip() for q in result.splitlines() if q.strip() and not q.strip().startswith("#")]
+        if questions:
+            return questions[:3]
+    except Exception as e:
+        log.error("Failed to generate business questions: %s", e)
+        
+    return [
+        f"Какие продукты или услуги ты предлагаешь по направлению «{topic}»?",
+        f"Какова стоимость твоих услуг или тарифная сетка в направлении «{topic}»?",
+        f"Какое главное преимущество (УТП) твоих предложений по теме «{topic}»?"
+    ]
 
 def gen_audience_profile(topic: str, answers: list[tuple[str, str]]) -> str:
     qa_text = "\n\n".join(f"Вопрос: {q}\nОтвет: {a}" for q, a in answers)
-    return llm_chat(
-        f"""На основе ответов эксперта составь профиль целевой аудитории для проекта «{topic}» в Markdown:
+    try:
+        return llm_chat(
+            f"""На основе ответов эксперта составь профиль целевой аудитории для проекта «{topic}» в Markdown:
 
 {qa_text}
 
@@ -287,8 +328,32 @@ def gen_audience_profile(topic: str, answers: list[tuple[str, str]]) -> str:
 ## Ключевые возражения
 ## Желаемый результат
 ## Поисковые запросы (5–7 фраз)""",
-        f"Ты маркетолог, составляешь профиль ЦА в проекте «{topic}» для контент-стратегии эксперта.",
-    )
+            f"Ты маркетолог, составляешь профиль ЦА в проекте «{topic}» для контент-стратегии эксперта.",
+        )
+    except Exception as e:
+        log.error("Failed to generate audience profile: %s", e)
+        return f"""## Демография
+- Целевая аудитория в теме: {topic}
+
+## Главная боль и запрос
+- Требуется детальное описание болей (ошибка генерации профиля).
+
+## Что пробовал раньше
+- Различные стандартные решения.
+
+## Где находится онлайн
+- Социальные сети, тематические сообщества.
+
+## Ключевые возражения
+- Стоимость, сомнения в результате, нехватка времени.
+
+## Желаемый результат
+- Быстрый и качественный результат.
+
+## Поисковые запросы (5–7 фраз)
+- Как настроить {topic}
+- Продвижение {topic}
+- Обучение {topic}"""
 
 def gen_article_metadata(topic: str, mode: str) -> tuple[str, str, str]:
     mode_desc = ""
@@ -307,8 +372,8 @@ def gen_article_metadata(topic: str, mode: str) -> tuple[str, str, str]:
 
 Верни ТОЛЬКО валидный JSON без разметки markdown и без каких-либо комментариев."""
     
-    result = llm_chat(prompt, system="Ты помощник по планированию контента.")
     try:
+        result = llm_chat(prompt, system="Ты помощник по планированию контента.")
         cleaned = result.strip()
         if cleaned.startswith("```json"):
             cleaned = cleaned[7:]
@@ -317,9 +382,9 @@ def gen_article_metadata(topic: str, mode: str) -> tuple[str, str, str]:
         data = json.loads(cleaned.strip())
         return data["title"], data["slug"], data["query"]
     except Exception as e:
-        log.error("Failed to parse article metadata: %s, raw: %s", e, result)
+        log.error("Failed to generate/parse article metadata: %s", e)
         slug = get_topic_slug(topic)
-        return f"Новое исследование: {topic}", slug, topic
+        return f"Статья: {topic}", slug, topic
 
 # ── Вспомогательные ───────────────────────────────────────────────────────────
 
@@ -350,13 +415,22 @@ def format_voice_note(text: str, category: str, duration: int = 0) -> tuple[str,
 async def send_transcript(update: Update, text: str) -> None:
     """Отправляет полный транскрипт, разбивая на части если > 4000 символов."""
     LIMIT = 4000
+    parse_mode = "HTML" if ("<" in text and ">" in text) else "Markdown"
+    
+    if parse_mode == "HTML":
+        header_fn = lambda idx, total: f"📝 <b>Транскрипт ({idx}/{total}):</b>\n\n" if total > 1 else "📝 <b>Транскрипт:</b>\n\n"
+    else:
+        header_fn = lambda idx, total: f"📝 *Транскрипт ({idx}/{total}):*\n\n" if total > 1 else "📝 *Транскрипт:*\n\n"
+
     if len(text) <= LIMIT:
-        await update.message.reply_text(f"📝 *Транскрипт:*\n\n{text}", parse_mode="Markdown")
+        header = header_fn(1, 1)
+        await update.message.reply_text(header + text, parse_mode=parse_mode)
         return
+        
     chunks = [text[i:i + LIMIT] for i in range(0, len(text), LIMIT)]
     for idx, chunk in enumerate(chunks, 1):
-        header = f"📝 *Транскрипт ({idx}/{len(chunks)}):*\n\n" if idx == 1 else f"📝 *Транскрипт (часть {idx}/{len(chunks)}):*\n\n"
-        await update.message.reply_text(header + chunk, parse_mode="Markdown")
+        header = header_fn(idx, len(chunks))
+        await update.message.reply_text(header + chunk, parse_mode=parse_mode)
 
 def questions_keyboard(questions: list[str]) -> ReplyKeyboardMarkup:
     """Показывает вопросы в сообщении, кнопки — номера + навигация."""
@@ -374,32 +448,133 @@ def fmt_questions(questions: list[str]) -> str:
         lines.append(f"{emoji} {q}")
     return "\n\n".join(lines)
 
-async def _transcribe_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Optional[str]:
-    voice = update.message.voice or update.message.audio
-    if not voice:
+async def _download_and_transcribe_media(message, ctx: ContextTypes.DEFAULT_TYPE, status_msg=None) -> Optional[str]:
+    media_obj = None
+    media_type = None  # "audio" or "video"
+    
+    if message.voice:
+        media_obj = message.voice
+        media_type = "audio"
+    elif message.audio:
+        media_obj = message.audio
+        media_type = "audio"
+    elif message.video:
+        media_obj = message.video
+        media_type = "video"
+    elif message.video_note:
+        media_obj = message.video_note
+        media_type = "video"
+    elif message.document:
+        mime = message.document.mime_type or ""
+        if mime.startswith("audio/"):
+            media_obj = message.document
+            media_type = "audio"
+        elif mime.startswith("video/"):
+            media_obj = message.document
+            media_type = "video"
+            
+    if not media_obj:
         return None
-    status_msg = await update.message.reply_text("Транскрибирую...")
-    file = await ctx.bot.get_file(voice.file_id)
-    with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
-        tmp_path = Path(tmp.name)
-    await file.download_to_drive(tmp_path)
-    try:
-        res = transcribe(tmp_path)
+        
+    if status_msg:
         try:
-            await status_msg.delete()
+            await status_msg.edit_text("Скачиваю медиафайл...")
         except Exception:
             pass
+        
+    file = await ctx.bot.get_file(media_obj.file_id)
+    
+    # Generate appropriate suffix
+    orig_name = getattr(media_obj, "file_name", None) or "input"
+    suffix = Path(orig_name).suffix or (".mp4" if media_type == "video" else ".ogg")
+    
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+        
+    await file.download_to_drive(tmp_path)
+    
+    transcribe_path = tmp_path
+    extracted_audio_path = None
+    
+    try:
+        if media_type == "video":
+            if status_msg:
+                try:
+                    await status_msg.edit_text("Извлекаю аудиодорожку...")
+                except Exception:
+                    pass
+            ffmpeg_exe = "ffmpeg"
+            try:
+                import imageio_ffmpeg
+                ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+            except ImportError:
+                pass
+            
+            extracted_audio_path = tmp_path.with_suffix(".ogg")
+            # Run ffmpeg to extract audio
+            cmd = [
+                ffmpeg_exe, "-y", "-i", str(tmp_path),
+                "-vn", "-acodec", "libvorbis", "-ac", "1", "-ar", "16000",
+                str(extracted_audio_path)
+            ]
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            await process.wait()
+            if extracted_audio_path.exists() and extracted_audio_path.stat().st_size > 0:
+                transcribe_path = extracted_audio_path
+            else:
+                log.warning("ffmpeg audio extraction failed, attempting direct Whisper transcription of video")
+                
+        if status_msg:
+            try:
+                await status_msg.edit_text("Транскрибирую...")
+            except Exception:
+                pass
+        res = transcribe(transcribe_path)
         return res
     except Exception as e:
         log.error("Transcription error: %s", e)
-        try:
-            await status_msg.delete()
-        except Exception:
-            pass
-        await update.message.reply_text(f"Ошибка транскрипции: {e}", reply_markup=MAIN_KEYBOARD)
+        if status_msg:
+            try:
+                await status_msg.edit_text(f"Ошибка транскрипции: {e}")
+            except Exception:
+                pass
         return None
     finally:
         tmp_path.unlink(missing_ok=True)
+        if extracted_audio_path:
+            extracted_audio_path.unlink(missing_ok=True)
+
+async def _transcribe_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Optional[str]:
+    message = update.message
+    if not message:
+        return None
+        
+    media_obj = message.voice or message.audio or message.video or message.video_note or message.document
+    if media_obj:
+        file_size = getattr(media_obj, "file_size", 0)
+        MAX_SIZE = 20 * 1024 * 1024  # 20 MB
+        if file_size > MAX_SIZE:
+            size_mb = file_size / (1024 * 1024)
+            await message.reply_text(
+                f"⚠️ Файл слишком большой ({size_mb:.1f} МБ).\n"
+                f"Telegram Bot API разрешает скачивать файлы размером не более 20 МБ.\n"
+                f"Пожалуйста, сожмите видео или отправьте файл меньшего размера."
+            )
+            return None
+
+    status_msg = await message.reply_text("Получаю медиафайл...")
+    res = await _download_and_transcribe_media(message, ctx, status_msg)
+    try:
+        await status_msg.delete()
+    except Exception:
+        pass
+    if res is None:
+        await message.reply_text("Не удалось транскрибировать медиафайл.", reply_markup=MAIN_KEYBOARD)
+    return res
 
 # ── Команды ───────────────────────────────────────────────────────────────────
 
@@ -407,6 +582,23 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
         "Привет! Выбери режим или просто отправь голосовое.",
         reply_markup=MAIN_KEYBOARD,
+    )
+
+async def cmd_version(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    commit_hash = "Unknown"
+    try:
+        import subprocess
+        commit_hash = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode().strip()
+    except Exception:
+        pass
+    
+    await update.message.reply_text(
+        f"🤖 <b>Версия бота:</b>\n"
+        f"• <b>Коммит:</b> <code>{commit_hash}</code>\n"
+        f"• <b>Дата сборки:</b> 04.06.2026 22:45\n"
+        f"• <b>Провайдеры LLM:</b> Gemini, Groq, Mistral, Cerebras, Pollinations AI\n"
+        f"• <b>Режим:</b> Webhook (Render)",
+        parse_mode="HTML"
     )
 
 async def cmd_cancel(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
@@ -452,16 +644,253 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         return ConversationHandler.END
 
     ctx.user_data["text"] = text
-    ctx.user_data["duration"] = getattr(update.message.voice or update.message.audio, "duration", 0)
+    media = update.message.voice or update.message.audio or update.message.video or update.message.video_note
+    ctx.user_data["duration"] = getattr(media, "duration", 0) if media else 0
 
     await send_transcript(update, text)
 
-    keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
     await update.message.reply_text(
-        "Выбери категорию:",
-        reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+        "Что сделать с этой записью?",
+        reply_markup=TRANSCRIPT_ACTION_KEYBOARD,
     )
-    return WAIT_CATEGORY
+    return WAIT_TRANSCRIPT_ACTION
+
+async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    action = update.message.text.strip()
+    text = ctx.user_data.get("text", "")
+    
+    if action == "🏠 Главное меню":
+        ctx.user_data.clear()
+        await update.message.reply_text("Главное меню:", reply_markup=MAIN_KEYBOARD)
+        return ConversationHandler.END
+        
+    elif action == "💾 Сохранить в базу":
+        keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
+        await update.message.reply_text(
+            "Выбери категорию для сохранения:",
+            reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+        )
+        return WAIT_CATEGORY
+        
+    elif action == "✨ Восстановить речь":
+        if not text:
+            await update.message.reply_text("Нет текста для восстановления.")
+            return WAIT_TRANSCRIPT_ACTION
+            
+        status_msg = await update.message.reply_text("✨ Восстанавливаю речь с помощью AI (убираю заикания, исправляю ошибки)...")
+        clean_prompt = (
+            "Ты профессиональный редактор. Твоя задача — очистить транскрибированный текст голосовой заметки.\n"
+            "1. Удали все заикания, повторы слов, междометия и слова-паразиты (э-э, ну, как бы, типа, вот, значит, это самое и т.д.).\n"
+            "2. Исправь грамматические, пунктуационные и орфографические ошибки.\n"
+            "3. Сделай предложения более плавными и логичными, но ПОЛНОСТЬЮ сохрани исходный смысл, ключевые факты и тон автора.\n"
+            "4. НЕ добавляй никаких собственных выводов, комментариев, приветствий или объяснений. Верни ТОЛЬКО очищенный текст."
+        )
+        try:
+            cleaned_text = llm_chat(text, system=clean_prompt)
+            ctx.user_data["text"] = cleaned_text
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await send_transcript(update, cleaned_text)
+            
+            await update.message.reply_text(
+                "Речь успешно восстановлена! Что сделать дальше?",
+                reply_markup=TRANSCRIPT_ACTION_KEYBOARD,
+            )
+        except Exception as e:
+            log.error("Speech restoration failed: %s", e)
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await update.message.reply_text(f"Не удалось восстановить речь: {e}")
+            
+        return WAIT_TRANSCRIPT_ACTION
+        
+    elif action == "📖 Разбить на абзацы":
+        if not text:
+            await update.message.reply_text("Нет текста для разбиения на абзацы.")
+            return WAIT_TRANSCRIPT_ACTION
+            
+        status_msg = await update.message.reply_text("📖 Разбиваю текст на логические абзацы с помощью AI...")
+        paragraph_prompt = (
+            "Разбей следующий транскрибированный текст на логические абзацы.\n"
+            "Правила:\n"
+            "1. Раздели текст на смысловые абзацы с помощью пустых строк (двойного переноса строки).\n"
+            "2. НЕ изменяй слова, формулировки или смысл. НЕ исправляй ошибки и не редактируй сам текст.\n"
+            "3. НЕ добавляй никаких собственных выводов, комментариев, приветствий или объяснений. Верни ТОЛЬКО исходный текст, разделенный на абзацы."
+        )
+        try:
+            paragraphed_text = llm_chat(text, system=paragraph_prompt)
+            ctx.user_data["text"] = paragraphed_text
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await send_transcript(update, paragraphed_text)
+            
+            await update.message.reply_text(
+                "Текст успешно разбит на абзацы! Что сделать дальше?",
+                reply_markup=TRANSCRIPT_ACTION_KEYBOARD,
+            )
+        except Exception as e:
+            log.error("Paragraph splitting failed: %s", e)
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await update.message.reply_text(f"Не удалось разбить текст на абзацы: {e}")
+            
+        return WAIT_TRANSCRIPT_ACTION
+
+    elif action == "🎬 Свернутый конспект":
+        if not text:
+            await update.message.reply_text("Нет текста для создания конспекта.")
+            return WAIT_TRANSCRIPT_ACTION
+            
+        status_msg = await update.message.reply_text("🎬 Создаю свернутый интерактивный конспект с помощью AI...")
+        collapse_prompt = (
+            "Сделай структурированный интерактивный конспект (outline) следующего транскрибированного текста.\n"
+            "Правила оформления:\n"
+            "1. Раздели текст на смысловые блоки.\n"
+            "2. Для каждого блока напиши емкий жирный заголовок-тезис с помощью HTML-тега <b>Заголовок-тезис</b>.\n"
+            "3. Помести подробный текст этого блока внутрь тега раскрывающейся цитаты Telegram: <blockquote expandable>текст блока</blockquote>. Это критически важно! Тег должен быть строго в формате <blockquote expandable>...</blockquote>.\n"
+            "4. Убедись, что все HTML-теги правильно закрыты (<b>...</b> и <blockquote expandable>...</blockquote>) и не пересекаются.\n"
+            "5. НЕ используй никакую Markdown-разметку (никаких *, _, ` и т.д.), чтобы избежать ошибок разметки в Telegram.\n"
+            "6. НЕ добавляй приветствий, мета-комментариев или объяснений. Верни ТОЛЬКО структурированный HTML-текст конспекта."
+        )
+        try:
+            collapsed_text = llm_chat(text, system=collapse_prompt)
+            # Remove any markdown code blocks model might wrap it in, e.g. ```html ... ```
+            collapsed_text = re.sub(r"^```[a-zA-Z0-9]*\n", "", collapsed_text)
+            collapsed_text = re.sub(r"\n```$", "", collapsed_text)
+            collapsed_text = collapsed_text.strip()
+            
+            ctx.user_data["text"] = collapsed_text
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await send_transcript(update, collapsed_text)
+            
+            await update.message.reply_text(
+                "Свернутый конспект готов! Что сделать дальше?",
+                reply_markup=TRANSCRIPT_ACTION_KEYBOARD,
+            )
+        except Exception as e:
+            log.error("Collapsible outline failed: %s", e)
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await update.message.reply_text(f"Не удалось создать свернутый конспект: {e}")
+            
+        return WAIT_TRANSCRIPT_ACTION
+        
+    elif action in ["🚀 Создать статью", "🚀 Создать статью на эту тему"]:
+        if not text:
+            await update.message.reply_text("Нет темы/текста для генерации статьи.")
+            return WAIT_TRANSCRIPT_ACTION
+            
+        instruction = ctx.user_data.get("reply_instruction", "")
+        topic = f"Контекст: {text}\nИнструкция: {instruction}" if instruction else text
+        ctx.user_data["article_topic"] = topic
+        ctx.user_data.pop("reply_instruction", None)
+        
+        keyboard = [
+            ["🎯 Статья для SEO и GEO"],
+            ["🔬 Статья-исследование"],
+            ["📰 Новостной обзор"],
+            ["🏠"]
+        ]
+        await update.message.reply_text(
+            f"🚀 <b>Создание задачи на написание статьи</b>\n\n"
+            f"Тема сформирована из выбранного сообщения.\n"
+            f"Выберите формат статьи:",
+            parse_mode="HTML",
+            reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+        )
+        return WAIT_ARTICLE_MODE
+
+    elif action == "📊 Сделать саммари":
+        if not text:
+            await update.message.reply_text("Нет текста для саммаризации.")
+            return WAIT_TRANSCRIPT_ACTION
+            
+        status_msg = await update.message.reply_text("📊 Создаю саммари с помощью AI...")
+        summary_prompt = (
+            "Сделай краткое структурированное саммари (выжимку) следующего текста на русском языке.\n"
+            "Выдели ключевые мысли, важные факты, цифры и выводы в виде маркированного списка.\n"
+            "Будь лаконичен и структурирован. Не пиши приветствий или мета-комментариев."
+        )
+        try:
+            summary_text = llm_chat(text, system=summary_prompt)
+            ctx.user_data["summary_text"] = summary_text
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await update.message.reply_text(f"📊 *Саммари записи:*\n\n{summary_text}", parse_mode="Markdown")
+            
+            keyboard = [
+                ["💾 Сохранить саммари в базу"],
+                ["💾 Сохранить весь текст"],
+                ["🏠 Главное меню"]
+            ]
+            await update.message.reply_text(
+                "Что сделать дальше?",
+                reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+            )
+            return WAIT_SUMMARY_ACTION
+        except Exception as e:
+            log.error("Summarization failed: %s", e)
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await update.message.reply_text(f"Не удалось сгенерировать саммари: {e}")
+            
+        return WAIT_TRANSCRIPT_ACTION
+        
+    else:
+        await update.message.reply_text("Пожалуйста, выберите одно из действий на клавиатуре.")
+        return WAIT_TRANSCRIPT_ACTION
+
+async def handle_summary_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    action = update.message.text.strip()
+    
+    if action == "🏠 Главное меню":
+        ctx.user_data.clear()
+        await update.message.reply_text("Главное меню:", reply_markup=MAIN_KEYBOARD)
+        return ConversationHandler.END
+        
+    elif action == "💾 Сохранить саммари в базу":
+        summary_text = ctx.user_data.get("summary_text", "")
+        if not summary_text:
+            await update.message.reply_text("Нет саммари для сохранения.")
+            return WAIT_TRANSCRIPT_ACTION
+        # Replace main text with summary so handle_category saves it
+        ctx.user_data["text"] = summary_text
+        
+        keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
+        await update.message.reply_text(
+            "Выбери категорию для сохранения саммари:",
+            reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+        )
+        return WAIT_CATEGORY
+        
+    elif action == "💾 Сохранить весь текст":
+        keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
+        await update.message.reply_text(
+            "Выбери категорию для сохранения всего текста:",
+            reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+        )
+        return WAIT_CATEGORY
+        
+    else:
+        await update.message.reply_text("Пожалуйста, выберите одно из действий на клавиатуре.")
+        return WAIT_SUMMARY_ACTION
 
 async def handle_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     category = update.message.text.strip()
@@ -635,7 +1064,8 @@ async def expert_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     full_text = f"**Вопрос:** {question}\n\n**Ответ:** {text}" if question else text
 
     ctx.user_data["text"] = full_text
-    ctx.user_data["duration"] = getattr(update.message.voice or update.message.audio, "duration", 0)
+    media = update.message.voice or update.message.audio or update.message.video or update.message.video_note
+    ctx.user_data["duration"] = getattr(media, "duration", 0) if media else 0
 
     await send_transcript(update, text)
 
@@ -1311,7 +1741,7 @@ async def choose_article_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
 
 async def handle_article_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     # If voice, transcribe it first
-    if update.message.voice or update.message.audio:
+    if update.message.voice or update.message.audio or update.message.video or update.message.video_note:
         text = await _transcribe_voice(update, ctx)
         if text is None:
             return WAIT_ARTICLE_TOPIC
@@ -1447,20 +1877,7 @@ async def handle_article_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
     return WAIT_ARTICLE_CONFIRM
 
 async def _transcribe_voice_msg(message, ctx: ContextTypes.DEFAULT_TYPE) -> Optional[str]:
-    voice = message.voice or message.audio
-    if not voice:
-        return None
-    file = await ctx.bot.get_file(voice.file_id)
-    with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
-        tmp_path = Path(tmp.name)
-    await file.download_to_drive(tmp_path)
-    try:
-        return transcribe(tmp_path)
-    except Exception as e:
-        log.error("Transcription error: %s", e)
-        return None
-    finally:
-        tmp_path.unlink(missing_ok=True)
+    return await _download_and_transcribe_media(message, ctx, status_msg=None)
 
 async def handle_reply_entry(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     original_msg = update.message.reply_to_message
@@ -1473,8 +1890,8 @@ async def handle_reply_entry(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> 
         original_text = original_msg.text
     elif original_msg.caption:
         original_text = original_msg.caption
-    elif original_msg.voice or original_msg.audio:
-        status_msg = await update.message.reply_text("Транскрибирую исходное голосовое сообщение...")
+    elif original_msg.voice or original_msg.audio or original_msg.video or original_msg.video_note:
+        status_msg = await update.message.reply_text("Транскрибирую исходное медиасообщение...")
         original_text = await _transcribe_voice_msg(original_msg, ctx)
         try:
             await status_msg.delete()
@@ -1484,32 +1901,36 @@ async def handle_reply_entry(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> 
     reply_text = ""
     if update.message.text:
         reply_text = update.message.text.strip()
-    elif update.message.voice or update.message.audio:
+    elif update.message.voice or update.message.audio or update.message.video or update.message.video_note:
         reply_text = await _transcribe_voice(update, ctx)
 
     if not reply_text:
         await update.message.reply_text("Не удалось распознать текст вашего ответа.")
         return ConversationHandler.END
 
-    topic = f"Контекст: {original_text}\nИнструкция: {reply_text}" if original_text else reply_text
-    
-    ctx.user_data.clear()
-    ctx.user_data["article_topic"] = topic
-
-    keyboard = [
-        ["🎯 Статья для SEO и GEO"],
-        ["🔬 Статья-исследование"],
-        ["📰 Новостной обзор"],
-        ["🏠"]
+    FORMAT_ACTIONS = [
+        "✨ Восстановить речь",
+        "📖 Разбить на абзацы",
+        "🎬 Свернутый конспект",
+        "📊 Сделать саммари",
+        "💾 Сохранить в базу"
     ]
+    if reply_text in FORMAT_ACTIONS:
+        ctx.user_data["text"] = original_text
+        return await handle_transcript_action(update, ctx)
+
+    ctx.user_data["text"] = original_text
+    ctx.user_data["reply_instruction"] = reply_text
+
     await update.message.reply_text(
-        f"🚀 <b>Создание задачи из Reply</b>\n\n"
-        f"Тема сформирована из ответа на сообщение.\n"
-        f"Выберите формат статьи:",
+        f"📥 <b>Получен текст сообщения и ваша инструкция.</b>\n\n"
+        f"<b>Текст:</b>\n<i>{original_text[:300]}...</i>\n\n"
+        f"<b>Инструкция:</b>\n<i>{reply_text}</i>\n\n"
+        f"Выберите действие с этим материалом:",
         parse_mode="HTML",
-        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+        reply_markup=TRANSCRIPT_ACTION_KEYBOARD
     )
-    return WAIT_ARTICLE_MODE
+    return WAIT_TRANSCRIPT_ACTION
 
 async def handle_forwarded_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     if "forward_buffer" not in ctx.user_data:
@@ -1787,12 +2208,15 @@ async def global_update_logger(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
         updates = updates[-50:]
         log_file.write_text(json.dumps(updates, ensure_ascii=False, indent=2), encoding="utf-8")
         
-        # Записываем на GitHub
-        gh_write("docs/articles/webhook_log.json", json.dumps(updates, ensure_ascii=False, indent=2), "diagnostics: log webhook update")
+        # Записываем на GitHub только если запущен локально (чтобы не зацикливать сборки на Render)
+        if not os.getenv("PORT"):
+            gh_write("docs/articles/webhook_log.json", json.dumps(updates, ensure_ascii=False, indent=2), "diagnostics: log webhook update")
     except Exception as e:
         log.error("Error in global_update_logger: %s", e)
 
 def log_bot_startup() -> None:
+    if os.getenv("PORT"):
+        return
     try:
         import subprocess
         commit = ""
@@ -2004,7 +2428,8 @@ async def post_init(application: Application) -> None:
         BotCommand("cancel", "Сбросить текущий режим / Отмена"),
         BotCommand("log", "Показать лог оркестратора"),
         BotCommand("pushlog", "Отправить лог в репозиторий GitHub"),
-        BotCommand("resume", "Возобновить генерацию статьи")
+        BotCommand("resume", "Возобновить генерацию статьи"),
+        BotCommand("version", "Показать текущую версию бота")
     ])
 
 def main() -> None:
@@ -2026,10 +2451,11 @@ def main() -> None:
     app.add_error_handler(telegram_error_handler)
 
     home_filter = filters.Regex("^(🏠|🏠 Главное меню)$")
+    media_filter = filters.VOICE | filters.AUDIO | filters.VIDEO | filters.VIDEO_NOTE | filters.Document.AUDIO | filters.Document.VIDEO
 
     conv = ConversationHandler(
         entry_points=[
-            MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
+            MessageHandler(media_filter, handle_voice),
             MessageHandler(filters.Regex("^💡 Экспертиза$"), choose_expert_topic),
             MessageHandler(filters.Regex("^💼 Бизнес$"), choose_biz_topic),
             MessageHandler(filters.Regex("^🎯 Аудитория$"), choose_aud_topic),
@@ -2063,7 +2489,7 @@ def main() -> None:
             ],
             WAIT_EXPERT_VOICE: [
                 MessageHandler(home_filter, go_home),
-                MessageHandler(filters.VOICE | filters.AUDIO, expert_voice),
+                MessageHandler(media_filter, expert_voice),
             ],
             WAIT_BIZ_TOPIC: [
                 MessageHandler(home_filter, go_home),
@@ -2079,7 +2505,7 @@ def main() -> None:
             ],
             WAIT_BIZ_VOICE: [
                 MessageHandler(home_filter, go_home),
-                MessageHandler(filters.VOICE | filters.AUDIO, biz_voice),
+                MessageHandler(media_filter, biz_voice),
             ],
             WAIT_AUD_TOPIC: [
                 MessageHandler(home_filter, go_home),
@@ -2091,7 +2517,7 @@ def main() -> None:
             ],
             WAIT_AUD_ANSWER: [
                 MessageHandler(home_filter, go_home),
-                MessageHandler(filters.VOICE | filters.AUDIO, audience_answer),
+                MessageHandler(media_filter, audience_answer),
             ],
             WAIT_AUD_CONFIRM: [
                 MessageHandler(home_filter, go_home),
@@ -2111,7 +2537,7 @@ def main() -> None:
             ],
             WAIT_NEWS_VOICE: [
                 MessageHandler(home_filter, go_home),
-                MessageHandler(filters.VOICE | filters.AUDIO, news_voice),
+                MessageHandler(media_filter, news_voice),
             ],
             WAIT_ARTICLE_MODE: [
                 MessageHandler(home_filter, go_home),
@@ -2120,7 +2546,7 @@ def main() -> None:
             WAIT_ARTICLE_TOPIC: [
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_article_topic),
-                MessageHandler(filters.VOICE | filters.AUDIO, handle_article_topic),
+                MessageHandler(media_filter, handle_article_topic),
             ],
             WAIT_ARTICLE_CONFIRM: [
                 MessageHandler(home_filter, go_home),
@@ -2132,7 +2558,15 @@ def main() -> None:
             ],
             WAIT_VOICE_NOTE: [
                 MessageHandler(home_filter, go_home),
-                MessageHandler(filters.VOICE | filters.AUDIO, handle_voice),
+                MessageHandler(media_filter, handle_voice),
+            ],
+            WAIT_TRANSCRIPT_ACTION: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_transcript_action),
+            ],
+            WAIT_SUMMARY_ACTION: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_summary_action),
             ],
         },
         fallbacks=[CommandHandler("cancel", cmd_cancel)],
@@ -2141,6 +2575,7 @@ def main() -> None:
 
     app.add_handler(TypeHandler(Update, global_update_logger), group=-1)
     app.add_handler(CommandHandler("start", cmd_start))
+    app.add_handler(CommandHandler("version", cmd_version))
     app.add_handler(CommandHandler("log", cmd_log))
     app.add_handler(CommandHandler("pushlog", cmd_pushlog))
     app.add_handler(CommandHandler("resume", cmd_resume))

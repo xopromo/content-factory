@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2026-06-03T23:25:53.010109+00:00",
+    "timestamp": "2026-06-04T16:03:56.353193+00:00",
     "update": {
       "message": {
         "channel_chat_created": false,
@@ -22,8 +22,8 @@
           "type": "private",
           "username": "xopromo"
         },
-        "date": 1780529146,
-        "message_id": 798,
+        "date": 1780589036,
+        "message_id": 922,
         "from": {
           "first_name": "Константин",
           "id": 220023136,
@@ -33,18 +33,91 @@
           "username": "xopromo"
         }
       },
-      "update_id": 105152925
+      "update_id": 105152945
     }
   },
   {
-    "timestamp": "2026-06-03T23:25:54.147054+00:00",
+    "timestamp": "2026-06-04T16:04:28.150766+00:00",
     "update": {
       "message": {
         "channel_chat_created": false,
         "delete_chat_photo": false,
         "group_chat_created": false,
         "supergroup_chat_created": false,
-        "text": "🚀 Создать статью",
+        "video": {
+          "duration": 461,
+          "file_name": "0514(19).mp4",
+          "height": 1080,
+          "mime_type": "video/mp4",
+          "width": 1922,
+          "thumbnail": {
+            "height": 179,
+            "width": 320,
+            "file_id": "AAMCAQADGQEAAgObaiGiCyyhapy6KnOPyYtC46Of6OMAAlAIAALdLwhFtQUX8w3yDjMBAAdtAAM7BA",
+            "file_size": 8860,
+            "file_unique_id": "AQADUAgAAt0vCEVy"
+          },
+          "file_id": "BAACAgEAAxkBAAIDm2ohogssoWqcuipzj8mLQuOjn-jjAAJQCAAC3S8IRbUFF_MN8g4zOwQ",
+          "file_size": 294654798,
+          "file_unique_id": "AgADUAgAAt0vCEU",
+          "thumb": {
+            "file_id": "AAMCAQADGQEAAgObaiGiCyyhapy6KnOPyYtC46Of6OMAAlAIAALdLwhFtQUX8w3yDjMBAAdtAAM7BA",
+            "file_unique_id": "AQADUAgAAt0vCEVy",
+            "file_size": 8860,
+            "width": 320,
+            "height": 179
+          },
+          "qualities": [
+            {
+              "width": 1920,
+              "height": 1076,
+              "codec": "av01",
+              "file_id": "BAACAgEAAxkBAAIDm2ohogtqEGazw7_6J2rwdpscURTWAALoBgAC7L4RRbCmDXKFmn31OwQ",
+              "file_unique_id": "AgAD6AYAAuy-EUU",
+              "file_size": 96255120
+            },
+            {
+              "width": 1920,
+              "height": 1076,
+              "codec": "h264",
+              "file_id": "BAACAgEAAxkBAAIDm2ohoguSnXvSp1j6R-cpC8lmY94LAAIdEAAC8koIRcK6WGtJBmjROwQ",
+              "file_unique_id": "AgADHRAAAvJKCEU",
+              "file_size": 128244257
+            },
+            {
+              "width": 1280,
+              "height": 716,
+              "codec": "av01",
+              "file_id": "BAACAgEAAxkBAAIDm2ohogtfvTlT52X1zdFyCuVRr7ZBAAJYBwACXlEQRXwZlk0n-SuZOwQ",
+              "file_unique_id": "AgADWAcAAl5REEU",
+              "file_size": 46086285
+            },
+            {
+              "width": 1280,
+              "height": 716,
+              "codec": "h264",
+              "file_id": "BAACAgEAAxkBAAIDm2ohogsdZc30tlx6fDmOk-hnmL1MAAILCQAC1YIQRXSdQnEaxLnYOwQ",
+              "file_unique_id": "AgADCwkAAtWCEEU",
+              "file_size": 59917910
+            },
+            {
+              "width": 852,
+              "height": 480,
+              "codec": "av01",
+              "file_id": "BAACAgEAAxkBAAIDm2ohogsey-IiIqGqwahp6g2ki_6GAAJUEAAC2MkJRRUs_9PHzzTOOwQ",
+              "file_unique_id": "AgADVBAAAtjJCUU",
+              "file_size": 24977213
+            },
+            {
+              "width": 852,
+              "height": 480,
+              "codec": "h264",
+              "file_id": "BAACAgEAAxkBAAIDm2ohogtY2zqFauctqAABw_GgbBCPfQACowYAAsjPEUWYFyx5qcxcdjsE",
+              "file_unique_id": "AgADowYAAsjPEUU",
+              "file_size": 30691799
+            }
+          ]
+        },
         "chat": {
           "first_name": "Константин",
           "id": 220023136,
@@ -52,8 +125,8 @@
           "type": "private",
           "username": "xopromo"
         },
-        "date": 1780529152,
-        "message_id": 799,
+        "date": 1780589068,
+        "message_id": 923,
         "from": {
           "first_name": "Константин",
           "id": 220023136,
@@ -63,18 +136,25 @@
           "username": "xopromo"
         }
       },
-      "update_id": 105152926
+      "update_id": 105152946
     }
   },
   {
-    "timestamp": "2026-06-03T23:25:59.002794+00:00",
+    "timestamp": "2026-06-04T16:30:48.163763+00:00",
     "update": {
       "message": {
         "channel_chat_created": false,
         "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 6,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
         "group_chat_created": false,
         "supergroup_chat_created": false,
-        "text": "📰 Новостной обзор",
+        "text": "/start",
         "chat": {
           "first_name": "Константин",
           "id": 220023136,
@@ -82,8 +162,8 @@
           "type": "private",
           "username": "xopromo"
         },
-        "date": 1780529158,
-        "message_id": 801,
+        "date": 1780590648,
+        "message_id": 924,
         "from": {
           "first_name": "Константин",
           "id": 220023136,
@@ -93,102 +173,47 @@
           "username": "xopromo"
         }
       },
-      "update_id": 105152927
+      "update_id": 105152947
     }
   },
   {
-    "timestamp": "2026-06-03T23:26:26.388374+00:00",
+    "timestamp": "2026-06-04T16:31:10.051533+00:00",
     "update": {
       "message": {
         "channel_chat_created": false,
         "delete_chat_photo": false,
         "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "voice": {
-          "duration": 10,
-          "mime_type": "audio/ogg",
-          "file_id": "AwACAgIAAxkBAAIDI2oguCJj4iOnDa-LSvmjn3eH24vGAALgnwACn10JSXciKm2QOBLFOwQ",
-          "file_size": 215936,
-          "file_unique_id": "AgAD4J8AAp9dCUk"
-        },
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780529186,
-        "message_id": 803,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        }
-      },
-      "update_id": 105152928
-    }
-  },
-  {
-    "timestamp": "2026-06-03T23:40:53.427193+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "text": "✅ Подтвердить и запустить",
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780530052,
-        "message_id": 812,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        }
-      },
-      "update_id": 105152931
-    }
-  },
-  {
-    "timestamp": "2026-06-04T11:20:47.077017+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "forward_origin": {
-          "sender_user": {
+        "reply_to_message": {
+          "channel_chat_created": false,
+          "delete_chat_photo": false,
+          "entities": [
+            {
+              "length": 11,
+              "offset": 3,
+              "type": "bold"
+            }
+          ],
+          "group_chat_created": false,
+          "supergroup_chat_created": false,
+          "text": "📝 Транскрипт:\n\nсделал такого чат-бота который транскрибирует бесплатно речь голосовые сообщения попробуй потестируй он сейчас не закрыт но он настроен только под меня то есть ты там все кнопочки статьи всякие там не пиши не заказывай мысли не записывай просто попробую как транскрибатор аудио Для этого просто пересылаешь ему аудио, он пишет. «Транскрибирую» потом транскрибирует, задает тебе готовый транскрибированный ответ и потом просит тебя занести в какую-то категорию. Вот игнорируя это, в категорию ни в какую не заноси, просто бери транскрибированный ответ и дальше делай с ним что хочешь. Либо копируй как текст. Лучше копируй как текст, не пересылай куда-либо. То, что другие тоже начнут заходить, пользоваться. А мне-то не жалко, но сейчас все, что люди запишут там и занесут в какие-то заметки, это будет собираться в базе моего цифрового клона. Как будто это я сохранил заметки про себя. И база загрязнится. А я бы не хотел, чтобы она загрязнялась. То есть надо, чтобы она пополнялась сейчас только моими историями. Я тебе могу такой же сделать. вот он просто будет наговаривая что-то сохраняешь иногда он сам вопроса задает ну чтобы подтолкнуть тебя до чтобы ты не забыл и потом у тебя пополнится база на основе которой можно будет уже писать посты персонализированные там своей точкой зрения то есть не рассеять будет опираться не только на факты но еще на то что ты думаешь в целом до или около этой темы из того, что есть в БАТИ.",
+          "chat": {
             "first_name": "Константин",
             "id": 220023136,
-            "is_bot": false,
-            "language_code": "ru",
             "last_name": "Крестинин",
+            "type": "private",
             "username": "xopromo"
           },
-          "date": 1780572033,
-          "type": "user"
+          "date": 1780573133,
+          "message_id": 849,
+          "from": {
+            "first_name": "Neiromagie",
+            "id": 8702383164,
+            "is_bot": true,
+            "username": "neiromagie_bot"
+          }
         },
-        "group_chat_created": false,
         "supergroup_chat_created": false,
-        "voice": {
-          "duration": 51,
-          "mime_type": "audio/ogg",
-          "file_id": "AwACAgIAAxkBAAIDN2ohX45QmRHqHBgQGAO6FnxTKrqLAAIVpQACnXcRSa1S8-rtYJZ5OwQ",
-          "file_size": 1061360,
-          "file_unique_id": "AgADFaUAAp13EUk"
-        },
+        "text": "Вот",
         "chat": {
           "first_name": "Константин",
           "id": 220023136,
@@ -196,8 +221,8 @@
           "type": "private",
           "username": "xopromo"
         },
-        "date": 1780572046,
-        "message_id": 823,
+        "date": 1780590669,
+        "message_id": 926,
         "from": {
           "first_name": "Константин",
           "id": 220023136,
@@ -205,47 +230,20 @@
           "language_code": "ru",
           "last_name": "Крестинин",
           "username": "xopromo"
-        },
-        "forward_date": 1780572033,
-        "forward_from": {
-          "id": 220023136,
-          "is_bot": false,
-          "first_name": "Константин",
-          "last_name": "Крестинин",
-          "username": "xopromo",
-          "language_code": "ru"
         }
       },
-      "update_id": 105152934
+      "update_id": 105152948
     }
   },
   {
-    "timestamp": "2026-06-04T11:22:23.576012+00:00",
+    "timestamp": "2026-06-04T16:31:37.402056+00:00",
     "update": {
       "message": {
         "channel_chat_created": false,
         "delete_chat_photo": false,
-        "forward_origin": {
-          "sender_user": {
-            "first_name": "Константин",
-            "id": 220023136,
-            "is_bot": false,
-            "language_code": "ru",
-            "last_name": "Крестинин",
-            "username": "xopromo"
-          },
-          "date": 1780572136,
-          "type": "user"
-        },
         "group_chat_created": false,
         "supergroup_chat_created": false,
-        "voice": {
-          "duration": 67,
-          "mime_type": "audio/ogg",
-          "file_id": "AwACAgIAAxkBAAIDO2ohX-85ce-Mw3s7OySq2LoXysyNAAIZpQACnXcRSRJ9ouQEaJfOOwQ",
-          "file_size": 1390136,
-          "file_unique_id": "AgADGaUAAp13EUk"
-        },
+        "text": "🏠",
         "chat": {
           "first_name": "Константин",
           "id": 220023136,
@@ -253,8 +251,8 @@
           "type": "private",
           "username": "xopromo"
         },
-        "date": 1780572143,
-        "message_id": 827,
+        "date": 1780590697,
+        "message_id": 928,
         "from": {
           "first_name": "Константин",
           "id": 220023136,
@@ -262,250 +260,13 @@
           "language_code": "ru",
           "last_name": "Крестинин",
           "username": "xopromo"
-        },
-        "forward_date": 1780572136,
-        "forward_from": {
-          "id": 220023136,
-          "is_bot": false,
-          "first_name": "Константин",
-          "last_name": "Крестинин",
-          "username": "xopromo",
-          "language_code": "ru"
         }
       },
-      "update_id": 105152935
+      "update_id": 105152949
     }
   },
   {
-    "timestamp": "2026-06-04T11:24:16.630220+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "forward_origin": {
-          "sender_user": {
-            "first_name": "Константин",
-            "id": 220023136,
-            "is_bot": false,
-            "language_code": "ru",
-            "last_name": "Крестинин",
-            "username": "xopromo"
-          },
-          "date": 1780572245,
-          "type": "user"
-        },
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "voice": {
-          "duration": 47,
-          "mime_type": "audio/ogg",
-          "file_id": "AwACAgIAAxkBAAIDP2ohYGC_sEJd7Jh4UrYs-qq9Hm3nAAIbpQACnXcRSfl12VdMpIBxOwQ",
-          "file_size": 982256,
-          "file_unique_id": "AgADG6UAAp13EUk"
-        },
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780572256,
-        "message_id": 831,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        },
-        "forward_date": 1780572245,
-        "forward_from": {
-          "id": 220023136,
-          "is_bot": false,
-          "first_name": "Константин",
-          "last_name": "Крестинин",
-          "username": "xopromo",
-          "language_code": "ru"
-        }
-      },
-      "update_id": 105152936
-    }
-  },
-  {
-    "timestamp": "2026-06-04T11:31:01.546630+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "forward_origin": {
-          "sender_user": {
-            "first_name": "Константин",
-            "id": 220023136,
-            "is_bot": false,
-            "language_code": "ru",
-            "last_name": "Крестинин",
-            "username": "xopromo"
-          },
-          "date": 1780572654,
-          "type": "user"
-        },
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "voice": {
-          "duration": 331,
-          "mime_type": "audio/ogg",
-          "file_id": "AwACAgIAAxkBAAIDQ2ohYfUF9noYS5tmoHkE7cBI2-XsAAIopQACnXcRSW3ASVvy_GNZOwQ",
-          "file_size": 6822768,
-          "file_unique_id": "AgADKKUAAp13EUk"
-        },
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780572661,
-        "message_id": 835,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        },
-        "forward_date": 1780572654,
-        "forward_from": {
-          "id": 220023136,
-          "is_bot": false,
-          "first_name": "Константин",
-          "last_name": "Крестинин",
-          "username": "xopromo",
-          "language_code": "ru"
-        }
-      },
-      "update_id": 105152937
-    }
-  },
-  {
-    "timestamp": "2026-06-04T11:34:03.280698+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "forward_origin": {
-          "sender_user": {
-            "first_name": "Константин",
-            "id": 220023136,
-            "is_bot": false,
-            "language_code": "ru",
-            "last_name": "Крестинин",
-            "username": "xopromo"
-          },
-          "date": 1780572835,
-          "type": "user"
-        },
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "voice": {
-          "duration": 68,
-          "mime_type": "audio/ogg",
-          "file_id": "AwACAgIAAxkBAAIDR2ohYqrQHLw85jST_YwjLEgKKiHGAAIypQACnXcRSX3ny2wDK0QqOwQ",
-          "file_size": 1409912,
-          "file_unique_id": "AgADMqUAAp13EUk"
-        },
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780572842,
-        "message_id": 839,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        },
-        "forward_date": 1780572835,
-        "forward_from": {
-          "id": 220023136,
-          "is_bot": false,
-          "first_name": "Константин",
-          "last_name": "Крестинин",
-          "username": "xopromo",
-          "language_code": "ru"
-        }
-      },
-      "update_id": 105152938
-    }
-  },
-  {
-    "timestamp": "2026-06-04T11:36:30.200065+00:00",
-    "update": {
-      "message": {
-        "channel_chat_created": false,
-        "delete_chat_photo": false,
-        "forward_origin": {
-          "sender_user": {
-            "first_name": "Константин",
-            "id": 220023136,
-            "is_bot": false,
-            "language_code": "ru",
-            "last_name": "Крестинин",
-            "username": "xopromo"
-          },
-          "date": 1780572984,
-          "type": "user"
-        },
-        "group_chat_created": false,
-        "supergroup_chat_created": false,
-        "voice": {
-          "duration": 15,
-          "mime_type": "audio/ogg",
-          "file_id": "AwACAgIAAxkBAAIDS2ohYz6bce-iN-L-IJcBVp2zDh0ZAAINpQAC87sJSc8RhsG-z_2gOwQ",
-          "file_size": 321408,
-          "file_unique_id": "AgADDaUAAvO7CUk"
-        },
-        "chat": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "last_name": "Крестинин",
-          "type": "private",
-          "username": "xopromo"
-        },
-        "date": 1780572990,
-        "message_id": 843,
-        "from": {
-          "first_name": "Константин",
-          "id": 220023136,
-          "is_bot": false,
-          "language_code": "ru",
-          "last_name": "Крестинин",
-          "username": "xopromo"
-        },
-        "forward_date": 1780572984,
-        "forward_from": {
-          "id": 220023136,
-          "is_bot": false,
-          "first_name": "Константин",
-          "last_name": "Крестинин",
-          "username": "xopromo",
-          "language_code": "ru"
-        }
-      },
-      "update_id": 105152939
-    }
-  },
-  {
-    "timestamp": "2026-06-04T11:38:48.750711+00:00",
+    "timestamp": "2026-06-04T16:32:01.009075+00:00",
     "update": {
       "message": {
         "channel_chat_created": false,
@@ -538,8 +299,8 @@
           "type": "private",
           "username": "xopromo"
         },
-        "date": 1780573128,
-        "message_id": 847,
+        "date": 1780590720,
+        "message_id": 930,
         "from": {
           "first_name": "Константин",
           "id": 220023136,
@@ -558,11 +319,48 @@
           "language_code": "ru"
         }
       },
-      "update_id": 105152940
+      "update_id": 105152950
     }
   },
   {
-    "timestamp": "2026-06-04T11:39:50.971805+00:00",
+    "timestamp": "2026-06-04T16:38:21.645073+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 7,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/cancel",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780591101,
+        "message_id": 934,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152951
+    }
+  },
+  {
+    "timestamp": "2026-06-04T16:38:25.195482+00:00",
     "update": {
       "message": {
         "channel_chat_created": false,
@@ -578,29 +376,124 @@
         "supergroup_chat_created": false,
         "text": "/start",
         "chat": {
-          "first_name": "Александр",
-          "id": 260365773,
-          "last_name": "Киреев",
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
           "type": "private",
-          "username": "kireev_ohh"
+          "username": "xopromo"
         },
-        "date": 1780573190,
-        "message_id": 851,
+        "date": 1780591105,
+        "message_id": 936,
         "from": {
-          "first_name": "Александр",
-          "id": 260365773,
+          "first_name": "Константин",
+          "id": 220023136,
           "is_bot": false,
-          "is_premium": true,
           "language_code": "ru",
-          "last_name": "Киреев",
-          "username": "kireev_ohh"
+          "last_name": "Крестинин",
+          "username": "xopromo"
         }
       },
-      "update_id": 105152941
+      "update_id": 105152952
     }
   },
   {
-    "timestamp": "2026-06-04T12:29:37.271408+00:00",
+    "timestamp": "2026-06-04T16:38:36.880739+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "group_chat_created": false,
+        "reply_to_message": {
+          "channel_chat_created": false,
+          "delete_chat_photo": false,
+          "entities": [
+            {
+              "length": 11,
+              "offset": 3,
+              "type": "bold"
+            }
+          ],
+          "group_chat_created": false,
+          "supergroup_chat_created": false,
+          "text": "📝 Транскрипт:\n\nсделал такого чат-бота который транскрибирует бесплатно речь голосовые сообщения попробуй потестируй он сейчас не закрыт но он настроен только под меня то есть ты там все кнопочки статьи всякие там не пиши не заказывай мысли не записывай просто попробую как транскрибатор аудио для этого просто пересылаешь ему аудио он пишет транскрибируя потом транскрибирует выдает тебе готовый транскрибированный ответ. И потом прощет занести в какую какую-то категорию игнорирует это в категорию ни в какую не заноси это просто выберет транскрибированный ответ дальше, делай с ним что хочешь либо копируй как текст, лучше копируй как текст не пересылай куда-либо тоже начнут заходить, пользоваться. А мне-то не жалко, но сейчас все, что люди запишут там и занесут в какие-то заметки, это будет собираться в базе моего цифрового клона, как будто это я сохранил заметки про себя. И база загрязнится. А я бы не хотел, чтобы она загрязнялась. То есть, надо, чтобы она пополнялась сейчас только моими историями. Я тебе могу такой же сделать. Вот он Просто будет Ты наговариваешь что-то, сохраняешь Иногда он тебе сам вопросы задает Ну, чтобы подтолкнуть тебя, да, чтобы Ты не забыл И потом у тебя пополнится база На основе которой можно будет уже Уписать посты персонализированные Там, с твоей точкой зрения То есть нейросеть будет опираться Не только на факты, но еще на то Что ты думаешь в целом, да Или около этой темы из того, что есть в бате.",
+          "chat": {
+            "first_name": "Константин",
+            "id": 220023136,
+            "last_name": "Крестинин",
+            "type": "private",
+            "username": "xopromo"
+          },
+          "date": 1780590726,
+          "message_id": 932,
+          "from": {
+            "first_name": "Neiromagie",
+            "id": 8702383164,
+            "is_bot": true,
+            "username": "neiromagie_bot"
+          }
+        },
+        "supergroup_chat_created": false,
+        "text": ".",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780591116,
+        "message_id": 938,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152953
+    }
+  },
+  {
+    "timestamp": "2026-06-04T16:41:25.046528+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 7,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/cancel",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780591284,
+        "message_id": 940,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152954
+    }
+  },
+  {
+    "timestamp": "2026-06-04T16:41:27.280324+00:00",
     "update": {
       "message": {
         "channel_chat_created": false,
@@ -616,27 +509,427 @@
         "supergroup_chat_created": false,
         "text": "/start",
         "chat": {
-          "first_name": "Яна",
-          "id": 185312793,
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
           "type": "private",
-          "username": "nmchk1"
+          "username": "xopromo"
         },
-        "date": 1780576177,
-        "message_id": 853,
+        "date": 1780591287,
+        "message_id": 942,
         "from": {
-          "first_name": "Яна",
-          "id": 185312793,
+          "first_name": "Константин",
+          "id": 220023136,
           "is_bot": false,
-          "is_premium": true,
           "language_code": "ru",
-          "username": "nmchk1"
+          "last_name": "Крестинин",
+          "username": "xopromo"
         }
       },
-      "update_id": 105152942
+      "update_id": 105152955
     }
   },
   {
-    "timestamp": "2026-06-04T12:30:10.553162+00:00",
+    "timestamp": "2026-06-04T16:41:37.117942+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "group_chat_created": false,
+        "reply_to_message": {
+          "channel_chat_created": false,
+          "delete_chat_photo": false,
+          "entities": [
+            {
+              "length": 11,
+              "offset": 3,
+              "type": "bold"
+            }
+          ],
+          "group_chat_created": false,
+          "supergroup_chat_created": false,
+          "text": "📝 Транскрипт:\n\nсделал такого чат-бота который транскрибирует бесплатно речь голосовые сообщения попробуй потестируй он сейчас не закрыт но он настроен только под меня то есть ты там все кнопочки статьи всякие там не пиши не заказывай мысли не записывай просто попробую как транскрибатор аудио для этого просто пересылаешь ему аудио он пишет транскрибируя потом транскрибирует выдает тебе готовый транскрибированный ответ. И потом прощет занести в какую какую-то категорию игнорирует это в категорию ни в какую не заноси это просто выберет транскрибированный ответ дальше, делай с ним что хочешь либо копируй как текст, лучше копируй как текст не пересылай куда-либо тоже начнут заходить, пользоваться. А мне-то не жалко, но сейчас все, что люди запишут там и занесут в какие-то заметки, это будет собираться в базе моего цифрового клона, как будто это я сохранил заметки про себя. И база загрязнится. А я бы не хотел, чтобы она загрязнялась. То есть, надо, чтобы она пополнялась сейчас только моими историями. Я тебе могу такой же сделать. Вот он Просто будет Ты наговариваешь что-то, сохраняешь Иногда он тебе сам вопросы задает Ну, чтобы подтолкнуть тебя, да, чтобы Ты не забыл И потом у тебя пополнится база На основе которой можно будет уже Уписать посты персонализированные Там, с твоей точкой зрения То есть нейросеть будет опираться Не только на факты, но еще на то Что ты думаешь в целом, да Или около этой темы из того, что есть в бате.",
+          "chat": {
+            "first_name": "Константин",
+            "id": 220023136,
+            "last_name": "Крестинин",
+            "type": "private",
+            "username": "xopromo"
+          },
+          "date": 1780590726,
+          "message_id": 932,
+          "from": {
+            "first_name": "Neiromagie",
+            "id": 8702383164,
+            "is_bot": true,
+            "username": "neiromagie_bot"
+          }
+        },
+        "supergroup_chat_created": false,
+        "text": ".",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780591297,
+        "message_id": 944,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152956
+    }
+  },
+  {
+    "timestamp": "2026-06-04T17:45:55.174161+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 7,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/cancel",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780595155,
+        "message_id": 946,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152957
+    }
+  },
+  {
+    "timestamp": "2026-06-04T17:45:57.870713+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 6,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/start",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780595157,
+        "message_id": 948,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152958
+    }
+  },
+  {
+    "timestamp": "2026-06-04T17:46:04.665200+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "group_chat_created": false,
+        "reply_to_message": {
+          "channel_chat_created": false,
+          "delete_chat_photo": false,
+          "entities": [
+            {
+              "length": 11,
+              "offset": 3,
+              "type": "bold"
+            }
+          ],
+          "group_chat_created": false,
+          "supergroup_chat_created": false,
+          "text": "📝 Транскрипт:\n\nсделал такого чат-бота который транскрибирует бесплатно речь голосовые сообщения попробуй потестируй он сейчас не закрыт но он настроен только под меня то есть ты там все кнопочки статьи всякие там не пиши не заказывай мысли не записывай просто попробую как транскрибатор аудио для этого просто пересылаешь ему аудио он пишет транскрибируя потом транскрибирует выдает тебе готовый транскрибированный ответ. И потом прощет занести в какую какую-то категорию игнорирует это в категорию ни в какую не заноси это просто выберет транскрибированный ответ дальше, делай с ним что хочешь либо копируй как текст, лучше копируй как текст не пересылай куда-либо тоже начнут заходить, пользоваться. А мне-то не жалко, но сейчас все, что люди запишут там и занесут в какие-то заметки, это будет собираться в базе моего цифрового клона, как будто это я сохранил заметки про себя. И база загрязнится. А я бы не хотел, чтобы она загрязнялась. То есть, надо, чтобы она пополнялась сейчас только моими историями. Я тебе могу такой же сделать. Вот он Просто будет Ты наговариваешь что-то, сохраняешь Иногда он тебе сам вопросы задает Ну, чтобы подтолкнуть тебя, да, чтобы Ты не забыл И потом у тебя пополнится база На основе которой можно будет уже Уписать посты персонализированные Там, с твоей точкой зрения То есть нейросеть будет опираться Не только на факты, но еще на то Что ты думаешь в целом, да Или около этой темы из того, что есть в бате.",
+          "chat": {
+            "first_name": "Константин",
+            "id": 220023136,
+            "last_name": "Крестинин",
+            "type": "private",
+            "username": "xopromo"
+          },
+          "date": 1780590726,
+          "message_id": 932,
+          "from": {
+            "first_name": "Neiromagie",
+            "id": 8702383164,
+            "is_bot": true,
+            "username": "neiromagie_bot"
+          }
+        },
+        "supergroup_chat_created": false,
+        "text": ".",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780595164,
+        "message_id": 950,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152959
+    }
+  },
+  {
+    "timestamp": "2026-06-04T17:54:31.661711+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 7,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/cancel",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780595671,
+        "message_id": 952,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152960
+    }
+  },
+  {
+    "timestamp": "2026-06-04T18:26:28.630737+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 7,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/cancel",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780597588,
+        "message_id": 955,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152961
+    }
+  },
+  {
+    "timestamp": "2026-06-04T18:26:30.725244+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 6,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/start",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780597590,
+        "message_id": 956,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152962
+    }
+  },
+  {
+    "timestamp": "2026-06-04T18:26:47.594369+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "group_chat_created": false,
+        "reply_to_message": {
+          "channel_chat_created": false,
+          "delete_chat_photo": false,
+          "entities": [
+            {
+              "length": 11,
+              "offset": 3,
+              "type": "bold"
+            }
+          ],
+          "group_chat_created": false,
+          "supergroup_chat_created": false,
+          "text": "📝 Транскрипт:\n\nсделал такого чат-бота который транскрибирует бесплатно речь голосовые сообщения попробуй потестируй он сейчас не закрыт но он настроен только под меня то есть ты там все кнопочки статьи всякие там не пиши не заказывай мысли не записывай просто попробую как транскрибатор аудио для этого просто пересылаешь ему аудио он пишет транскрибируя потом транскрибирует выдает тебе готовый транскрибированный ответ. И потом прощет занести в какую какую-то категорию игнорирует это в категорию ни в какую не заноси это просто выберет транскрибированный ответ дальше, делай с ним что хочешь либо копируй как текст, лучше копируй как текст не пересылай куда-либо тоже начнут заходить, пользоваться. А мне-то не жалко, но сейчас все, что люди запишут там и занесут в какие-то заметки, это будет собираться в базе моего цифрового клона, как будто это я сохранил заметки про себя. И база загрязнится. А я бы не хотел, чтобы она загрязнялась. То есть, надо, чтобы она пополнялась сейчас только моими историями. Я тебе могу такой же сделать. Вот он Просто будет Ты наговариваешь что-то, сохраняешь Иногда он тебе сам вопросы задает Ну, чтобы подтолкнуть тебя, да, чтобы Ты не забыл И потом у тебя пополнится база На основе которой можно будет уже Уписать посты персонализированные Там, с твоей точкой зрения То есть нейросеть будет опираться Не только на факты, но еще на то Что ты думаешь в целом, да Или около этой темы из того, что есть в бате.",
+          "chat": {
+            "first_name": "Константин",
+            "id": 220023136,
+            "last_name": "Крестинин",
+            "type": "private",
+            "username": "xopromo"
+          },
+          "date": 1780590726,
+          "message_id": 932,
+          "from": {
+            "first_name": "Neiromagie",
+            "id": 8702383164,
+            "is_bot": true,
+            "username": "neiromagie_bot"
+          }
+        },
+        "supergroup_chat_created": false,
+        "text": "Вот",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780597607,
+        "message_id": 958,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152963
+    }
+  },
+  {
+    "timestamp": "2026-06-04T18:27:08.680849+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 6,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/start",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780597628,
+        "message_id": 960,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152964
+    }
+  },
+  {
+    "timestamp": "2026-06-04T18:27:17.539881+00:00",
     "update": {
       "message": {
         "channel_chat_created": false,
@@ -644,30 +937,341 @@
         "group_chat_created": false,
         "supergroup_chat_created": false,
         "voice": {
-          "duration": 16,
+          "duration": 3,
           "mime_type": "audio/ogg",
-          "file_id": "AwACAgIAAxkBAAIDV2ohb9Jfcmi_QI3Z5IIGysxW8MFXAAIToAACnLMRSXNpg3xR2RRuOwQ",
-          "file_size": 65239,
-          "file_unique_id": "AgADE6AAApyzEUk"
+          "file_id": "AwACAgIAAxkBAAIDwmohw4WJHXyJ_Uzsd85Uv8v7pt_5AAL_pQACluMQSU1gNuVQvxDmOwQ",
+          "file_size": 62260,
+          "file_unique_id": "AgAD_6UAApbjEEk"
         },
         "chat": {
-          "first_name": "Яна",
-          "id": 185312793,
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
           "type": "private",
-          "username": "nmchk1"
+          "username": "xopromo"
         },
-        "date": 1780576210,
-        "message_id": 855,
+        "date": 1780597637,
+        "message_id": 962,
         "from": {
-          "first_name": "Яна",
-          "id": 185312793,
+          "first_name": "Константин",
+          "id": 220023136,
           "is_bot": false,
-          "is_premium": true,
           "language_code": "ru",
-          "username": "nmchk1"
+          "last_name": "Крестинин",
+          "username": "xopromo"
         }
       },
-      "update_id": 105152943
+      "update_id": 105152965
+    }
+  },
+  {
+    "timestamp": "2026-06-04T19:42:09.042969+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 7,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/cancel",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780602128,
+        "message_id": 966,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152966
+    }
+  },
+  {
+    "timestamp": "2026-06-04T19:42:20.208077+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "voice": {
+          "duration": 3,
+          "mime_type": "audio/ogg",
+          "file_id": "AwACAgIAAxkBAAIDyGoh1RwV4feYWU3ilIY7lHjjwO_RAAIJpwACluMQSRQ7dT_dBPaaOwQ",
+          "file_size": 63496,
+          "file_unique_id": "AgADCacAApbjEEk"
+        },
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780602140,
+        "message_id": 968,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152967
+    }
+  },
+  {
+    "timestamp": "2026-06-04T19:42:30.310096+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "🏠",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780602150,
+        "message_id": 972,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152968
+    }
+  },
+  {
+    "timestamp": "2026-06-04T19:42:44.162563+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "🎤 Голосовая заметка",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780602163,
+        "message_id": 974,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152969
+    }
+  },
+  {
+    "timestamp": "2026-06-04T19:42:52.693797+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "voice": {
+          "duration": 2,
+          "mime_type": "audio/ogg",
+          "file_id": "AwACAgIAAxkBAAID0Goh1TxBB13hZRnbB2RQ11Qi3IuvAAILpwACluMQSSRZypRuxsZ5OwQ",
+          "file_size": 51136,
+          "file_unique_id": "AgADC6cAApbjEEk"
+        },
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780602172,
+        "message_id": 976,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152970
+    }
+  },
+  {
+    "timestamp": "2026-06-04T19:43:04.306833+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "📝 Мысль",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780602184,
+        "message_id": 980,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152971
+    }
+  },
+  {
+    "timestamp": "2026-06-04T21:08:37.043968+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 7,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/cancel",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780607316,
+        "message_id": 986,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152973
+    }
+  },
+  {
+    "timestamp": "2026-06-04T21:08:38.736572+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 6,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/start",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780607318,
+        "message_id": 987,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152974
+    }
+  },
+  {
+    "timestamp": "2026-06-04T21:09:06.700113+00:00",
+    "update": {
+      "message": {
+        "channel_chat_created": false,
+        "delete_chat_photo": false,
+        "entities": [
+          {
+            "length": 8,
+            "offset": 0,
+            "type": "bot_command"
+          }
+        ],
+        "group_chat_created": false,
+        "supergroup_chat_created": false,
+        "text": "/version",
+        "chat": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "last_name": "Крестинин",
+          "type": "private",
+          "username": "xopromo"
+        },
+        "date": 1780607346,
+        "message_id": 989,
+        "from": {
+          "first_name": "Константин",
+          "id": 220023136,
+          "is_bot": false,
+          "language_code": "ru",
+          "last_name": "Крестинин",
+          "username": "xopromo"
+        }
+      },
+      "update_id": 105152975
     }
   }
 ]
