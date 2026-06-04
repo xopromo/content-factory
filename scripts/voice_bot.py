@@ -255,10 +255,11 @@ def transcribe(audio_path: Path) -> str:
 
 def llm_chat(prompt: str, system: str = "") -> str:
     """Sends chat prompt to shared llm_client"""
-    from scripts.utils.llm_client import run_claude_common
+    from scripts.utils.llm_client import run_fast_common
     full_prompt = f"System Instructions: {system}\n\nUser Request:\n{prompt}" if system else prompt
-    content, _ = run_claude_common(full_prompt)
+    content, _ = run_fast_common(full_prompt, quality="strong")
     return content
+
 
 # ── Генерация вопросов ────────────────────────────────────────────────────────
 
