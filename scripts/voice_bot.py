@@ -2749,6 +2749,25 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         msg_fail = await update.effective_message.reply_text(f"❌ Ошибка возобновления: {e}")
         asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg_fail.message_id, 15))
 
+async def proxy_harvester_loop() -> None:
+    # Ждем 2 минуты после старта, чтобы бот полностью инициализировался,
+    # а затем запускаем первую проверку, чтобы сразу проверить прокси при перезапуске.
+    await asyncio.sleep(120)
+    while True:
+        try:
+            channel = os.getenv("TG_PROXY_CHANNEL")
+            if channel:
+                print("Starting scheduled proxy harvest...")
+                from scripts.proxy_harvester import run_harvester
+                await run_harvester()
+                print("Scheduled proxy harvest completed.")
+            else:
+                print("Scheduled proxy harvest skipped (TG_PROXY_CHANNEL not set).")
+        except Exception as e:
+            print(f"Error in scheduled proxy harvest loop: {e}")
+        # Засыпаем на 20 минут (1200 секунд)
+        await asyncio.sleep(1200)
+
 async def post_init(application: Application) -> None:
     from telegram import BotCommand
     await application.bot.set_my_commands([
@@ -2759,6 +2778,8 @@ async def post_init(application: Application) -> None:
         BotCommand("resume", "Возобновить генерацию статьи"),
         BotCommand("version", "Показать текущую версию бота")
     ])
+    # Запускаем фоновую задачу сборщика прокси
+    asyncio.create_task(proxy_harvester_loop())
 
 def main() -> None:
     try:
