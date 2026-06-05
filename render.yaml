@@ -19,6 +19,28 @@ services:
         sync: false
       - key: GROQ_KEY_2
         sync: false
+      - key: TG_PROXY_CHANNEL
+        sync: false
+      - key: GITHUB_REPO
+        value: xopromo/content-factory
+      - key: GITHUB_BRANCH
+        value: main
+
+  - type: cron
+    name: proxy-harvester
+    runtime: python
+    buildCommand: python -m pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: python3 scripts/proxy_harvester.py
+    schedule: "*/20 * * * *"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: TG_BOT_TOKEN
+        sync: false
+      - key: TG_PROXY_CHANNEL
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
       - key: GITHUB_REPO
         value: xopromo/content-factory
       - key: GITHUB_BRANCH
