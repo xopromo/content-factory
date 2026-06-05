@@ -9,6 +9,7 @@ import urllib.parse
 import base64
 import sys
 from pathlib import Path
+from html import unescape
 
 # Add scripts directory to path to import check_proxies
 sys.path.append(str(Path(__file__).parent))
@@ -59,13 +60,18 @@ def _gh_headers():
     }
 
 def gh_write(path: str, content: str, message: str) -> str:
-    """Writes a file to GitHub repository to persist state."""
+    """Writes a file to GitHub repository to persist state, falling back to local write on failure."""
     token = get_env_var("GITHUB_TOKEN")
-    if not token:
+    
+    # Define local write helper
+    def write_local():
         p = Path(__file__).parent.parent / path
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(content, "utf-8")
         return str(p)
+
+    if not token:
+        return write_local()
         
     repo = get_env_var("GITHUB_REPO", "xopromo/content-factory")
     branch = get_env_var("GITHUB_BRANCH", "main")
@@ -86,15 +92,19 @@ def gh_write(path: str, content: str, message: str) -> str:
     if sha:
         payload["sha"] = sha
         
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode(),
-        headers={**_gh_headers(), "Content-Type": "application/json"},
-        method="PUT",
-    )
-    with urllib.request.urlopen(req, timeout=15) as r:
-        result = json.loads(r.read())
-        return result.get("content", {}).get("html_url", path)
+    try:
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode(),
+            headers={**_gh_headers(), "Content-Type": "application/json"},
+            method="PUT",
+        )
+        with urllib.request.urlopen(req, timeout=15) as r:
+            result = json.loads(r.read())
+            return result.get("content", {}).get("html_url", path)
+    except Exception as e:
+        print(f"Failed to write to GitHub ({e}). Falling back to local save.")
+        return write_local()
 
 async def telegram_api_call(method, payload):
     """Makes a request to the Telegram Bot API."""
@@ -129,7 +139,8 @@ async def scrape_channel(channel):
             with urllib.request.urlopen(req, timeout=10) as r:
                 return r.read().decode("utf-8", errors="ignore")
                 
-        html = await asyncio.to_thread(fetch)
+        raw_html = await asyncio.to_thread(fetch)
+        html = unescape(raw_html)
         
         # Regexes for proxy links (both tg:// and t.me/ links)
         mtproto_pattern = r'(?:tg:\/\/proxy\?server=[^"\'\s&]+&port=\d+&secret=[^"\'\s&]+|https:\/\/t\.me\/proxy\?server=[^"\'\s&]+&port=\d+&secret=[^"\'\s&]+)'
