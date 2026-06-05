@@ -1,8 +1,0 @@
-{
-  "timestamp": "2026-06-05 17:10:54",
-  "error_type": "AttributeError",
-  "error_message": "'NoneType' object has no attribute 'reply_text'",
-  "traceback": "Traceback (most recent call last):\n  File \"/opt/render/project/src/.venv/lib/python3.11/site-packages/telegram/ext/_application.py\", line 1335, in process_update\n    await coroutine\n  File \"/opt/render/project/src/.venv/lib/python3.11/site-packages/telegram/ext/_handlers/basehandler.py\", line 158, in handle_update\n    return await self.callback(update, context)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/render/project/src/scripts/voice_bot.py\", line 2237, in handle_text_message\n    await update.message.reply_text(\n          ^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'NoneType' object has no attribute 'reply_text'\n",
-  "source": "telegram_bot_handler",
-  "update": "Update(channel_post=Message(channel_chat_created=False, chat=Chat(id=-1003821574135, title='my_proxy', type=<ChatType.CHANNEL>), date=datetime.datetime(2026, 6, 5, 17, 10, 54, tzinfo=<UTC>), delete_chat_photo=False, group_chat_created=False, message_id=2, sender_chat=Chat(id=-1003821574135, title='my_proxy', type=<ChatType.CHANNEL>), supergroup_chat_created=False, text='ntcn'), update_id=105152997)"
-}
