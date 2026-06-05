@@ -179,46 +179,46 @@ async def test_proxy_async(proxy, timeout=5):
     if not proxy:
         return False, 9999
         
-    # For MTProto, we test standard TCP connection to the proxy server
+    # For MTProto, we test using a real Telethon client with MemorySession
     if proxy["type"] == "mtproto":
-        t_start = time.time()
         try:
-            # Connect directly to the proxy port
-            reader, writer = await asyncio.wait_for(
-                asyncio.open_connection(proxy["server"], proxy["port"]),
-                timeout=timeout
+            from telethon import TelegramClient, connection
+            from telethon.sessions import MemorySession
+            from telethon.tl.functions.help import GetConfigRequest
+            import logging
+            
+            # Mute telethon internal logging
+            logging.getLogger('telethon').setLevel(logging.WARNING)
+            
+            # Public Telegram Desktop credentials for handshake validation
+            API_ID = 6
+            API_HASH = "eb06d4abfb49dc3eeb1aeb98ae0f581e"
+            
+            client = TelegramClient(
+                MemorySession(),
+                API_ID,
+                API_HASH,
+                connection=connection.ConnectionTcpMTProxyRandomizedIntermediate,
+                proxy=(proxy["server"], proxy["port"], proxy["secret"])
             )
             
-            # Send a fake HTTP request to detect if it's a web server rather than MTProto
-            writer.write(b"GET / HTTP/1.1\r\n\r\n" + b"A" * 46)
-            await writer.drain()
-            
-            # Try to read some bytes with a short timeout to see if it responds with HTTP
-            try:
-                data = await asyncio.wait_for(reader.read(256), timeout=1.5)
-                if b"HTTP" in data or b"http" in data:
-                    # It's a web server, not an MTProto proxy!
-                    writer.close()
-                    try:
-                        await writer.wait_closed()
-                    except Exception:
-                        pass
-                    return False, 9999
-            except asyncio.TimeoutError:
-                # Silent server, consistent with MTProto proxy behavior
-                pass
-            except Exception:
-                # Connection closed or error, also consistent with MTProto proxy behavior on garbage
-                pass
+            t_start = time.time()
+            # Try to connect
+            await asyncio.wait_for(client.connect(), timeout=timeout)
+            if not client.is_connected():
+                return False, 9999
                 
-            writer.close()
-            try:
-                await writer.wait_closed()
-            except Exception:
-                pass
+            # Perform a test request to ensure we can route traffic
+            await asyncio.wait_for(client(GetConfigRequest()), timeout=timeout)
+            
             latency = int((time.time() - t_start) * 1000)
+            await client.disconnect()
             return True, latency
         except Exception:
+            try:
+                await client.disconnect()
+            except Exception:
+                pass
             return False, 9999
             
     # For SOCKS/HTTP, we test actual routing to a Telegram DC
