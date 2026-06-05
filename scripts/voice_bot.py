@@ -2299,6 +2299,56 @@ async def cmd_proxies(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         )
         asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 30))
 
+async def cmd_harvester(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.message:
+        try:
+            await update.message.delete()
+        except Exception:
+            pass
+            
+    channel = os.getenv("TG_PROXY_CHANNEL")
+    if not channel:
+        msg = await ctx.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="❌ <b>Канал для прокси не настроен!</b> Укажите <code>TG_PROXY_CHANNEL</code> в <code>.env</code>.",
+            parse_mode="HTML"
+        )
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 15))
+        return
+        
+    status_msg = await ctx.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f"🔌 <b>Запуск сборщика прокси...</b>\nПроверяем и чистим канал {channel}. Пожалуйста, подождите.",
+        parse_mode="HTML"
+    )
+    
+    try:
+        from scripts.proxy_harvester import run_harvester
+        await run_harvester()
+        
+        try:
+            await ctx.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
+        except Exception:
+            pass
+            
+        msg = await ctx.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"✅ <b>Работа сборщика завершена!</b>\nКанал {channel} успешно очищен от мертвых прокси и наполнен свежими.",
+            parse_mode="HTML"
+        )
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 30))
+    except Exception as e:
+        try:
+            await ctx.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
+        except Exception:
+            pass
+        msg = await ctx.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"❌ <b>Ошибка при работе сборщика:</b>\n<code>{e}</code>",
+            parse_mode="HTML"
+        )
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 30))
+
 async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     review_file = ROOT / "business" / "review_waiting.txt"
     if review_file.exists():
@@ -2859,6 +2909,7 @@ def main() -> None:
     app.add_handler(CommandHandler("resume", cmd_resume))
     app.add_handler(CommandHandler("proxies", cmd_proxies))
     app.add_handler(CommandHandler("check_proxies", cmd_proxies))
+    app.add_handler(CommandHandler("harvester", cmd_harvester))
     app.add_handler(conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
