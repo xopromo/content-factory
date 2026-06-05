@@ -281,6 +281,142 @@ async def harvest_and_post_new(channel_username, state, sources=DEFAULT_SOURCES,
             
     return state, posted_count
 
+def call_vk_api(method, params, token):
+    """Makes a request to the VK API."""
+    url = f"https://api.vk.com/method/{method}"
+    full_params = {**params, "access_token": token, "v": "5.131"}
+    data = urllib.parse.urlencode(full_params).encode("utf-8")
+    req = urllib.request.Request(url, data=data)
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except Exception as e:
+        return {"error": {"error_code": -1, "error_msg": str(e)}}
+
+def sync_to_vk(state):
+    """Sends a backup list of working proxies to VK private messages (Saved Messages), editing the same message if possible."""
+    token = get_env_var("VK_TOKEN")
+    if not token:
+        try:
+            local_vk_config = Path(__file__).parent.parent.parent / "vk_config.json"
+            if local_vk_config.exists():
+                cfg = json.loads(local_vk_config.read_text(encoding="utf-8"))
+                token = cfg.get("token")
+        except Exception:
+            pass
+            
+    if not token:
+        print("VK backup skipped: VK_TOKEN not configured.")
+        return
+        
+    if "," in token:
+        token = token.split(",")[0].strip()
+        
+    user_id_str = get_env_var("VK_USER_ID")
+    user_id = None
+    if user_id_str:
+        try:
+            user_id = int(user_id_str)
+        except ValueError:
+            pass
+            
+    if not user_id:
+        try:
+            res = call_vk_api("users.get", {}, token)
+            if "response" in res and res["response"]:
+                user_id = res["response"][0]["id"]
+        except Exception as e:
+            print(f"Failed to fetch VK user ID: {e}")
+            return
+            
+    if not user_id:
+        print("VK backup skipped: Could not resolve VK User ID.")
+        return
+        
+    import datetime
+    import time
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    lines = [
+        "🔌 Резервные Telegram прокси (Telegram Proxy Backup)",
+        f"Обновлено: {now_str}",
+        "",
+        "Если Telegram не подключается из-за блокировки прокси, скопируйте одну из ссылок ниже и откройте в браузере или приложении:",
+        ""
+    ]
+    
+    idx = 1
+    for raw in state.keys():
+        p = parse_proxy_line(raw)
+        if not p:
+            continue
+        link = generate_clickable_link(p)
+        ptype = p["type"].upper()
+        server_info = f"{p['server']}:{p['port']}"
+        lines.extend([
+            f"{idx}. [{ptype}] {server_info}",
+            f"👉 {link}",
+            ""
+        ])
+        idx += 1
+        
+    if idx == 1:
+        lines.append("На данный момент нет активных прокси.")
+        lines.append("")
+        
+    lines.append("(Это сообщение обновляется автоматически каждые 20 минут)")
+    message = "\n".join(lines)
+    
+    vk_state_file = Path(__file__).parent.parent / "vk_post_state.json"
+    vk_message_id = None
+    if vk_state_file.exists():
+        try:
+            state_data = json.loads(vk_state_file.read_text(encoding="utf-8"))
+            vk_message_id = state_data.get("vk_message_id")
+        except Exception:
+            pass
+            
+    success = False
+    new_message_id = None
+    
+    if vk_message_id:
+        print(f"Attempting to edit VK private message {vk_message_id}...")
+        res = call_vk_api("messages.edit", {
+            "peer_id": user_id,
+            "message_id": vk_message_id,
+            "message": message
+        }, token)
+        
+        if "response" in res and res["response"] == 1:
+            print("VK private message edited successfully.")
+            success = True
+            new_message_id = vk_message_id
+        else:
+            print(f"Failed to edit VK message: {res}. Will try to send a new one.")
+            
+    if not success:
+        print("Sending a new VK private message...")
+        res = call_vk_api("messages.send", {
+            "peer_id": user_id,
+            "message": message,
+            "random_id": int(time.time())
+        }, token)
+        
+        if "response" in res:
+            new_message_id = res["response"]
+            print(f"Sent new backup to VK messages (Msg ID: {new_message_id})")
+            success = True
+        else:
+            print(f"Failed to send VK message: {res}")
+            
+    if success and new_message_id:
+        try:
+            vk_state_content = json.dumps({"vk_message_id": new_message_id}, indent=2)
+            gh_write("vk_post_state.json", vk_state_content, f"chore: update VK proxy backup message state (message_id: {new_message_id})")
+            print("VK message state saved.")
+        except Exception as e:
+            print(f"Failed to save VK message state: {e}")
+
 async def run_harvester():
     """Main execution entry point."""
     channel_username = get_env_var("TG_PROXY_CHANNEL")
@@ -314,6 +450,12 @@ async def run_harvester():
         print("State saved and pushed to GitHub.")
     except Exception as e:
         print(f"Failed to save state: {e}")
+
+    # Synchronize backup to VK wall
+    try:
+        sync_to_vk(state)
+    except Exception as e:
+        print(f"Failed to sync proxies to VK: {e}")
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
