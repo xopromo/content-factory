@@ -294,7 +294,7 @@ def call_vk_api(method, params, token):
         return {"error": {"error_code": -1, "error_msg": str(e)}}
 
 def sync_to_vk(state):
-    """Sends a backup list of working proxies to VK private messages (Saved Messages), editing the same message if possible."""
+    """Sends a backup list of working proxies to a VK conversation, deleting the previous message to avoid clutter."""
     token = get_env_var("VK_TOKEN")
     if not token:
         try:
@@ -312,25 +312,12 @@ def sync_to_vk(state):
     if "," in token:
         token = token.split(",")[0].strip()
         
-    user_id_str = get_env_var("VK_USER_ID")
-    user_id = None
-    if user_id_str:
-        try:
-            user_id = int(user_id_str)
-        except ValueError:
-            pass
-            
-    if not user_id:
-        try:
-            res = call_vk_api("users.get", {}, token)
-            if "response" in res and res["response"]:
-                user_id = res["response"][0]["id"]
-        except Exception as e:
-            print(f"Failed to fetch VK user ID: {e}")
-            return
-            
-    if not user_id:
-        print("VK backup skipped: Could not resolve VK User ID.")
+    # Get conversation peer ID (defaulting to the chat created by the user: 2000000429)
+    peer_id_str = get_env_var("VK_PEER_ID", "2000000429")
+    try:
+        peer_id = int(peer_id_str)
+    except ValueError:
+        print(f"VK backup skipped: Invalid VK_PEER_ID '{peer_id_str}'")
         return
         
     import datetime
@@ -364,7 +351,7 @@ def sync_to_vk(state):
         lines.append("На данный момент нет активных прокси.")
         lines.append("")
         
-    lines.append("(Это сообщение обновляется автоматически каждые 20 минут)")
+    lines.append("(Этот чат обновляется автоматически каждые 20 минут)")
     message = "\n".join(lines)
     
     vk_state_file = Path(__file__).parent.parent / "vk_post_state.json"
@@ -376,39 +363,33 @@ def sync_to_vk(state):
         except Exception:
             pass
             
+    # 1. Delete previous message if it exists
+    if vk_message_id:
+        print(f"Deleting previous VK message {vk_message_id}...")
+        del_res = call_vk_api("messages.delete", {
+            "message_ids": vk_message_id,
+            "delete_for_all": 1
+        }, token)
+        print(f"VK messages.delete response: {del_res}")
+        
+    # 2. Send new message
+    print(f"Sending new VK message to peer {peer_id}...")
+    res = call_vk_api("messages.send", {
+        "peer_id": peer_id,
+        "message": message,
+        "random_id": int(time.time())
+    }, token)
+    
     success = False
     new_message_id = None
-    
-    if vk_message_id:
-        print(f"Attempting to edit VK private message {vk_message_id}...")
-        res = call_vk_api("messages.edit", {
-            "peer_id": user_id,
-            "message_id": vk_message_id,
-            "message": message
-        }, token)
+    if "response" in res:
+        new_message_id = res["response"]
+        print(f"Sent new backup to VK messages (Msg ID: {new_message_id})")
+        success = True
+    else:
+        print(f"Failed to send VK message: {res}")
         
-        if "response" in res and res["response"] == 1:
-            print("VK private message edited successfully.")
-            success = True
-            new_message_id = vk_message_id
-        else:
-            print(f"Failed to edit VK message: {res}. Will try to send a new one.")
-            
-    if not success:
-        print("Sending a new VK private message...")
-        res = call_vk_api("messages.send", {
-            "peer_id": user_id,
-            "message": message,
-            "random_id": int(time.time())
-        }, token)
-        
-        if "response" in res:
-            new_message_id = res["response"]
-            print(f"Sent new backup to VK messages (Msg ID: {new_message_id})")
-            success = True
-        else:
-            print(f"Failed to send VK message: {res}")
-            
+    # 3. Save state
     if success and new_message_id:
         try:
             vk_state_content = json.dumps({"vk_message_id": new_message_id}, indent=2)
