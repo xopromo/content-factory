@@ -2221,6 +2221,84 @@ async def menu_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         await update.message.reply_text("Заметок пока нет.", reply_markup=MAIN_KEYBOARD)
     return ConversationHandler.END
 
+async def cmd_proxies(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.message:
+        try:
+            await update.message.delete()
+        except Exception:
+            pass
+            
+    # Отправляем сообщение о начале проверки
+    status_msg = await ctx.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="🔌 <b>Запуск проверки прокси...</b>\nПожалуйста, подождите.",
+        parse_mode="HTML"
+    )
+    
+    try:
+        from scripts.check_proxies import check_all_proxies, generate_clickable_link
+        working, dead = await check_all_proxies()
+        
+        # Удаляем временный статус
+        try:
+            await ctx.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
+        except Exception:
+            pass
+            
+        if working:
+            lines = [
+                f"🔌 <b>Результаты проверки прокси:</b>",
+                f"• Всего проверено: <code>{len(working) + len(dead)}</code>",
+                f"• Рабочих: <code>{len(working)}</code>",
+                f"• Нерабочих удалено: <code>{len(dead)}</code>",
+                "",
+                "<b>Список рабочих прокси (быстрые сверху):</b>"
+            ]
+            for i, p in enumerate(working, 1):
+                link = generate_clickable_link(p)
+                lines.append(f"{i}. <a href='{link}'>{p['type'].upper()} {p['server']}:{p['port']}</a> ({p['latency']}ms)")
+                
+            text_msg = "\n".join(lines)
+        else:
+            text_msg = (
+                f"🔌 <b>Результаты проверки прокси:</b>\n"
+                f"• Всего проверено: <code>{len(working) + len(dead)}</code>\n"
+                f"• Рабочих: <code>0</code>\n"
+                f"• Нерабочих удалено: <code>{len(dead)}</code>\n\n"
+                f"❌ <b>Все прокси не работают!</b> Добавьте новые рабочие прокси."
+            )
+            
+        # Отправляем финальное сообщение
+        msg = await ctx.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=text_msg,
+            parse_mode="HTML",
+            disable_web_page_preview=True
+        )
+        # Удаляем через 5 минут (300 сек) для чистоты чата
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 300))
+        
+        # Так как прокси-лист обновился (умершие удалены), нам нужно зафиксировать изменения на GitHub
+        if dead:
+            try:
+                with open("proxies.txt", "r", encoding="utf-8") as f:
+                    new_content = f.read()
+                gh_write("proxies.txt", new_content, f"chore: prune {len(dead)} dead proxies")
+            except Exception as e:
+                print(f"Failed to push updated proxies.txt to GitHub: {e}")
+                
+    except Exception as e:
+        try:
+            await ctx.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
+        except Exception:
+            pass
+        msg = await ctx.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"❌ <b>Ошибка при проверке прокси:</b>\n<code>{e}</code>",
+            parse_mode="HTML"
+        )
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 30))
+
 async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     review_file = ROOT / "business" / "review_waiting.txt"
     if review_file.exists():
@@ -2232,6 +2310,69 @@ async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
             "content": text
         }, ensure_ascii=False), encoding="utf-8")
         await update.message.reply_text("✅ Ответ передан в генератор статьи.")
+        return
+        
+    # Проверяем, содержит ли входящий текст прокси
+    text = update.message.text.strip()
+    lines = text.splitlines()
+    new_proxies_found = []
+    
+    from scripts.check_proxies import parse_proxy_line
+    for line in lines:
+        parsed = parse_proxy_line(line)
+        if parsed:
+            new_proxies_found.append(parsed)
+            
+    if new_proxies_found:
+        existing_raws = []
+        if os.path.exists("proxies.txt"):
+            with open("proxies.txt", "r", encoding="utf-8", errors="ignore") as f:
+                existing_lines = f.readlines()
+            for eline in existing_lines:
+                eparsed = parse_proxy_line(eline)
+                if eparsed:
+                    existing_raws.append(eparsed["raw"])
+                    
+        added_count = 0
+        all_raws = list(existing_raws)
+        for p in new_proxies_found:
+            if p["raw"] not in all_raws:
+                all_raws.append(p["raw"])
+                added_count += 1
+                
+        if added_count > 0:
+            new_content = ""
+            if os.path.exists("proxies.txt"):
+                with open("proxies.txt", "r", encoding="utf-8", errors="ignore") as f:
+                    old_lines = f.readlines()
+                for oline in old_lines:
+                    if oline.strip().startswith("#"):
+                        new_content += oline
+            
+            if not new_content:
+                new_content = f"# Updated at: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                
+            for raw in all_raws:
+                if raw not in new_content:
+                    new_content += f"{raw}\n"
+                    
+            with open("proxies.txt", "w", encoding="utf-8") as f:
+                f.write(new_content)
+                
+            try:
+                gh_write("proxies.txt", new_content, f"chore: add {added_count} new proxies")
+            except Exception as e:
+                print(f"Failed to push proxies.txt to GitHub: {e}")
+                
+            await update.message.reply_text(
+                f"✅ Добавлено <b>{added_count}</b> новых прокси (всего в списке: {len(all_raws)}).\n"
+                f"Используйте команду /proxies для запуска проверки.",
+                parse_mode="HTML"
+            )
+        else:
+            await update.message.reply_text(
+                f"ℹ️ Отправленные прокси уже присутствуют в списке (всего: {len(existing_raws)})."
+            )
         return
     
     await update.message.reply_text(
@@ -2716,6 +2857,8 @@ def main() -> None:
     app.add_handler(CommandHandler("log", cmd_log))
     app.add_handler(CommandHandler("pushlog", cmd_pushlog))
     app.add_handler(CommandHandler("resume", cmd_resume))
+    app.add_handler(CommandHandler("proxies", cmd_proxies))
+    app.add_handler(CommandHandler("check_proxies", cmd_proxies))
     app.add_handler(conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
