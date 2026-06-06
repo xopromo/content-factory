@@ -3,8 +3,12 @@ import os
 import sys
 import time
 import json
+import urllib.request
 from pathlib import Path
 from datetime import datetime, timezone
+
+# Disable Windows system registry proxy auto-detection to prevent httpx scheme crashes
+urllib.request.getproxies = lambda: {}
 from typing import Optional, List, Dict, Tuple
 
 # Загрузка переменных окружения для локальной разработки

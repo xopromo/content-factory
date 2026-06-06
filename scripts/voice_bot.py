@@ -1052,7 +1052,7 @@ async def handle_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int
     status_msg = await update.message.reply_text("Сохраняю...", reply_markup=ReplyKeyboardRemove())
     try:
         filename, content = format_voice_note(note_text, category, duration)
-        url_or_path = gh_write(f"knowledge/voice/{filename}", content, f"voice: {filename}")
+        url_or_path = await asyncio.to_thread(gh_write, f"knowledge/voice/{filename}", content, f"voice: {filename}")
         
         try:
             await status_msg.delete()
@@ -1098,7 +1098,7 @@ async def handle_custom_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
     status_msg = await update.message.reply_text("Сохраняю...", reply_markup=ReplyKeyboardRemove())
     try:
         filename, content = format_voice_note(note_text, category, duration)
-        url_or_path = gh_write(f"knowledge/voice/{filename}", content, f"voice: {filename}")
+        url_or_path = await asyncio.to_thread(gh_write, f"knowledge/voice/{filename}", content, f"voice: {filename}")
         
         try:
             await status_msg.delete()
@@ -1314,7 +1314,7 @@ async def biz_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         new_content = existing.rstrip() + entry
 
     try:
-        gh_write(f"business/products_{slug}.md", new_content, f"business: {now.strftime('%Y-%m-%d')} ({slug})")
+        await asyncio.to_thread(gh_write, f"business/products_{slug}.md", new_content, f"business: {now.strftime('%Y-%m-%d')} ({slug})")
         await update.message.reply_text(f"✅ Добавлено в business/products_{slug}.md", reply_markup=MAIN_KEYBOARD)
     except Exception as e:
         await update.message.reply_text(f"Ошибка сохранения: {e}", reply_markup=MAIN_KEYBOARD)
@@ -1420,7 +1420,7 @@ async def audience_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> in
             f"{profile}\n"
         )
         try:
-            gh_write(f"business/audience_{slug}.md", content, f"audience: профиль ЦА {now.strftime('%Y-%m-%d')} ({slug})")
+            await asyncio.to_thread(gh_write, f"business/audience_{slug}.md", content, f"audience: профиль ЦА {now.strftime('%Y-%m-%d')} ({slug})")
             await update.message.reply_text(f"✅ Профиль ЦА сохранён в business/audience_{slug}.md", reply_markup=MAIN_KEYBOARD)
         except Exception as e:
             await update.message.reply_text(f"Ошибка сохранения: {e}", reply_markup=MAIN_KEYBOARD)
@@ -2105,7 +2105,7 @@ async def handle_forwarded_message(update: Update, ctx: ContextTypes.DEFAULT_TYP
             rel_path = f"docs/articles/media/{filename}"
             
             # Сохраняем медиафайл
-            gh_write_bin(rel_path, photo_bytes, f"media: {filename}")
+            await asyncio.to_thread(gh_write_bin, rel_path, photo_bytes, f"media: {filename}")
             
             markdown_link = f"\n\n[Медиа](media/{filename})\n\n"
             if text:
@@ -2327,7 +2327,7 @@ async def cmd_proxies(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
             try:
                 with open("proxies.txt", "r", encoding="utf-8") as f:
                     new_content = f.read()
-                gh_write("proxies.txt", new_content, f"chore: prune {len(dead)} dead proxies")
+                await asyncio.to_thread(gh_write, "proxies.txt", new_content, f"chore: prune {len(dead)} dead proxies")
             except Exception as e:
                 print(f"Failed to push updated proxies.txt to GitHub: {e}")
                 
@@ -2461,7 +2461,7 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
             "mode": 'Webhook' if os.getenv('PORT') else 'Polling'
         }
         from scripts.proxy_harvester import gh_write
-        gh_write("docs/articles/bot_status.json", json.dumps(status_data, indent=2), "chore: update bot status from bot")
+        await asyncio.to_thread(gh_write, "docs/articles/bot_status.json", json.dumps(status_data, indent=2), "chore: update bot status from bot")
     except Exception as gh_err:
         log.error("Failed to write status to GitHub: %s", gh_err)
 
@@ -2533,7 +2533,7 @@ async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
                 f.write(new_content)
                 
             try:
-                gh_write("proxies.txt", new_content, f"chore: add {added_count} new proxies")
+                await asyncio.to_thread(gh_write, "proxies.txt", new_content, f"chore: add {added_count} new proxies")
             except Exception as e:
                 print(f"Failed to push proxies.txt to GitHub: {e}")
                 
@@ -2582,7 +2582,7 @@ async def _direct_pushlog(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Non
         return
     try:
         content = log_file.read_text(encoding="utf-8", errors="replace")
-        url = gh_write("docs/articles/log.txt", content, "chore: update log.txt from bot (direct)")
+        url = await asyncio.to_thread(gh_write, "docs/articles/log.txt", content, "chore: update log.txt from bot (direct)")
         await update.effective_message.reply_text(f"✅ Лог успешно отправлен на GitHub через REST API:\n{url}")
     except Exception as e:
         await update.effective_message.reply_text(f"❌ Ошибка при отправке лога на GitHub: {e}")
@@ -2629,7 +2629,7 @@ async def global_update_logger(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
         
         # Записываем на GitHub только если запущен локально (чтобы не зацикливать сборки на Render)
         if not os.getenv("PORT"):
-            gh_write("docs/articles/webhook_log.json", json.dumps(updates, ensure_ascii=False, indent=2), "diagnostics: log webhook update")
+            await asyncio.to_thread(gh_write, "docs/articles/webhook_log.json", json.dumps(updates, ensure_ascii=False, indent=2), "diagnostics: log webhook update")
     except Exception as e:
         log.error("Error in global_update_logger: %s", e)
 
@@ -2684,7 +2684,7 @@ async def telegram_error_handler(update: object, context: ContextTypes.DEFAULT_T
     
     try:
         content = json.dumps(error_data, ensure_ascii=False, indent=2)
-        gh_write("critical_error.json", content, f"fail: bot handler exception [{type(context.error).__name__}]")
+        await asyncio.to_thread(gh_write, "critical_error.json", content, f"fail: bot handler exception [{type(context.error).__name__}]")
         print("  [auto-healer] Сигнальный файл о сбое в обработчике успешно отправлен на GitHub")
     except Exception as e:
         print(f"[AUTO-HEALER ERROR] Не удалось отправить сигнальный файл на GitHub: {e}")
@@ -2749,7 +2749,7 @@ async def cmd_pushlog(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         content = log_file.read_text(encoding="utf-8", errors="replace")
         
         # Записываем на GitHub через REST API (работает без локального .git)
-        url = gh_write("docs/articles/log.txt", content, "chore: update log.txt from bot")
+        url = await asyncio.to_thread(gh_write, "docs/articles/log.txt", content, "chore: update log.txt from bot")
         msg = await update.effective_message.reply_text(f"✅ Лог успешно отправлен на GitHub через REST API:\n{url}")
         asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 15))
     except Exception as e:
@@ -2771,7 +2771,7 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     
     if not slug:
         # Пытаемся получить список из GitHub
-        state_files_info = gh_list_dir("plans/.state")
+        state_files_info = await asyncio.to_thread(gh_list_dir, "plans/.state")
         
         # Если на GitHub ничего не найдено, пробуем локально
         if not state_files_info:

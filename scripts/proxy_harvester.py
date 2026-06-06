@@ -210,8 +210,14 @@ async def harvest_and_post_new(channel_username, state, sources=DEFAULT_SOURCES,
     """Scrapes new proxies, tests them, and posts working ones to the channel."""
     print("Scraping new proxies from sources...")
     all_new_links = []
-    for source in sources:
-        links = await scrape_channel(source)
+    # Scrape channels concurrently to avoid waiting sequentially on network timeouts
+    tasks = [scrape_channel(source) for source in sources]
+    scraped_results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    for source, links in zip(sources, scraped_results):
+        if isinstance(links, Exception):
+            print(f"Error scraping source {source}: {links}")
+            continue
         print(f"Found {len(links)} proxies in {source}")
         for link in links:
             if link not in all_new_links and link not in state:
@@ -430,14 +436,14 @@ async def run_harvester():
     # Save state
     new_state_content = json.dumps(state, indent=2, ensure_ascii=False)
     try:
-        gh_write(STATE_FILE, new_state_content, f"chore: update proxies channel state (posted: {posted}, deleted: {deleted})")
+        await asyncio.to_thread(gh_write, STATE_FILE, new_state_content, f"chore: update proxies channel state (posted: {posted}, deleted: {deleted})")
         print("State saved and pushed to GitHub.")
     except Exception as e:
         print(f"Failed to save state: {e}")
 
     # Synchronize backup to VK wall
     try:
-        sync_to_vk(state)
+        await asyncio.to_thread(sync_to_vk, state)
     except Exception as e:
         print(f"Failed to sync proxies to VK: {e}")
 

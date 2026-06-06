@@ -1774,7 +1774,11 @@ if __name__ == "__main__":
         )
     )
     parser.add_argument("--chat-id", help="Telegram chat_id для отправки уведомлений")
+    parser.add_argument("--mock", action="store_true", help="Режим моков (без реальных вызовов LLM API)")
     args = parser.parse_args()
+
+    if args.mock:
+        os.environ["MOCK_LLM"] = "1"
 
     if args.chat_id:
         TG_CHAT_ID_OVERRIDE = args.chat_id
