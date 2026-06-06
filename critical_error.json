@@ -1,8 +1,0 @@
-{
-  "timestamp": "2026-06-06 13:51:21",
-  "error_type": "UnboundLocalError",
-  "error_message": "cannot access local variable 'os' where it is not associated with a value",
-  "traceback": "Traceback (most recent call last):\n  File \"/opt/render/project/src/.venv/lib/python3.11/site-packages/telegram/ext/_application.py\", line 1335, in process_update\n    await coroutine\n  File \"/opt/render/project/src/.venv/lib/python3.11/site-packages/telegram/ext/_handlers/basehandler.py\", line 158, in handle_update\n    return await self.callback(update, context)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/render/project/src/scripts/voice_bot.py\", line 2387, in cmd_status\n    proxy_channel = os.getenv(\"TG_PROXY_CHANNEL\")\n                    ^^\nUnboundLocalError: cannot access local variable 'os' where it is not associated with a value\n",
-  "source": "telegram_bot_handler",
-  "update": "Update(message=Message(channel_chat_created=False, chat=Chat(id=220023136, type=<ChatType.PRIVATE>), date=datetime.datetime(2026, 6, 6, 13, 51, 4, tzinfo=<UTC>), delete_chat_photo=False, entities=(MessageEntity(length=7, offset=0, type=<MessageEntityType.BOT_COMMAND>),), from_user=User(first_name='User', id=220023136, is_bot=False), group_chat_created=False, message_id=999999, supergroup_chat_created=False, text='/status'), update_id=123461)"
-}
