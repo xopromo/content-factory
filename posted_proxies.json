@@ -1,8 +1,9 @@
 {
   "tg://proxy?server=one.nolags.pw&port=443&secret=ddb42df8d0f53f13032f0e8b3e145ef053": 14,
-  "tg://proxy?server=159.69.100.158&port=443&secret=f0eeb0bd9adc4fd4a93994ee3b2a216b": 20,
-  "tg://proxy?server=second.nolags.pw&port=443&secret=ddf4fa8f92de56cde758429546586eaac8": 22,
-  "tg://proxy?server=highspeed.nolags.pw&port=443&secret=dd6e87000d80db522523b5ab5bb58ab3af": 24,
   "tg://proxy?server=178.105.232.49&port=8443&secret=dd104462821249bd7ac519130220c25d09": 25,
-  "tg://proxy?server=84.32.189.74&port=8443&secret=dd104462821249bd7ac519130220c25d09": 26
+  "tg://proxy?server=84.32.189.74&port=8443&secret=dd104462821249bd7ac519130220c25d09": 26,
+  "tg://proxy?server=178.105.226.11&port=8443&secret=dd104462821249bd7ac519130220c25d09": 27,
+  "tg://proxy?server=fire.nolags.pw&port=443&secret=dd45e69341591985bf3d237e6c880ecc97": 31,
+  "tg://proxy?server=ice.nolags.pw&port=443&secret=dd53df731994a1368ad70990c9a88794dd": 32,
+  "tg://proxy?server=moh.kingproxynewdomailasiatech.ink&port=25565&secret=FgMBAgABAAH8AxOG4kw63Q": 33
 }
