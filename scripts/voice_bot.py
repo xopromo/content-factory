@@ -2349,6 +2349,62 @@ async def cmd_harvester(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         )
         asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 30))
 
+async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.message:
+        try:
+            await update.message.delete()
+        except Exception:
+            pass
+            
+    proxy_channel = os.getenv("TG_PROXY_CHANNEL")
+    github_token = os.getenv("GITHUB_TOKEN")
+    vk_token = os.getenv("VK_TOKEN")
+    if not vk_token:
+        try:
+            from pathlib import Path
+            import json
+            local_vk_config = Path(__file__).parent.parent.parent / "vk_config.json"
+            if local_vk_config.exists():
+                cfg = json.loads(local_vk_config.read_text(encoding="utf-8"))
+                vk_token = cfg.get("token")
+        except Exception:
+            pass
+            
+    posted_count = 0
+    import datetime
+    last_run_str = "❌ Нет записей о запусках"
+    try:
+        from pathlib import Path
+        import os
+        import json
+        state_path = Path(__file__).parent.parent / "posted_proxies.json"
+        if state_path.exists():
+            mtime = os.path.getmtime(state_path)
+            last_run = datetime.datetime.fromtimestamp(mtime)
+            last_run_str = last_run.strftime("%Y-%m-%d %H:%M:%S")
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            posted_count = len(state)
+    except Exception:
+        pass
+        
+    lines = [
+        "📊 <b>Статус и конфигурация сборщика прокси:</b>",
+        f"• <b>Канал прокси (TG_PROXY_CHANNEL):</b> <code>{proxy_channel or '❌ Не настроен'}</code>",
+        f"• <b>GitHub токен (GITHUB_TOKEN):</b> <code>{'✅ Настроен (длина: ' + str(len(github_token)) + ')' if github_token else '❌ Не настроен'}</code>",
+        f"• <b>VK токен (VK_TOKEN):</b> <code>{'✅ Настроен (длина: ' + str(len(vk_token)) + ')' if vk_token else '❌ Не настроен'}</code>",
+        f"• <b>Прокси в локальной базе:</b> <code>{posted_count}</code>",
+        f"• <b>Последнее обновление базы:</b> <code>{last_run_str}</code>",
+        f"• <b>Режим работы бота:</b> <code>{'Webhook' if os.getenv('PORT') else 'Polling'}</code>",
+    ]
+    
+    text_msg = "\n".join(lines)
+    msg = await ctx.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=text_msg,
+        parse_mode="HTML"
+    )
+    asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 60))
+
 async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     review_file = ROOT / "business" / "review_waiting.txt"
     if review_file.exists():
@@ -2776,7 +2832,8 @@ async def post_init(application: Application) -> None:
         BotCommand("log", "Показать лог оркестратора"),
         BotCommand("pushlog", "Отправить лог в репозиторий GitHub"),
         BotCommand("resume", "Возобновить генерацию статьи"),
-        BotCommand("version", "Показать текущую версию бота")
+        BotCommand("version", "Показать текущую версию бота"),
+        BotCommand("status", "Показать статус и конфигурацию сборщика прокси")
     ])
     # Запускаем фоновую задачу сборщика прокси
     asyncio.create_task(proxy_harvester_loop())
@@ -2931,6 +2988,7 @@ def main() -> None:
     app.add_handler(CommandHandler("proxies", cmd_proxies))
     app.add_handler(CommandHandler("check_proxies", cmd_proxies))
     app.add_handler(CommandHandler("harvester", cmd_harvester))
+    app.add_handler(CommandHandler("status", cmd_status))
     app.add_handler(conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
