@@ -39,6 +39,34 @@ from telegram.ext import (
 
 logging.basicConfig(format="%(asctime)s [%(levelname)s] %(message)s", level=logging.INFO)
 log = logging.getLogger(__name__)
+
+# Monkey-patch python-telegram-bot's webhook server to handle GET / requests with a 200 OK status
+# This prevents UptimeRobot from marking the server as down.
+try:
+    import tornado.web
+    from telegram.ext._utils.webhookhandler import WebhookAppClass, TelegramHandler
+    
+    class RootHandler(tornado.web.RequestHandler):
+        def get(self):
+            self.write("OK")
+            
+    def patched_init(self, webhook_path, bot, update_queue, secret_token=None):
+        self.shared_objects = {
+            "bot": bot,
+            "update_queue": update_queue,
+            "secret_token": secret_token,
+        }
+        handlers = [
+            (r"/?", RootHandler),
+            (rf"{webhook_path}/?", TelegramHandler, self.shared_objects)
+        ]
+        tornado.web.Application.__init__(self, handlers)
+        
+    WebhookAppClass.__init__ = patched_init
+    log.info("Successfully monkey-patched WebhookAppClass to handle GET /")
+except Exception as patch_err:
+    log.error("Failed to monkey-patch WebhookAppClass: %s", patch_err)
+
 # ── Состояния разговора ────────────────────────────────────────────────────────
 WAIT_CATEGORY     = 1
 WAIT_EXPERT_PICK  = 2

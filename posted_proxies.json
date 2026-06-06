@@ -4,6 +4,8 @@
   "tg://proxy?server=159.69.100.158&port=443&secret=f0eeb0bd9adc4fd4a93994ee3b2a216b": 20,
   "tg://proxy?server=65.109.245.52&port=7980&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": 21,
   "tg://proxy?server=second.nolags.pw&port=443&secret=ddf4fa8f92de56cde758429546586eaac8": 22,
-  "tg://proxy?server=65.109.254.108&port=443&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": 23,
-  "tg://proxy?server=highspeed.nolags.pw&port=443&secret=dd6e87000d80db522523b5ab5bb58ab3af": 24
+  "tg://proxy?server=highspeed.nolags.pw&port=443&secret=dd6e87000d80db522523b5ab5bb58ab3af": 24,
+  "tg://proxy?server=178.105.232.49&port=8443&secret=dd104462821249bd7ac519130220c25d09": 25,
+  "tg://proxy?server=84.32.189.74&port=8443&secret=dd104462821249bd7ac519130220c25d09": 26,
+  "tg://proxy?server=178.105.226.11&port=8443&secret=dd104462821249bd7ac519130220c25d09": 27
 }
