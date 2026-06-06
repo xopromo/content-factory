@@ -2389,9 +2389,7 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     vk_token = os.getenv("VK_TOKEN")
     if not vk_token:
         try:
-            from pathlib import Path
-            import json
-            local_vk_config = Path(__file__).parent.parent.parent / "vk_config.json"
+            local_vk_config = ROOT.parent / "vk_config.json"
             if local_vk_config.exists():
                 cfg = json.loads(local_vk_config.read_text(encoding="utf-8"))
                 vk_token = cfg.get("token")
@@ -2399,16 +2397,12 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
             pass
             
     posted_count = 0
-    import datetime
     last_run_str = "❌ Нет записей о запусках"
     try:
-        from pathlib import Path
-        import os
-        import json
-        state_path = Path(__file__).parent.parent / "posted_proxies.json"
+        state_path = ROOT / "posted_proxies.json"
         if state_path.exists():
             mtime = os.path.getmtime(state_path)
-            last_run = datetime.datetime.fromtimestamp(mtime)
+            last_run = datetime.fromtimestamp(mtime)
             last_run_str = last_run.strftime("%Y-%m-%d %H:%M:%S")
             state = json.loads(state_path.read_text(encoding="utf-8"))
             posted_count = len(state)
@@ -2430,7 +2424,7 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     # Write status to GitHub for remote debugging
     try:
         status_data = {
-            "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "proxy_channel": proxy_channel,
             "github_token_present": bool(github_token),
             "vk_token_present": bool(vk_token),
