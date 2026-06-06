@@ -2606,8 +2606,6 @@ async def global_update_logger(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
         log.error("Error in global_update_logger: %s", e)
 
 def log_bot_startup() -> None:
-    if os.getenv("PORT"):
-        return
     try:
         import subprocess
         commit = ""
@@ -2627,7 +2625,9 @@ def log_bot_startup() -> None:
                 "GITHUB_TOKEN_SET": bool(os.getenv("GITHUB_TOKEN")),
                 "GITHUB_BRANCH": os.getenv("GITHUB_BRANCH"),
                 "PORT": os.getenv("PORT"),
-                "RENDER_EXTERNAL_URL": os.getenv("RENDER_EXTERNAL_URL")
+                "RENDER_EXTERNAL_URL": os.getenv("RENDER_EXTERNAL_URL"),
+                "TG_PROXY_CHANNEL": os.getenv("TG_PROXY_CHANNEL"),
+                "VK_TOKEN_SET": bool(os.getenv("VK_TOKEN"))
             }
         }
         content = json.dumps(status_data, ensure_ascii=False, indent=2)
