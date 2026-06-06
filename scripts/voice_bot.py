@@ -94,6 +94,10 @@ WAIT_VOICE_NOTE = 23
 WAIT_TRANSCRIPT_ACTION = 24
 WAIT_SUMMARY_ACTION = 25
 
+# ── Глобальные переменные статуса сборщика ────────────────────────────────────
+LAST_HARVESTER_RUN = None
+LAST_HARVESTER_ERROR = None
+
 # ── Константы ─────────────────────────────────────────────────────────────────
 CATEGORIES = ["💼 Кейс", "💡 Инсайт", "📋 Гайд", "🎯 Стратегия", "❓ Гипотеза", "📝 Мысль"]
 
@@ -188,11 +192,15 @@ def gh_list_dir(path: str) -> list[dict]:
     return []
 
 def gh_write(path: str, content: str, message: str) -> str:
-    if not os.environ.get("GITHUB_TOKEN"):
+    try:
         p = Path(__file__).parent.parent / path
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(content, "utf-8")
-        return str(p)
+    except Exception as local_err:
+        log.error("Failed to write local file in gh_write: %s", local_err)
+
+    if not os.environ.get("GITHUB_TOKEN"):
+        return str(Path(__file__).parent.parent / path)
     repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
     branch = os.environ.get("GITHUB_BRANCH", "main")
     url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}"
@@ -223,11 +231,15 @@ def gh_write(path: str, content: str, message: str) -> str:
         return result.get("content", {}).get("html_url", path)
 
 def gh_write_bin(path: str, data: bytes, message: str) -> str:
-    if not os.environ.get("GITHUB_TOKEN"):
+    try:
         p = Path(__file__).parent.parent / path
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_bytes(data)
-        return str(p)
+    except Exception as local_err:
+        log.error("Failed to write local bin file in gh_write_bin: %s", local_err)
+
+    if not os.environ.get("GITHUB_TOKEN"):
+        return str(Path(__file__).parent.parent / path)
     repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
     branch = os.environ.get("GITHUB_BRANCH", "main")
     url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}"
@@ -2358,6 +2370,10 @@ async def cmd_harvester(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         from scripts.proxy_harvester import run_harvester
         await run_harvester()
         
+        global LAST_HARVESTER_RUN, LAST_HARVESTER_ERROR
+        LAST_HARVESTER_RUN = datetime.now()
+        LAST_HARVESTER_ERROR = None
+        
         try:
             await ctx.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
         except Exception:
@@ -2370,6 +2386,8 @@ async def cmd_harvester(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         )
         asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 30))
     except Exception as e:
+        global LAST_HARVESTER_ERROR
+        LAST_HARVESTER_ERROR = f"{type(e).__name__}: {e}"
         try:
             await ctx.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
         except Exception:
@@ -2413,13 +2431,18 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception:
         pass
         
+    last_run_mem = LAST_HARVESTER_RUN.strftime("%Y-%m-%d %H:%M:%S") if LAST_HARVESTER_RUN else "❌ Не запускался после старта бота"
+    last_err_mem = LAST_HARVESTER_ERROR or "✅ Нет ошибок"
+        
     lines = [
         "📊 <b>Статус и конфигурация сборщика прокси:</b>",
         f"• <b>Канал прокси (TG_PROXY_CHANNEL):</b> <code>{proxy_channel or '❌ Не настроен'}</code>",
         f"• <b>GitHub токен (GITHUB_TOKEN):</b> <code>{'✅ Настроен (длина: ' + str(len(github_token)) + ')' if github_token else '❌ Не настроен'}</code>",
         f"• <b>VK токен (VK_TOKEN):</b> <code>{'✅ Настроен (длина: ' + str(len(vk_token)) + ')' if vk_token else '❌ Не настроен'}</code>",
         f"• <b>Прокси в локальной базе:</b> <code>{posted_count}</code>",
-        f"• <b>Последнее обновление базы:</b> <code>{last_run_str}</code>",
+        f"• <b>Последний запуск сборщика (в памяти):</b> <code>{last_run_mem}</code>",
+        f"• <b>Последняя ошибка сборщика:</b> <code>{last_err_mem}</code>",
+        f"• <b>Последнее изменение файла базы:</b> <code>{last_run_str}</code>",
         f"• <b>Режим работы бота:</b> <code>{'Webhook' if os.getenv('PORT') else 'Polling'}</code>",
     ]
     
@@ -2433,6 +2456,8 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
             "github_token_present": bool(github_token),
             "vk_token_present": bool(vk_token),
             "posted_count": posted_count,
+            "last_harvester_run": last_run_mem,
+            "last_harvester_error": last_err_mem,
             "last_run_str": last_run_str,
             "mode": 'Webhook' if os.getenv('PORT') else 'Polling'
         }
@@ -2859,11 +2884,16 @@ async def proxy_harvester_loop() -> None:
                 print("Starting scheduled proxy harvest...")
                 from scripts.proxy_harvester import run_harvester
                 await run_harvester()
+                global LAST_HARVESTER_RUN, LAST_HARVESTER_ERROR
+                LAST_HARVESTER_RUN = datetime.now()
+                LAST_HARVESTER_ERROR = None
                 print("Scheduled proxy harvest completed.")
             else:
                 print("Scheduled proxy harvest skipped (TG_PROXY_CHANNEL not set).")
         except Exception as e:
             print(f"Error in scheduled proxy harvest loop: {e}")
+            global LAST_HARVESTER_ERROR
+            LAST_HARVESTER_ERROR = f"{type(e).__name__}: {e}"
         # Засыпаем на 20 минут (1200 секунд)
         await asyncio.sleep(1200)
 

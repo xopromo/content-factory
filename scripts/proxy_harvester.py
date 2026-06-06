@@ -61,17 +61,17 @@ def _gh_headers():
 
 def gh_write(path: str, content: str, message: str) -> str:
     """Writes a file to GitHub repository to persist state, falling back to local write on failure."""
-    token = get_env_var("GITHUB_TOKEN")
-    
-    # Define local write helper
-    def write_local():
+    # Always write locally first to keep local filesystem state in sync
+    try:
         p = Path(__file__).parent.parent / path
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(content, "utf-8")
-        return str(p)
+    except Exception as e:
+        print(f"Failed to write local copy in gh_write: {e}")
 
+    token = get_env_var("GITHUB_TOKEN")
     if not token:
-        return write_local()
+        return str(Path(__file__).parent.parent / path)
         
     repo = get_env_var("GITHUB_REPO", "xopromo/content-factory")
     branch = get_env_var("GITHUB_BRANCH", "main")
@@ -106,8 +106,8 @@ def gh_write(path: str, content: str, message: str) -> str:
             result = json.loads(r.read())
             return result.get("content", {}).get("html_url", path)
     except Exception as e:
-        print(f"Failed to write to GitHub ({e}). Falling back to local save.")
-        return write_local()
+        print(f"Failed to write to GitHub ({e}). Returning local path.")
+        return str(Path(__file__).parent.parent / path)
 
 async def telegram_api_call(method, payload):
     """Makes a request to the Telegram Bot API."""
