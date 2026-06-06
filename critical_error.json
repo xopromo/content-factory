@@ -1,0 +1,6 @@
+{
+  "timestamp": "2026-06-06T19:12:21Z",
+  "error_type": "GitHubActionsFailure",
+  "error_message": "Chelyabinsk News Agent workflow failed",
+  "source": "github_actions_chelyabinsk"
+}
