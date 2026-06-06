@@ -1,8 +1,0 @@
-{
-  "timestamp": "2026-06-06 21:01:27",
-  "error_type": "ModuleNotFoundError",
-  "error_message": "No module named 'socks'",
-  "traceback": "Traceback (most recent call last):\n  File \"/opt/render/project/src/.venv/lib/python3.11/site-packages/telegram/ext/_application.py\", line 1335, in process_update\n    await coroutine\n  File \"/opt/render/project/src/.venv/lib/python3.11/site-packages/telegram/ext/_handlers/basehandler.py\", line 158, in handle_update\n    return await self.callback(update, context)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/render/project/src/scripts/voice_bot.py\", line 2469, in handle_text_message\n    from scripts.check_proxies import parse_proxy_line\n  File \"/opt/render/project/src/scripts/check_proxies.py\", line 8, in <module>\n    import socks\nModuleNotFoundError: No module named 'socks'\n",
-  "source": "telegram_bot_handler",
-  "update": "Update(message=Message(channel_chat_created=False, chat=Chat(first_name='Константин', id=220023136, last_name='Крестинин', type=<ChatType.PRIVATE>, username='xopromo'), date=datetime.datetime(2026, 6, 6, 21, 1, 27, tzinfo=<UTC>), delete_chat_photo=False, entities=(MessageEntity(length=37, offset=95, type=<MessageEntityType.URL>),), from_user=User(first_name='Константин', id=220023136, is_bot=False, language_code='ru', last_name='Крестинин', username='xopromo'), group_chat_created=False, link_preview_options=LinkPreviewOptions(url='https://habr.com/ru/articles/1043202/'), message_id=1091, supergroup_chat_created=False, text='Следующей компанией с оценкой $1 трлн станет разработчик софта под видом продавца услуг / Хабр https://habr.com/ru/articles/1043202/'), update_id=105153010)"
-}
