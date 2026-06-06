@@ -203,6 +203,8 @@ def gh_write(path: str, content: str, message: str) -> str:
             sha = json.loads(r.read()).get("sha")
     except Exception:
         pass
+    if "[skip render]" not in message:
+        message = f"{message} [skip render]"
     payload: dict = {
         "message": message,
         "content": base64.b64encode(content.encode()).decode(),
@@ -236,6 +238,8 @@ def gh_write_bin(path: str, data: bytes, message: str) -> str:
             sha = json.loads(r.read()).get("sha")
     except Exception:
         pass
+    if "[skip render]" not in message:
+        message = f"{message} [skip render]"
     payload: dict = {
         "message": message,
         "content": base64.b64encode(data).decode(),

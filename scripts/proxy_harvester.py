@@ -84,6 +84,9 @@ def gh_write(path: str, content: str, message: str) -> str:
     except Exception:
         pass
         
+    if "[skip render]" not in message:
+        message = f"{message} [skip render]"
+        
     payload = {
         "message": message,
         "content": base64.b64encode(content.encode()).decode(),
