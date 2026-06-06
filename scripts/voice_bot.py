@@ -2426,6 +2426,23 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     ]
     
     text_msg = "\n".join(lines)
+    
+    # Write status to GitHub for remote debugging
+    try:
+        status_data = {
+            "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "proxy_channel": proxy_channel,
+            "github_token_present": bool(github_token),
+            "vk_token_present": bool(vk_token),
+            "posted_count": posted_count,
+            "last_run_str": last_run_str,
+            "mode": 'Webhook' if os.getenv('PORT') else 'Polling'
+        }
+        from scripts.proxy_harvester import gh_write
+        gh_write("docs/articles/bot_status.json", json.dumps(status_data, indent=2), "chore: update bot status from bot")
+    except Exception as gh_err:
+        log.error("Failed to write status to GitHub: %s", gh_err)
+
     msg = await ctx.bot.send_message(
         chat_id=update.effective_chat.id,
         text=text_msg,
