@@ -11,3 +11,5 @@ httpx
 imageio-ffmpeg
 telethon
 python-socks
+PySocks
+
