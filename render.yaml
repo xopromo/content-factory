@@ -19,6 +19,8 @@ services:
         sync: false
       - key: GROQ_KEY_2
         sync: false
+      - key: TG_PROXY_CHANNEL
+        sync: false
       - key: GITHUB_REPO
         value: xopromo/content-factory
       - key: GITHUB_BRANCH

@@ -39,6 +39,34 @@ from telegram.ext import (
 
 logging.basicConfig(format="%(asctime)s [%(levelname)s] %(message)s", level=logging.INFO)
 log = logging.getLogger(__name__)
+
+# Monkey-patch python-telegram-bot's webhook server to handle GET / requests with a 200 OK status
+# This prevents UptimeRobot from marking the server as down.
+try:
+    import tornado.web
+    from telegram.ext._utils.webhookhandler import WebhookAppClass, TelegramHandler
+    
+    class RootHandler(tornado.web.RequestHandler):
+        def get(self):
+            self.write("OK")
+            
+    def patched_init(self, webhook_path, bot, update_queue, secret_token=None):
+        self.shared_objects = {
+            "bot": bot,
+            "update_queue": update_queue,
+            "secret_token": secret_token,
+        }
+        handlers = [
+            (r"/?", RootHandler),
+            (rf"{webhook_path}/?", TelegramHandler, self.shared_objects)
+        ]
+        tornado.web.Application.__init__(self, handlers)
+        
+    WebhookAppClass.__init__ = patched_init
+    log.info("Successfully monkey-patched WebhookAppClass to handle GET /")
+except Exception as patch_err:
+    log.error("Failed to monkey-patch WebhookAppClass: %s", patch_err)
+
 # ── Состояния разговора ────────────────────────────────────────────────────────
 WAIT_CATEGORY     = 1
 WAIT_EXPERT_PICK  = 2
@@ -2221,6 +2249,207 @@ async def menu_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         await update.message.reply_text("Заметок пока нет.", reply_markup=MAIN_KEYBOARD)
     return ConversationHandler.END
 
+async def cmd_proxies(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.message:
+        try:
+            await update.message.delete()
+        except Exception:
+            pass
+            
+    # Отправляем сообщение о начале проверки
+    status_msg = await ctx.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="🔌 <b>Запуск проверки прокси...</b>\nПожалуйста, подождите.",
+        parse_mode="HTML"
+    )
+    
+    try:
+        from scripts.check_proxies import check_all_proxies, generate_clickable_link
+        working, dead = await check_all_proxies()
+        
+        # Удаляем временный статус
+        try:
+            await ctx.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
+        except Exception:
+            pass
+            
+        if working:
+            lines = [
+                f"🔌 <b>Результаты проверки прокси:</b>",
+                f"• Всего проверено: <code>{len(working) + len(dead)}</code>",
+                f"• Рабочих: <code>{len(working)}</code>",
+                f"• Нерабочих удалено: <code>{len(dead)}</code>",
+                "",
+                "<b>Список рабочих прокси (быстрые сверху):</b>"
+            ]
+            for i, p in enumerate(working, 1):
+                link = generate_clickable_link(p)
+                lines.append(f"{i}. <a href='{link}'>{p['type'].upper()} {p['server']}:{p['port']}</a> ({p['latency']}ms)")
+                
+            text_msg = "\n".join(lines)
+        else:
+            text_msg = (
+                f"🔌 <b>Результаты проверки прокси:</b>\n"
+                f"• Всего проверено: <code>{len(working) + len(dead)}</code>\n"
+                f"• Рабочих: <code>0</code>\n"
+                f"• Нерабочих удалено: <code>{len(dead)}</code>\n\n"
+                f"❌ <b>Все прокси не работают!</b> Добавьте новые рабочие прокси."
+            )
+            
+        # Отправляем финальное сообщение
+        msg = await ctx.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=text_msg,
+            parse_mode="HTML",
+            disable_web_page_preview=True
+        )
+        # Удаляем через 5 минут (300 сек) для чистоты чата
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 300))
+        
+        # Так как прокси-лист обновился (умершие удалены), нам нужно зафиксировать изменения на GitHub
+        if dead:
+            try:
+                with open("proxies.txt", "r", encoding="utf-8") as f:
+                    new_content = f.read()
+                gh_write("proxies.txt", new_content, f"chore: prune {len(dead)} dead proxies")
+            except Exception as e:
+                print(f"Failed to push updated proxies.txt to GitHub: {e}")
+                
+    except Exception as e:
+        try:
+            await ctx.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
+        except Exception:
+            pass
+        msg = await ctx.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"❌ <b>Ошибка при проверке прокси:</b>\n<code>{e}</code>",
+            parse_mode="HTML"
+        )
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 30))
+
+async def cmd_harvester(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.message:
+        try:
+            await update.message.delete()
+        except Exception:
+            pass
+            
+    channel = os.getenv("TG_PROXY_CHANNEL")
+    if not channel:
+        msg = await ctx.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="❌ <b>Канал для прокси не настроен!</b> Укажите <code>TG_PROXY_CHANNEL</code> в <code>.env</code>.",
+            parse_mode="HTML"
+        )
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 15))
+        return
+        
+    status_msg = await ctx.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f"🔌 <b>Запуск сборщика прокси...</b>\nПроверяем и чистим канал {channel}. Пожалуйста, подождите.",
+        parse_mode="HTML"
+    )
+    
+    try:
+        from scripts.proxy_harvester import run_harvester
+        await run_harvester()
+        
+        try:
+            await ctx.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
+        except Exception:
+            pass
+            
+        msg = await ctx.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"✅ <b>Работа сборщика завершена!</b>\nКанал {channel} успешно очищен от мертвых прокси и наполнен свежими.",
+            parse_mode="HTML"
+        )
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 30))
+    except Exception as e:
+        try:
+            await ctx.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
+        except Exception:
+            pass
+        msg = await ctx.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"❌ <b>Ошибка при работе сборщика:</b>\n<code>{e}</code>",
+            parse_mode="HTML"
+        )
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 30))
+
+async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.message:
+        try:
+            await update.message.delete()
+        except Exception:
+            pass
+            
+    proxy_channel = os.getenv("TG_PROXY_CHANNEL")
+    github_token = os.getenv("GITHUB_TOKEN")
+    vk_token = os.getenv("VK_TOKEN")
+    if not vk_token:
+        try:
+            from pathlib import Path
+            import json
+            local_vk_config = Path(__file__).parent.parent.parent / "vk_config.json"
+            if local_vk_config.exists():
+                cfg = json.loads(local_vk_config.read_text(encoding="utf-8"))
+                vk_token = cfg.get("token")
+        except Exception:
+            pass
+            
+    posted_count = 0
+    import datetime
+    last_run_str = "❌ Нет записей о запусках"
+    try:
+        from pathlib import Path
+        import os
+        import json
+        state_path = Path(__file__).parent.parent / "posted_proxies.json"
+        if state_path.exists():
+            mtime = os.path.getmtime(state_path)
+            last_run = datetime.datetime.fromtimestamp(mtime)
+            last_run_str = last_run.strftime("%Y-%m-%d %H:%M:%S")
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            posted_count = len(state)
+    except Exception:
+        pass
+        
+    lines = [
+        "📊 <b>Статус и конфигурация сборщика прокси:</b>",
+        f"• <b>Канал прокси (TG_PROXY_CHANNEL):</b> <code>{proxy_channel or '❌ Не настроен'}</code>",
+        f"• <b>GitHub токен (GITHUB_TOKEN):</b> <code>{'✅ Настроен (длина: ' + str(len(github_token)) + ')' if github_token else '❌ Не настроен'}</code>",
+        f"• <b>VK токен (VK_TOKEN):</b> <code>{'✅ Настроен (длина: ' + str(len(vk_token)) + ')' if vk_token else '❌ Не настроен'}</code>",
+        f"• <b>Прокси в локальной базе:</b> <code>{posted_count}</code>",
+        f"• <b>Последнее обновление базы:</b> <code>{last_run_str}</code>",
+        f"• <b>Режим работы бота:</b> <code>{'Webhook' if os.getenv('PORT') else 'Polling'}</code>",
+    ]
+    
+    text_msg = "\n".join(lines)
+    
+    # Write status to GitHub for remote debugging
+    try:
+        status_data = {
+            "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "proxy_channel": proxy_channel,
+            "github_token_present": bool(github_token),
+            "vk_token_present": bool(vk_token),
+            "posted_count": posted_count,
+            "last_run_str": last_run_str,
+            "mode": 'Webhook' if os.getenv('PORT') else 'Polling'
+        }
+        from scripts.proxy_harvester import gh_write
+        gh_write("docs/articles/bot_status.json", json.dumps(status_data, indent=2), "chore: update bot status from bot")
+    except Exception as gh_err:
+        log.error("Failed to write status to GitHub: %s", gh_err)
+
+    msg = await ctx.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=text_msg,
+        parse_mode="HTML"
+    )
+    asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 60))
+
 async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     review_file = ROOT / "business" / "review_waiting.txt"
     if review_file.exists():
@@ -2232,6 +2461,69 @@ async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
             "content": text
         }, ensure_ascii=False), encoding="utf-8")
         await update.message.reply_text("✅ Ответ передан в генератор статьи.")
+        return
+        
+    # Проверяем, содержит ли входящий текст прокси
+    text = update.message.text.strip()
+    lines = text.splitlines()
+    new_proxies_found = []
+    
+    from scripts.check_proxies import parse_proxy_line
+    for line in lines:
+        parsed = parse_proxy_line(line)
+        if parsed:
+            new_proxies_found.append(parsed)
+            
+    if new_proxies_found:
+        existing_raws = []
+        if os.path.exists("proxies.txt"):
+            with open("proxies.txt", "r", encoding="utf-8", errors="ignore") as f:
+                existing_lines = f.readlines()
+            for eline in existing_lines:
+                eparsed = parse_proxy_line(eline)
+                if eparsed:
+                    existing_raws.append(eparsed["raw"])
+                    
+        added_count = 0
+        all_raws = list(existing_raws)
+        for p in new_proxies_found:
+            if p["raw"] not in all_raws:
+                all_raws.append(p["raw"])
+                added_count += 1
+                
+        if added_count > 0:
+            new_content = ""
+            if os.path.exists("proxies.txt"):
+                with open("proxies.txt", "r", encoding="utf-8", errors="ignore") as f:
+                    old_lines = f.readlines()
+                for oline in old_lines:
+                    if oline.strip().startswith("#"):
+                        new_content += oline
+            
+            if not new_content:
+                new_content = f"# Updated at: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                
+            for raw in all_raws:
+                if raw not in new_content:
+                    new_content += f"{raw}\n"
+                    
+            with open("proxies.txt", "w", encoding="utf-8") as f:
+                f.write(new_content)
+                
+            try:
+                gh_write("proxies.txt", new_content, f"chore: add {added_count} new proxies")
+            except Exception as e:
+                print(f"Failed to push proxies.txt to GitHub: {e}")
+                
+            await update.message.reply_text(
+                f"✅ Добавлено <b>{added_count}</b> новых прокси (всего в списке: {len(all_raws)}).\n"
+                f"Используйте команду /proxies для запуска проверки.",
+                parse_mode="HTML"
+            )
+        else:
+            await update.message.reply_text(
+                f"ℹ️ Отправленные прокси уже присутствуют в списке (всего: {len(existing_raws)})."
+            )
         return
     
     await update.message.reply_text(
@@ -2558,6 +2850,25 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         msg_fail = await update.effective_message.reply_text(f"❌ Ошибка возобновления: {e}")
         asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg_fail.message_id, 15))
 
+async def proxy_harvester_loop() -> None:
+    # Ждем 2 минуты после старта, чтобы бот полностью инициализировался,
+    # а затем запускаем первую проверку, чтобы сразу проверить прокси при перезапуске.
+    await asyncio.sleep(120)
+    while True:
+        try:
+            channel = os.getenv("TG_PROXY_CHANNEL")
+            if channel:
+                print("Starting scheduled proxy harvest...")
+                from scripts.proxy_harvester import run_harvester
+                await run_harvester()
+                print("Scheduled proxy harvest completed.")
+            else:
+                print("Scheduled proxy harvest skipped (TG_PROXY_CHANNEL not set).")
+        except Exception as e:
+            print(f"Error in scheduled proxy harvest loop: {e}")
+        # Засыпаем на 20 минут (1200 секунд)
+        await asyncio.sleep(1200)
+
 async def post_init(application: Application) -> None:
     from telegram import BotCommand
     await application.bot.set_my_commands([
@@ -2566,8 +2877,11 @@ async def post_init(application: Application) -> None:
         BotCommand("log", "Показать лог оркестратора"),
         BotCommand("pushlog", "Отправить лог в репозиторий GitHub"),
         BotCommand("resume", "Возобновить генерацию статьи"),
-        BotCommand("version", "Показать текущую версию бота")
+        BotCommand("version", "Показать текущую версию бота"),
+        BotCommand("status", "Показать статус и конфигурацию сборщика прокси")
     ])
+    # Запускаем фоновую задачу сборщика прокси
+    asyncio.create_task(proxy_harvester_loop())
 
 def main() -> None:
     try:
@@ -2716,6 +3030,10 @@ def main() -> None:
     app.add_handler(CommandHandler("log", cmd_log))
     app.add_handler(CommandHandler("pushlog", cmd_pushlog))
     app.add_handler(CommandHandler("resume", cmd_resume))
+    app.add_handler(CommandHandler("proxies", cmd_proxies))
+    app.add_handler(CommandHandler("check_proxies", cmd_proxies))
+    app.add_handler(CommandHandler("harvester", cmd_harvester))
+    app.add_handler(CommandHandler("status", cmd_status))
     app.add_handler(conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
