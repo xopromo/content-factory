@@ -1,7 +1,7 @@
 {
   "status": "online",
-  "timestamp": "2026-06-04T16:03:45.635940+00:00",
-  "commit": "d0b3a54327e133671f31d66d588c66bdf0798a8a",
+  "timestamp": "2026-06-06T15:46:15.723188+00:00",
+  "commit": "6b195119c205e3950b3d77e15fdbb44dce739658",
   "env": {
     "TG_BOT_TOKEN_SET": true,
     "GROQ_KEY_SET": true,
@@ -9,6 +9,8 @@
     "GITHUB_TOKEN_SET": true,
     "GITHUB_BRANCH": "main",
     "PORT": "10000",
-    "RENDER_EXTERNAL_URL": "https://voice-bot-ohfb.onrender.com"
+    "RENDER_EXTERNAL_URL": "https://voice-bot-ohfb.onrender.com",
+    "TG_PROXY_CHANNEL": "-1003821574135",
+    "VK_TOKEN_SET": false
   }
 }
