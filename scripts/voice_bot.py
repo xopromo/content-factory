@@ -2344,6 +2344,7 @@ async def cmd_proxies(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 30))
 
 async def cmd_harvester(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    global LAST_HARVESTER_RUN, LAST_HARVESTER_ERROR
     if update.message:
         try:
             await update.message.delete()
@@ -2370,7 +2371,6 @@ async def cmd_harvester(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         from scripts.proxy_harvester import run_harvester
         await run_harvester()
         
-        global LAST_HARVESTER_RUN, LAST_HARVESTER_ERROR
         LAST_HARVESTER_RUN = datetime.now()
         LAST_HARVESTER_ERROR = None
         
@@ -2386,7 +2386,6 @@ async def cmd_harvester(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         )
         asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 30))
     except Exception as e:
-        global LAST_HARVESTER_ERROR
         LAST_HARVESTER_ERROR = f"{type(e).__name__}: {e}"
         try:
             await ctx.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
@@ -2874,6 +2873,7 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg_fail.message_id, 15))
 
 async def proxy_harvester_loop() -> None:
+    global LAST_HARVESTER_RUN, LAST_HARVESTER_ERROR
     # Ждем 2 минуты после старта, чтобы бот полностью инициализировался,
     # а затем запускаем первую проверку, чтобы сразу проверить прокси при перезапуске.
     await asyncio.sleep(120)
@@ -2884,7 +2884,6 @@ async def proxy_harvester_loop() -> None:
                 print("Starting scheduled proxy harvest...")
                 from scripts.proxy_harvester import run_harvester
                 await run_harvester()
-                global LAST_HARVESTER_RUN, LAST_HARVESTER_ERROR
                 LAST_HARVESTER_RUN = datetime.now()
                 LAST_HARVESTER_ERROR = None
                 print("Scheduled proxy harvest completed.")
@@ -2892,7 +2891,6 @@ async def proxy_harvester_loop() -> None:
                 print("Scheduled proxy harvest skipped (TG_PROXY_CHANNEL not set).")
         except Exception as e:
             print(f"Error in scheduled proxy harvest loop: {e}")
-            global LAST_HARVESTER_ERROR
             LAST_HARVESTER_ERROR = f"{type(e).__name__}: {e}"
         # Засыпаем на 20 минут (1200 секунд)
         await asyncio.sleep(1200)
