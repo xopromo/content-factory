@@ -425,7 +425,10 @@ def gen_article_metadata(topic: str, mode: str) -> tuple[str, str, str]:
         if cleaned.endswith("```"):
             cleaned = cleaned[:-3]
         data = json.loads(cleaned.strip())
-        return data["title"], data["slug"], data["query"]
+        slug = data["slug"]
+        if len(slug) > 50:
+            slug = slug[:50].strip("_-")
+        return data["title"], slug, data["query"]
     except Exception as e:
         log.error("Failed to generate/parse article metadata: %s", e)
         slug = get_topic_slug(topic)
@@ -442,7 +445,8 @@ def get_topic_slug(topic: str) -> str:
     s_tr = "".join(tr.get(c, c) for c in s)
     s_clean = re.sub(r"[^a-z0-9_\-]", "_", s_tr)
     s_clean = re.sub(r"_+", "_", s_clean).strip("_")
-    return s_clean or "general"
+    # Cap slug length to 50 chars to avoid OS "File name too long" errors (Errno 36)
+    return s_clean[:50].strip("_") or "general"
 
 def format_voice_note(text: str, category: str, duration: int = 0) -> tuple[str, str]:
     now = datetime.now(timezone.utc)
