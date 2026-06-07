@@ -256,6 +256,26 @@ def tg_notify(text: str) -> None:
                         print(f"[TG DELETE ERROR] {del_err}")
     except Exception as e:
         print(f"[TG ERROR] {e}")
+        # Если была ошибка разметки (Bad Request 400), шлем как обычный плоский текст
+        if "400" in str(e):
+            try:
+                import re
+                plain_text = re.sub(r"<[^>]+>", "", text) # Простейшая зачистка HTML
+                fallback_payload = json.dumps({
+                    "chat_id": chat_id, 
+                    "text": plain_text, 
+                    "link_preview_options": {"is_disabled": True}
+                })
+                fallback_req = urllib.request.Request(
+                    f"https://api.telegram.org/bot{token}/sendMessage",
+                    data=fallback_payload.encode(),
+                    headers={"Content-Type": "application/json"},
+                )
+                with urllib.request.urlopen(fallback_req, timeout=10) as fallback_resp:
+                    pass
+                print("  [TG FALLBACK] Message sent successfully as plain text")
+            except Exception as fb_err:
+                print(f"[TG FALLBACK ERROR] {fb_err}")
 
 
 
