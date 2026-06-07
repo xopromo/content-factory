@@ -165,26 +165,44 @@ async def scrape_channel(channel):
         print(f"Failed to scrape channel {channel}: {e}")
         return []
 
-async def check_and_prune_channel(channel_username, state, timeout=5):
-    """Checks already posted proxies and deletes dead posts from the channel."""
+async def check_and_prune_channel(channel_username, state, timeout=10):
+    """Checks already posted proxies and deletes dead posts from the channel if they fail repeatedly."""
     if not state:
         return state, 0
         
-    print("Checking posted proxies for pruning...")
+    print(f"Checking posted proxies for pruning (timeout={timeout}s)...")
     dead_proxies = []
     
     # Check all currently posted proxies
-    for raw_link, msg_id in list(state.items()):
+    for raw_link, val in list(state.items()):
         proxy = parse_proxy_line(raw_link)
         if not proxy:
             # Bad format, remove from state
             del state[raw_link]
             continue
             
+        # Parse state structure: handles legacy msg_id format or new dict format
+        if isinstance(val, dict):
+            msg_id = val.get("msg_id")
+            fails = val.get("fails", 0)
+        else:
+            msg_id = val
+            fails = 0
+            
         is_working, latency = await test_proxy_async(proxy, timeout)
         if not is_working:
-            print(f"Proxy died: {proxy['server']}:{proxy['port']}. Deleting post {msg_id}.")
-            dead_proxies.append((raw_link, msg_id))
+            fails += 1
+            print(f"Proxy test failed: {proxy['server']}:{proxy['port']}. Failure count: {fails}/3. Post ID: {msg_id}")
+            if fails >= 3:
+                print(f"Proxy dead after 3 consecutive failures. Queueing for deletion: Post {msg_id}")
+                dead_proxies.append((raw_link, msg_id))
+            else:
+                # Update failure count in state
+                state[raw_link] = {"msg_id": msg_id, "fails": fails}
+        else:
+            # Reset failure counter on success
+            if fails > 0 or not isinstance(val, dict):
+                state[raw_link] = {"msg_id": msg_id, "fails": 0}
             
     # Delete posts from Telegram and update state
     deleted_count = 0
@@ -280,7 +298,7 @@ async def harvest_and_post_new(channel_username, state, sources=DEFAULT_SOURCES,
         res = await telegram_api_call("sendMessage", payload)
         if res and res.get("ok"):
             msg_id = res["result"]["message_id"]
-            state[proxy["raw"]] = msg_id
+            state[proxy["raw"]] = {"msg_id": msg_id, "fails": 0}
             posted_count += 1
             print(f"Posted new proxy {server_info} (Msg ID: {msg_id})")
             # Rate limit safety sleep
