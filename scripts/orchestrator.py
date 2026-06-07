@@ -587,37 +587,41 @@ def _tg_wait_reply(timeout: int = 600) -> tuple[str, str]:
                 voice = msg.get("voice") or msg.get("audio")
                 if voice and _groq_client:
                     file_id = voice["file_id"]
-                    file_info = _api("getFile", file_id=file_id)
-                    file_path = file_info["result"]["file_path"]
-                    audio_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
-                    with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
-                        tmp_path = tmp.name
-                    urllib.request.urlretrieve(audio_url, tmp_path)
                     try:
-                        from groq import Groq as _G
-                        client = _G(api_key=os.environ["GROQ_KEY"])
-                        with open(tmp_path, "rb") as f:
-                            result = client.audio.transcriptions.create(
-                                file=(os.path.basename(tmp_path), f),
-                                model="whisper-large-v3-turbo",
-                                language="ru",
-                                response_format="text",
-                            )
-                        transcription = result.strip()
-                        tg_notify(f"🎙 Транскрипция правок:\n\n{transcription}")
-                        return "voice", transcription
-                    finally:
+                        file_info = _api("getFile", file_id=file_id)
+                        file_path = file_info["result"]["file_path"]
+                        audio_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
+                        with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
+                            tmp_path = tmp.name
+                        urllib.request.urlretrieve(audio_url, tmp_path)
                         try:
-                            os.unlink(tmp_path)
-                        except Exception:
-                            pass
+                            from groq import Groq as _G
+                            client = _G(api_key=os.environ["GROQ_KEY"])
+                            with open(tmp_path, "rb") as f:
+                                result = client.audio.transcriptions.create(
+                                    file=(os.path.basename(tmp_path), f),
+                                    model="whisper-large-v3-turbo",
+                                    language="ru",
+                                    response_format="text",
+                                )
+                            transcription = result.strip()
+                            tg_notify(f"🎙 Транскрипция правок:\n\n{transcription}")
+                            return "voice", transcription
+                        finally:
+                            try:
+                                os.unlink(tmp_path)
+                            except Exception:
+                                pass
+                    except Exception as ve:
+                        print(f"Error processing voice update: {ve}")
 
                 # Текстовое сообщение
                 text = msg.get("text", "").strip()
                 if text:
                     return "text", text
-        except Exception:
-            # Игнорируем ошибки getUpdates (например, 409 Conflict в вебхук-режиме)
+        except Exception as ue:
+            # Игнорируем ошибки getUpdates (например, 409 Conflict в вебхук-режиме, SSL-таймауты)
+            print(f"  [_tg_wait_reply] getUpdates loop error: {ue}")
             pass
 
         _time.sleep(2)
