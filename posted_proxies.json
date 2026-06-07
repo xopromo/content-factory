@@ -6,5 +6,13 @@
   "tg://proxy?server=waves.nolags.pw&port=443&secret=dd0208abd7e65df801ec0550d8ba07c1b3": {
     "msg_id": 66,
     "fails": 0
+  },
+  "tg://proxy?server=www.alp-drtop.info&port=443&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": {
+    "msg_id": 67,
+    "fails": 0
+  },
+  "tg://proxy?server=ghtash.co.uk&port=9965&secret=dd104462821249bd7ac519130220c25d09": {
+    "msg_id": 68,
+    "fails": 0
   }
 }
