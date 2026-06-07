@@ -2782,7 +2782,7 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         for f in state_dir.glob("*.json"):
             try:
                 data = json.loads(f.read_text(encoding="utf-8"))
-                saved_at = data.get("saved_at", "")
+                saved_at = data.get("saved_at") or data.get("context", {}).get("saved_at", "")
                 slug_val = data.get("slug")
                 if slug_val:
                     local_states.append((saved_at, slug_val))
