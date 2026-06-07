@@ -2777,25 +2777,30 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         # Пытаемся получить список из GitHub
         state_files_info = await asyncio.to_thread(gh_list_dir, "plans/.state")
         
-        # Если на GitHub ничего не найдено, пробуем локально
-        if not state_files_info:
-            state_files = sorted(state_dir.glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True)
-            if not state_files:
-                msg = await update.effective_message.reply_text("Активные состояния для возобновления не найдены ни локально, ни на GitHub.")
-                asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
-                return
-            latest_file = state_files[0]
+        # Загрузим и пропарсим локальные файлы состояния, отсортируем по saved_at
+        local_states = []
+        for f in state_dir.glob("*.json"):
             try:
-                state_data = json.loads(latest_file.read_text(encoding="utf-8"))
-                slug = state_data.get("slug")
-            except Exception as e:
-                msg = await update.effective_message.reply_text(f"Ошибка чтения локального файла состояния {latest_file.name}: {e}")
-                asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
-                return
-        else:
+                data = json.loads(f.read_text(encoding="utf-8"))
+                saved_at = data.get("saved_at", "")
+                slug_val = data.get("slug")
+                if slug_val:
+                    local_states.append((saved_at, slug_val))
+            except Exception:
+                pass
+        
+        if local_states:
+            # Сортируем по saved_at по убыванию (самый свежий сверху)
+            local_states.sort(key=lambda x: x[0], reverse=True)
+            slug = local_states[0][1]
+        elif state_files_info:
             state_files_info = sorted(state_files_info, key=lambda x: x.get("name", ""), reverse=True)
             latest_file_name = state_files_info[0].get("name")
             slug = latest_file_name.replace(".json", "")
+        else:
+            msg = await update.effective_message.reply_text("Активные состояния для возобновления не найдены ни локально, ни на GitHub.")
+            asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
+            return
 
     if not slug:
         msg = await update.effective_message.reply_text("Не удалось определить slug статьи.")
