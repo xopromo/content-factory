@@ -13,7 +13,7 @@
   },
   "tg://proxy?server=ghtash.co.uk&port=9965&secret=dd104462821249bd7ac519130220c25d09": {
     "msg_id": 68,
-    "fails": 0
+    "fails": 1
   },
   "tg://proxy?server=moh.kingproxynewdomailasiatech.ink&port=25565&secret=FgMBAgABAAH8AxOG4kw63Q": {
     "msg_id": 69,
@@ -25,6 +25,10 @@
   },
   "tg://proxy?server=65.109.254.108&port=443&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": {
     "msg_id": 71,
-    "fails": 1
+    "fails": 0
+  },
+  "tg://proxy?server=conn-now.tpro-ru.info&port=443&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": {
+    "msg_id": 75,
+    "fails": 0
   }
 }
