@@ -20,7 +20,7 @@
 ## Чек-лист выполнения (14 шагов)
 
 - [x] Шаг 01 — `lead-orchestrator`: прочитан feedback, сформированы ограничения
-- [ ] Шаг 02 — `knowledge-retriever`: извлечены релевантные фрагменты из `knowledge/`
+- [x] Шаг 02 — `knowledge-retriever`: извлечены релевантные фрагменты из `knowledge/`
 - [ ] Шаг 03 — `web-researcher`: собраны данные из документации и GitHub ⏸ **HUMAN REVIEW**
 - [ ] Шаг 04 — `lead-orchestrator`: утверждение структуры пользователем
 - [ ] Шаг 05 — `content-writer`: написан черновик (блок 1-3)
