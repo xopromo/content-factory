@@ -33,6 +33,10 @@
   },
   "tg://proxy?server=name.nolags.pw&port=443&secret=dd287755b048284177f71c965b016b38cc": {
     "msg_id": 84,
+    "fails": 1
+  },
+  "tg://proxy?server=ghtash.co.uk&port=9965&secret=dd104462821249bd7ac519130220c25d09": {
+    "msg_id": 85,
     "fails": 0
   }
 }
