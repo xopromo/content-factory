@@ -1,3 +1,6 @@
 {
-  "tg://proxy?server=ice.nolags.pw&port=443&secret=dd53df731994a1368ad70990c9a88794dd": 65
+  "tg://proxy?server=ice.nolags.pw&port=443&secret=dd53df731994a1368ad70990c9a88794dd": {
+    "msg_id": 65,
+    "fails": 0
+  }
 }
