@@ -1,11 +1,16 @@
 {
-  "timestamp": "2026-06-07 13:46:15",
-  "proxy_channel": "-1003821574135",
-  "github_token_present": true,
-  "vk_token_present": false,
-  "posted_count": 4,
-  "last_harvester_run": "2026-06-07 13:30:54",
-  "last_harvester_error": "\u2705 \u041d\u0435\u0442 \u043e\u0448\u0438\u0431\u043e\u043a",
-  "last_run_str": "2026-06-07 13:30:53",
-  "mode": "Webhook"
+  "status": "online",
+  "timestamp": "2026-06-07T13:47:10.436561+00:00",
+  "commit": "e782f6a67c52896b66d615f00fb77cba1731af42",
+  "env": {
+    "TG_BOT_TOKEN_SET": true,
+    "GROQ_KEY_SET": true,
+    "GEMINI_KEY_SET": true,
+    "GITHUB_TOKEN_SET": true,
+    "GITHUB_BRANCH": "main",
+    "PORT": "10000",
+    "RENDER_EXTERNAL_URL": "https://voice-bot-ohfb.onrender.com",
+    "TG_PROXY_CHANNEL": "-1003821574135",
+    "VK_TOKEN_SET": false
+  }
 }
