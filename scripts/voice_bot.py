@@ -2316,8 +2316,8 @@ async def handle_post_comment(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
     # Strip any local media markdown links like [Медиа](media/...) or [Медиа](media\...)
     orig_text = re.sub(r"\s*\[Медиа\]\(media[/\\].*?\)\s*", "", orig_text).strip()
     
-    # Format: Original text + Comment wrapped in <blockquote>
-    formatted_post = f"{orig_text}\n\n<blockquote>{comment_text}</blockquote>"
+    # Format: Original text + Comment wrapped in <blockquote> with a label
+    formatted_post = f"{orig_text}\n\n<b>Мой комментарий:</b>\n<blockquote>{comment_text}</blockquote>"
     
     # Retrieve media
     media_ids = ctx.user_data.get("forward_media_ids", [])
