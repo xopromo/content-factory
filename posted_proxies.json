@@ -1,7 +1,7 @@
 {
   "tg://proxy?server=ice.nolags.pw&port=443&secret=dd53df731994a1368ad70990c9a88794dd": {
     "msg_id": 65,
-    "fails": 0
+    "fails": 1
   },
   "tg://proxy?server=waves.nolags.pw&port=443&secret=dd0208abd7e65df801ec0550d8ba07c1b3": {
     "msg_id": 66,
@@ -37,6 +37,6 @@
   },
   "tg://proxy?server=ghtash.co.uk&port=9965&secret=dd104462821249bd7ac519130220c25d09": {
     "msg_id": 85,
-    "fails": 0
+    "fails": 1
   }
 }
