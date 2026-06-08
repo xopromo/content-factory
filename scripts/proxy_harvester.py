@@ -18,9 +18,13 @@ from check_proxies import test_proxy_async, generate_clickable_link, parse_proxy
 # Default files
 STATE_FILE = "posted_proxies.json"
 
-# Default sources of proxies
 DEFAULT_SOURCES = [
+    "mtp4tg",
+    "MTProxyT",
+    "mtproxyx",
+    "ProxyFree_Ru",
     "ProxyMTProto",
+    "TProxyRU",
     "TelgProxy",
     "socks5_list",
     "mtproto_proxies",
@@ -157,8 +161,10 @@ async def scrape_channel(channel):
         for link in raw_links:
             # Normalize t.me links to tg:// protocol
             normalized_link = link.replace("https://t.me/", "tg://")
-            if normalized_link not in normalized:
-                normalized.append(normalized_link)
+            # Clean HTML artifacts like </a>, <br/>, etc.
+            cleaned_link = re.sub(r'(?:</a>|<br/>|&lt;|<|&gt;|>).*$', '', normalized_link)
+            if cleaned_link not in normalized:
+                normalized.append(cleaned_link)
                 
         return normalized
     except Exception as e:
@@ -224,7 +230,7 @@ async def check_and_prune_channel(channel_username, state, timeout=10):
             
     return state, deleted_count
 
-async def harvest_and_post_new(channel_username, state, sources=DEFAULT_SOURCES, timeout=5, max_new_posts=10):
+async def harvest_and_post_new(channel_username, state, sources=DEFAULT_SOURCES, timeout=5, max_new_posts=100):
     """Scrapes new proxies, tests them, and posts working ones to the channel."""
     print("Scraping new proxies from sources...")
     all_new_links = []
@@ -232,14 +238,26 @@ async def harvest_and_post_new(channel_username, state, sources=DEFAULT_SOURCES,
     tasks = [scrape_channel(source) for source in sources]
     scraped_results = await asyncio.gather(*tasks, return_exceptions=True)
     
+    # Create a fast lookup helper to compare canonical server:port combinations
+    def get_canonical_key(link_str):
+        parsed = parse_proxy_line(link_str)
+        if parsed:
+            return f"{parsed['server']}:{parsed['port']}".lower()
+        return link_str.lower()
+
+    existing_canonicals = {get_canonical_key(k) for k in state.keys()}
+    added_canonicals = set()
+
     for source, links in zip(sources, scraped_results):
         if isinstance(links, Exception):
             print(f"Error scraping source {source}: {links}")
             continue
         print(f"Found {len(links)} proxies in {source}")
         for link in links:
-            if link not in all_new_links and link not in state:
+            canon = get_canonical_key(link)
+            if canon not in existing_canonicals and canon not in added_canonicals:
                 all_new_links.append(link)
+                added_canonicals.add(canon)
                 
     print(f"Total unique new proxies to check: {len(all_new_links)}")
     if not all_new_links:
@@ -247,7 +265,7 @@ async def harvest_and_post_new(channel_username, state, sources=DEFAULT_SOURCES,
         
     # Test new proxies
     working_new = []
-    semaphore = asyncio.Semaphore(15) # Concurrency limit
+    semaphore = asyncio.Semaphore(5)  # Reduced concurrency for softer harvesting
     
     async def worker(link):
         proxy = parse_proxy_line(link)
@@ -276,16 +294,13 @@ async def harvest_and_post_new(channel_username, state, sources=DEFAULT_SOURCES,
         link = generate_clickable_link(proxy)
         ptype = proxy["type"].upper()
         server_info = f"{proxy['server']}:{proxy['port']}"
-        latency_info = f"{proxy['latency']}ms"
-        
         # Prepare post text
         lines = [
-            f"🔌 <b>Рабочий прокси найден! [{ptype}]</b>",
-            f"• <b>Сервер:</b> <code>{server_info}</code>",
-            f"• <b>Пинг:</b> <code>{latency_info}</code>",
-            "",
-            f"📥 <a href=\"{link}\">ПОДКЛЮЧИТЬ ПРОКСИ</a>"
-        ]
+    f"🔌 Рабочий прокси найден! [{ptype}]",
+    f"• Сервер: {server_info}",
+    "",
+    f"📥 <a href=\"{link}\">Подключить прокси</a>"
+]
         text_msg = "\n".join(lines)
         
         payload = {
@@ -302,7 +317,7 @@ async def harvest_and_post_new(channel_username, state, sources=DEFAULT_SOURCES,
             posted_count += 1
             print(f"Posted new proxy {server_info} (Msg ID: {msg_id})")
             # Rate limit safety sleep
-            await asyncio.sleep(2)
+            await asyncio.sleep(5)  # Gentle pacing between posts
         else:
             print(f"Failed to post proxy {server_info} to channel.")
             
