@@ -21,7 +21,7 @@
   },
   "tg://proxy?server=conn-now.tpro-ru.info&port=443&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": {
     "msg_id": 75,
-    "fails": 1
+    "fails": 0
   },
   "tg://proxy?server=europe.nolags.pw&port=443&secret=dd35cf6d34b82d8531a8c93aea1fa2f72b": {
     "msg_id": 83,
@@ -33,7 +33,7 @@
   },
   "tg://proxy?server=autcion-gen.info.&port=8443&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": {
     "msg_id": 86,
-    "fails": 0
+    "fails": 1
   },
   "tg://proxy?server=fresh.nolags.pw&port=443&secret=dd691fa48fcc661b68fe4f5200c5b174f9": {
     "msg_id": 87,
@@ -45,6 +45,14 @@
   },
   "tg://proxy?server=june.nolags.pw&port=443&secret=dd479dd5c298eb110a7c9cffc8d6ce500c": {
     "msg_id": 89,
+    "fails": 0
+  },
+  "tg://proxy?server=31.58.220.74&port=443&secret=dd32b29196e09ed5119f7b7fac3cd4cdab": {
+    "msg_id": 90,
+    "fails": 0
+  },
+  "tg://proxy?server=1.fulle7.info&port=8443&secret=EERighJJvXrFGRMCIMJdCQ%3D%3D": {
+    "msg_id": 91,
     "fails": 0
   }
 }
