@@ -17,7 +17,7 @@
   },
   "tg://proxy?server=95.217.222.227&port=443&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": {
     "msg_id": 70,
-    "fails": 0
+    "fails": 1
   },
   "tg://proxy?server=conn-now.tpro-ru.info&port=443&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": {
     "msg_id": 75,
