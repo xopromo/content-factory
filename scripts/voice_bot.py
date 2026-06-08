@@ -30,7 +30,7 @@ from typing import Optional
 
 from groq import Groq
 from ddgs import DDGS
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, InputMediaVideo, InputMediaDocument
 from telegram.ext import (
     Application, CommandHandler, MessageHandler,
     ContextTypes, ConversationHandler, filters, TypeHandler,
@@ -93,6 +93,7 @@ WAIT_FORWARD_ACTION = 22
 WAIT_VOICE_NOTE = 23
 WAIT_TRANSCRIPT_ACTION = 24
 WAIT_SUMMARY_ACTION = 25
+WAIT_POST_COMMENT = 26
 
 # ── Глобальные переменные статуса сборщика ────────────────────────────────────
 LAST_HARVESTER_RUN = None
@@ -136,7 +137,7 @@ NAV_KEYBOARD = ReplyKeyboardMarkup(
 
 TRANSCRIPT_ACTION_KEYBOARD = ReplyKeyboardMarkup(
     [
-        ["💾 Сохранить в базу"],
+        ["💾 Сохранить в базу", "📝 Пост+Коммент"],
         ["✨ Восстановить речь", "📖 Разбить на абзацы"],
         ["🎬 Свернутый конспект", "📊 Сделать саммари"],
         ["🚀 Создать статью", "🏠 Главное меню"]
@@ -746,6 +747,8 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         return await audience_answer(update, ctx)
     if "news_item" in ctx.user_data:
         return await news_voice(update, ctx)
+    if ctx.user_data.get("waiting_comment"):
+        return await handle_post_comment(update, ctx)
 
     review_file = ROOT / "business" / "review_waiting.txt"
     if review_file.exists():
@@ -794,6 +797,17 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
             reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
         )
         return WAIT_CATEGORY
+
+    elif action == "📝 Пост+Коммент":
+        ctx.user_data["waiting_comment"] = True
+        await update.message.reply_text(
+            "🎙 <b>Режим «Пост+Коммент»</b>\n\n"
+            "Запишите ваш голосовой комментарий или пришлите его текстом. "
+            "Я оформлю исходный пост в виде цитаты и прикреплю ваш комментарий.",
+            parse_mode="HTML",
+            reply_markup=NAV_KEYBOARD
+        )
+        return WAIT_POST_COMMENT
         
     elif action == "✨ Восстановить речь":
         if not text:
@@ -2066,10 +2080,19 @@ async def handle_reply_entry(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> 
         "📖 Разбить на абзацы",
         "🎬 Свернутый конспект",
         "📊 Сделать саммари",
-        "💾 Сохранить в базу"
+        "💾 Сохранить в базу",
+        "📝 Пост+Коммент"
     ]
     if reply_text in FORMAT_ACTIONS:
         ctx.user_data["text"] = original_text
+        # Also catch original message media to pass to post
+        ctx.user_data["forward_media_ids"] = []
+        if original_msg.photo:
+            ctx.user_data["forward_media_ids"].append((original_msg.photo[-1].file_id, "photo"))
+        elif original_msg.video:
+            ctx.user_data["forward_media_ids"].append((original_msg.video.file_id, "video"))
+        elif original_msg.document:
+            ctx.user_data["forward_media_ids"].append((original_msg.document.file_id, "document"))
         return await handle_transcript_action(update, ctx)
 
     ctx.user_data["text"] = original_text
@@ -2089,35 +2112,52 @@ async def handle_forwarded_message(update: Update, ctx: ContextTypes.DEFAULT_TYP
     if "forward_buffer" not in ctx.user_data:
         ctx.user_data["forward_buffer"] = []
         ctx.user_data["forward_media"] = []
+        ctx.user_data["forward_media_ids"] = []
 
     text = update.message.text or update.message.caption or ""
     text = text.strip()
 
-    photo = update.message.photo
-    if photo:
-        status_msg = await update.message.reply_text("Скачиваю медиа из пересланного сообщения...")
-        file = await ctx.bot.get_file(photo[-1].file_id)
-        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
-            tmp_path = Path(tmp.name)
-        await file.download_to_drive(tmp_path)
+    media_obj = None
+    media_type = None
+    suffix = ".jpg"
+
+    if update.message.photo:
+        media_obj = update.message.photo[-1]
+        media_type = "photo"
+        suffix = ".jpg"
+    elif update.message.video:
+        media_obj = update.message.video
+        media_type = "video"
+        suffix = ".mp4"
+    elif update.message.document:
+        media_obj = update.message.document
+        media_type = "document"
+        suffix = Path(media_obj.file_name or "file").suffix or ".dat"
+
+    if media_obj:
+        status_msg = await update.message.reply_text("Сохраняю медиафайл локально...")
         try:
-            photo_bytes = tmp_path.read_bytes()
+            file = await ctx.bot.get_file(media_obj.file_id)
             now = datetime.now(timezone.utc)
             import random
             rand_id = random.randint(1000, 9999)
-            filename = f"{now.strftime('%Y%m%d_%H%M%S')}_{rand_id}.jpg"
+            filename = f"{now.strftime('%Y%m%d_%H%M%S')}_{rand_id}{suffix}"
+            
+            # Save strictly locally
+            local_dir = Path(__file__).parent.parent / "docs" / "articles" / "media"
+            local_dir.mkdir(parents=True, exist_ok=True)
+            local_path = local_dir / filename
+            await file.download_to_drive(local_path)
+            
             rel_path = f"docs/articles/media/{filename}"
-            
-            # Сохраняем медиафайл
-            await asyncio.to_thread(gh_write_bin, rel_path, photo_bytes, f"media: {filename}")
-            
             markdown_link = f"\n\n[Медиа](media/{filename})\n\n"
             if text:
                 text = text + markdown_link
             else:
                 text = markdown_link
-                
+
             ctx.user_data["forward_media"].append(rel_path)
+            ctx.user_data["forward_media_ids"].append((media_obj.file_id, media_type))
         except Exception as e:
             log.error("Failed to download media: %s", e)
             await update.message.reply_text(f"Ошибка загрузки медиа: {e}")
@@ -2126,10 +2166,9 @@ async def handle_forwarded_message(update: Update, ctx: ContextTypes.DEFAULT_TYP
                 await status_msg.delete()
             except Exception:
                 pass
-            tmp_path.unlink(missing_ok=True)
 
-    if not text and not photo:
-        await update.message.reply_text("Поддерживаются только текстовые сообщения и фотографии.")
+    if not text and not media_obj:
+        await update.message.reply_text("Поддерживаются только сообщения с текстом, фото, видео или документами.")
         return WAIT_FORWARD_ACTION
 
     if text:
@@ -2143,6 +2182,7 @@ async def handle_forwarded_message(update: Update, ctx: ContextTypes.DEFAULT_TYP
             pass
 
     keyboard = [
+        ["📝 Пост+Коммент"],
         ["📰 Создать новость", "🚀 Создать статью"],
         ["📚 Добавить в базу знаний", "🧹 Очистить буфер"],
         ["🏠"]
@@ -2176,8 +2216,24 @@ async def handle_forward_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) 
     if action == "🧹 Очистить буфер":
         ctx.user_data.pop("forward_buffer", None)
         ctx.user_data.pop("forward_media", None)
+        ctx.user_data.pop("forward_media_ids", None)
         await update.message.reply_text("🧹 Буфер пересланных сообщений очищен.", reply_markup=MAIN_KEYBOARD)
         return ConversationHandler.END
+
+    elif action == "📝 Пост+Коммент":
+        ctx.user_data["text"] = combined_text
+        ctx.user_data["waiting_comment"] = True
+        # Keep forward_media_ids in user_data to append them to the comment post later
+        ctx.user_data.pop("forward_buffer", None)
+        ctx.user_data.pop("forward_media", None)
+        await update.message.reply_text(
+            "🎙 <b>Режим «Пост+Коммент»</b>\n\n"
+            "Запишите ваш голосовой комментарий или пришлите его текстом. "
+            "Я оформлю исходный пост в виде цитаты и прикреплю ваш комментарий.",
+            parse_mode="HTML",
+            reply_markup=NAV_KEYBOARD
+        )
+        return WAIT_POST_COMMENT
 
     elif action == "📚 Добавить в базу знаний":
         ctx.user_data["text"] = combined_text
@@ -2235,6 +2291,95 @@ async def handle_forward_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) 
     else:
         await update.message.reply_text("Неверный выбор. Пожалуйста, используйте кнопки на клавиатуре.")
         return WAIT_FORWARD_ACTION
+
+
+async def handle_post_comment(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    # Get comment text
+    comment_text = ""
+    if update.message.text:
+        comment_text = update.message.text.strip()
+    elif update.message.voice or update.message.audio or update.message.video or update.message.video_note:
+        status_msg = await update.message.reply_text("🎙 Распознаю ваш комментарий...")
+        comment_text = await _transcribe_voice(update, ctx)
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
+
+    if not comment_text:
+        await update.message.reply_text("Не удалось получить комментарий. Пожалуйста, запишите голос или пришлите текст.")
+        return WAIT_POST_COMMENT
+
+    # Retrieve original text
+    orig_text = ctx.user_data.get("text", "")
+    
+    # Strip any local media markdown links like [Медиа](media/...) or [Медиа](media\...)
+    orig_text = re.sub(r"\s*\[Медиа\]\(media[/\\].*?\)\s*", "", orig_text).strip()
+    
+    # Format: Original text + Comment wrapped in <blockquote>
+    formatted_post = f"{orig_text}\n\n<blockquote>{comment_text}</blockquote>"
+    
+    # Retrieve media
+    media_ids = ctx.user_data.get("forward_media_ids", [])
+    
+    chat_id = update.effective_chat.id
+    
+    try:
+        if not media_ids:
+            # Send text-only
+            await ctx.bot.send_message(
+                chat_id=chat_id,
+                text=formatted_post,
+                parse_mode="HTML"
+            )
+        elif len(media_ids) == 1:
+            # Single media file
+            file_id, media_type = media_ids[0]
+            if len(formatted_post) <= 1024:
+                if media_type == "photo":
+                    await ctx.bot.send_photo(chat_id=chat_id, photo=file_id, caption=formatted_post, parse_mode="HTML")
+                elif media_type == "video":
+                    await ctx.bot.send_video(chat_id=chat_id, video=file_id, caption=formatted_post, parse_mode="HTML")
+                else:
+                    await ctx.bot.send_document(chat_id=chat_id, document=file_id, caption=formatted_post, parse_mode="HTML")
+            else:
+                # Text too long, send media first then text
+                if media_type == "photo":
+                    await ctx.bot.send_photo(chat_id=chat_id, photo=file_id)
+                elif media_type == "video":
+                    await ctx.bot.send_video(chat_id=chat_id, video=file_id)
+                else:
+                    await ctx.bot.send_document(chat_id=chat_id, document=file_id)
+                await ctx.bot.send_message(chat_id=chat_id, text=formatted_post, parse_mode="HTML")
+        else:
+            # Media group (multiple files)
+            media_group = []
+            for i, (file_id, media_type) in enumerate(media_ids):
+                # Attach caption to the first item only
+                caption = formatted_post if (i == 0 and len(formatted_post) <= 1024) else None
+                
+                if media_type == "photo":
+                    media_group.append(InputMediaPhoto(media=file_id, caption=caption, parse_mode="HTML" if caption else None))
+                elif media_type == "video":
+                    media_group.append(InputMediaVideo(media=file_id, caption=caption, parse_mode="HTML" if caption else None))
+                else:
+                    media_group.append(InputMediaDocument(media=file_id, caption=caption, parse_mode="HTML" if caption else None))
+            
+            await ctx.bot.send_media_group(chat_id=chat_id, media=media_group)
+            
+            # If text is too long for the first media caption, send it as a separate message
+            if len(formatted_post) > 1024:
+                await ctx.bot.send_message(chat_id=chat_id, text=formatted_post, parse_mode="HTML")
+                
+        await update.message.reply_text("✅ Пост с комментарием успешно сгенерирован и отправлен выше. Вы можете переслать его куда угодно в 1 клик!")
+    except Exception as e:
+        log.error("Failed to send post+comment: %s", e)
+        await update.message.reply_text(f"⚠️ Ошибка отправки поста с комментарием: {e}\n\nПопробую прислать просто текстом:\n\n{formatted_post}", parse_mode="HTML")
+    
+    # Cleanup state
+    _clear_user_data_except_menu(ctx)
+    await _send_menu_with_cleanup(update, ctx, "Возвращаемся в главное меню:", reply_markup=MAIN_KEYBOARD)
+    return ConversationHandler.END
 
 async def handle_voice_note_button(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text(
@@ -2437,6 +2582,24 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     last_run_mem = LAST_HARVESTER_RUN.strftime("%Y-%m-%d %H:%M:%S") if LAST_HARVESTER_RUN else "❌ Не запускался после старта бота"
     last_err_mem = LAST_HARVESTER_ERROR or "✅ Нет ошибок"
         
+    state_dir = Path(__file__).parent.parent / "plans" / ".state"
+    state_dir.mkdir(parents=True, exist_ok=True)
+
+    if not slug:
+        # Пытаемся получить список из GitHub
+        state_files_info = await asyncio.to_thread(gh_list_dir, "plans/.state")
+
+        # Загрузим и пропарсим локальные файлы состояния, отсортируем по saved_at
+        local_states = []
+        for f in state_dir.glob("*.json"):
+            try:
+                data = json.loads(f.read_text(encoding="utf-8"))
+                saved_at = data.get("saved_at") or data.get("context", {}).get("saved_at", "")
+                slug_val = data.get("slug")
+                if slug_val:
+                    local_states.append((saved_at, slug_val))
+            except Exception:
+                pass      
     lines = [
         "📊 <b>Статус и конфигурация сборщика прокси:</b>",
         f"• <b>Канал прокси (TG_PROXY_CHANNEL):</b> <code>{proxy_channel or '❌ Не настроен'}</code>",
@@ -2766,9 +2929,9 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.delete()
         except Exception:
             pass
-    slug = None
     if ctx.args:
         slug = ctx.args[0].strip()
+        log.info(f"cmd_resume received slug argument: {slug}")
     
     state_dir = Path(__file__).parent.parent / "plans" / ".state"
     state_dir.mkdir(parents=True, exist_ok=True)
@@ -2782,21 +2945,29 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         for f in state_dir.glob("*.json"):
             try:
                 data = json.loads(f.read_text(encoding="utf-8"))
-                saved_at = data.get("saved_at") or data.get("context", {}).get("saved_at", "")
+                raw_saved = data.get("saved_at") or data.get("context", {}).get("saved_at", "")
                 slug_val = data.get("slug")
-                if slug_val:
-                    local_states.append((saved_at, slug_val))
+                if not slug_val:
+                    continue
+                try:
+                    saved_dt = datetime.fromisoformat(raw_saved)
+                except Exception:
+                    saved_dt = datetime.min
+                local_states.append((saved_dt, slug_val))
             except Exception:
                 pass
         
         if local_states:
             # Сортируем по saved_at по убыванию (самый свежий сверху)
+            # Sort by datetime (most recent first)
             local_states.sort(key=lambda x: x[0], reverse=True)
             slug = local_states[0][1]
+            log.info(f"cmd_resume selected slug from local state: {slug}")
         elif state_files_info:
             state_files_info = sorted(state_files_info, key=lambda x: x.get("name", ""), reverse=True)
             latest_file_name = state_files_info[0].get("name")
             slug = latest_file_name.replace(".json", "")
+            log.info(f"cmd_resume selected slug from GitHub list: {slug}")
         else:
             msg = await update.effective_message.reply_text("Активные состояния для возобновления не найдены ни локально, ни на GitHub.")
             asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
@@ -3053,6 +3224,10 @@ def main() -> None:
             WAIT_SUMMARY_ACTION: [
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_summary_action),
+            ],
+            WAIT_POST_COMMENT: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT | filters.VOICE | filters.AUDIO | filters.VIDEO | filters.VIDEO_NOTE, handle_post_comment),
             ],
         },
         fallbacks=[CommandHandler("cancel", cmd_cancel)],
