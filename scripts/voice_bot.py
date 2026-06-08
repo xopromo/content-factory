@@ -2052,6 +2052,24 @@ async def handle_reply_entry(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> 
         await update.message.reply_text("Этот метод работает только как ответ (Reply) на сообщение.")
         return ConversationHandler.END
 
+    review_file = ROOT / "business" / "review_waiting.txt"
+    if review_file.exists():
+        reply_text = ""
+        if update.message.text:
+            reply_text = update.message.text.strip()
+        elif update.message.voice or update.message.audio or update.message.video or update.message.video_note:
+            reply_text = await _transcribe_voice(update, ctx)
+        
+        if reply_text:
+            latest_reply = ROOT / "business" / "latest_reply.json"
+            latest_reply.write_text(json.dumps({
+                "timestamp": time.time(),
+                "type": "text" if update.message.text else "voice",
+                "content": reply_text
+            }, ensure_ascii=False), encoding="utf-8")
+            await update.message.reply_text("✅ Ответ (через Reply) передан в генератор статьи.")
+            return ConversationHandler.END
+
     original_text = ""
     if original_msg.text:
         original_text = original_msg.text
@@ -2715,10 +2733,22 @@ async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
             )
         return
     
-    await update.message.reply_text(
-        "Я не понял эту команду. Пожалуйста, используйте кнопки меню или отправьте голосовую заметку.",
-        reply_markup=MAIN_KEYBOARD
-    )
+    # Если это просто текстовое сообщение, отвечаем с помощью LLM
+    status_msg = await update.message.reply_text("💬 Думаю...")
+    try:
+        response = llm_chat(
+            text,
+            system=(
+                "Ты профессиональный и дружелюбный ИИ-помощник автора Контент-Фабрики (Content Factory). "
+                "Помогай автору отвечать на вопросы, придумывать идеи для постов, формулировать мысли. "
+                "Отвечай кратко, грамотно, без лишней «воды», на русском языке. Используй легкое форматирование Telegram (жирный шрифт)."
+            )
+        )
+        await status_msg.delete()
+        await update.message.reply_text(response, reply_markup=MAIN_KEYBOARD, parse_mode="Markdown")
+    except Exception as e:
+        log.error("Failed to generate text response: %s", e)
+        await status_msg.edit_text("Извините, произошла ошибка при генерации ответа.")
 
 async def _direct_log(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     # Ищем лог-файл в корневой директории
