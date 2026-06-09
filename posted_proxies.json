@@ -51,10 +51,6 @@
     "msg_id": 91,
     "fails": 0
   },
-  "tg://proxy?server=r1.newr1.co.uk&port=85&secret=FgMBAgABAAH8AxOG4kw63Q": {
-    "msg_id": 92,
-    "fails": 2
-  },
   "tg://proxy?server=eng.nolags.pw&port=443&secret=dd390d29157d7c81eb7ce6ac2b50d2d39b": {
     "msg_id": 93,
     "fails": 0
