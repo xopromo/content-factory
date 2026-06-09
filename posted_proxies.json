@@ -25,7 +25,7 @@
   },
   "tg://proxy?server=142-132-167-80.nip.io&port=443&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": {
     "msg_id": 88,
-    "fails": 1
+    "fails": 2
   },
   "tg://proxy?server=june.nolags.pw&port=443&secret=dd479dd5c298eb110a7c9cffc8d6ce500c": {
     "msg_id": 89,
