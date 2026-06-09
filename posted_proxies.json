@@ -57,6 +57,6 @@
   },
   "tg://proxy?server=eng.nolags.pw&port=443&secret=dd390d29157d7c81eb7ce6ac2b50d2d39b": {
     "msg_id": 93,
-    "fails": 0
+    "fails": 1
   }
 }
