@@ -38,5 +38,9 @@
   "tg://proxy?server=142.132.167.80&port=443&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": {
     "msg_id": 96,
     "fails": 0
+  },
+  "tg://proxy?server=eng.nolags.pw&port=443&secret=dd390d29157d7c81eb7ce6ac2b50d2d39b": {
+    "msg_id": 98,
+    "fails": 0
   }
 }
