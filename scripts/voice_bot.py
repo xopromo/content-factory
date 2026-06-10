@@ -1076,10 +1076,7 @@ async def handle_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int
         except Exception:
             pass
 
-        keyboard = []
-        if url_or_path.startswith("http"):
-            keyboard.append([InlineKeyboardButton("🔍 Проверить на GitHub", url=url_or_path)])
-        reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
+        reply_markup = None
         
         msg_saved = await ctx.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -1122,10 +1119,7 @@ async def handle_custom_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
         except Exception:
             pass
 
-        keyboard = []
-        if url_or_path.startswith("http"):
-            keyboard.append([InlineKeyboardButton("🔍 Проверить на GitHub", url=url_or_path)])
-        reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
+        reply_markup = None
 
         msg_saved = await ctx.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -1810,10 +1804,7 @@ async def news_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         except Exception:
             pass
 
-        keyboard = []
-        if url_or_path.startswith("http"):
-            keyboard.append([InlineKeyboardButton("🔍 Проверить на GitHub", url=url_or_path)])
-        reply_markup = InlineKeyboardMarkup(keyboard) if keyboard else None
+        reply_markup = None
 
         await update.message.reply_text(
             f"✅ Сохранено: `{filename}`", 
