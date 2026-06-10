@@ -21,7 +21,7 @@
   },
   "tg://proxy?server=142-132-167-80.nip.io&port=443&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": {
     "msg_id": 88,
-    "fails": 1
+    "fails": 0
   },
   "tg://proxy?server=june.nolags.pw&port=443&secret=dd479dd5c298eb110a7c9cffc8d6ce500c": {
     "msg_id": 89,
@@ -57,6 +57,6 @@
   },
   "tg://proxy?server=Kingdom-persia.ir.hey-gardash.info.&port=1080&secret=79e344818749bd7ac519130220c25d09": {
     "msg_id": 105,
-    "fails": 0
+    "fails": 1
   }
 }
