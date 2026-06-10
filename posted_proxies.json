@@ -49,7 +49,7 @@
   },
   "tg://proxy?server=Empire-persia.iran.hey-gardash.info.&port=1080&secret=79e344818749bd7ac519130220c25d09": {
     "msg_id": 101,
-    "fails": 0
+    "fails": 1
   },
   "tg://proxy?server=rec.nolags.pw&port=443&secret=dd0603553657b3f54b6bff0d3759e8db1d": {
     "msg_id": 104,
@@ -57,7 +57,7 @@
   },
   "tg://proxy?server=memory.nolags.pw&port=443&secret=ddb50d67677180b7c552ffe1ec0579ed76": {
     "msg_id": 108,
-    "fails": 0
+    "fails": 1
   },
   "tg://proxy?server=Kingdom-persia.ir.hey-gardash.info.&port=1080&secret=79e344818749bd7ac519130220c25d09": {
     "msg_id": 109,
@@ -65,7 +65,7 @@
   },
   "tg://proxy?server=1.fulle7.info&port=8443&secret=EERighJJvXrFGRMCIMJdCQ%3D%3D": {
     "msg_id": 110,
-    "fails": 1
+    "fails": 2
   },
   "tg://proxy?server=167.233.54.153&port=443&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": {
     "msg_id": 111,
@@ -77,7 +77,7 @@
   },
   "tg://proxy?server=212.56.44.174&port=443&secret=ee79ba93b4e649ba70dcd191e72539c99e676f6f676c65617069732e636f6d": {
     "msg_id": 113,
-    "fails": 1
+    "fails": 2
   },
   "tg://proxy?server=jlpokcu.cloud&port=443&secret=ee3f8a91c2d7e04b6a9f12c5e8370bd4aa786170692e6f7a6f6e2e7275": {
     "msg_id": 114,
