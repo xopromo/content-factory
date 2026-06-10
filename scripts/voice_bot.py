@@ -1584,8 +1584,8 @@ def fetch_news(query: str, max_results: int = 15) -> list[dict]:
         })
         seen_urls.add(url)
 
-    # 1. Пробуем новостной поиск с фильтром по времени (сначала за неделю, потом за месяц)
-    for limit in ("w", "m"):
+    # 1. Пробуем новостной поиск с фильтром по времени (сначала за день, потом за неделю)
+    for limit in ("d", "w"):
         if len(articles) >= max_results:
             break
         try:
@@ -1601,10 +1601,10 @@ def fetch_news(query: str, max_results: int = 15) -> list[dict]:
         except Exception as e:
             log.warning("News fetch error (news with timelimit=%s): %s", limit, e)
         
-    # 2. Добираем через текстовый поиск, если нашли мало статей
+    # 2. Добираем через текстовый поиск с ограничением за неделю, если нашли мало статей
     if len(articles) < 10:
         try:
-            results = list(DDGS().text(query, max_results=max_results * 3, region="ru-ru"))
+            results = list(DDGS().text(query, max_results=max_results * 3, region="ru-ru", timelimit="w"))
             for r in results:
                 add_article(
                     title=r.get("title", ""),
