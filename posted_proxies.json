@@ -65,7 +65,7 @@
   },
   "tg://proxy?server=1.fulle7.info&port=8443&secret=EERighJJvXrFGRMCIMJdCQ%3D%3D": {
     "msg_id": 110,
-    "fails": 0
+    "fails": 1
   },
   "tg://proxy?server=167.233.54.153&port=443&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": {
     "msg_id": 111,
@@ -73,11 +73,11 @@
   },
   "tg://proxy?server=212.56.44.184&port=443&secret=ee79ba93b4e649ba70dcd191e72539c99e676f6f676c65617069732e636f6d": {
     "msg_id": 112,
-    "fails": 1
+    "fails": 0
   },
   "tg://proxy?server=212.56.44.174&port=443&secret=ee79ba93b4e649ba70dcd191e72539c99e676f6f676c65617069732e636f6d": {
     "msg_id": 113,
-    "fails": 0
+    "fails": 1
   },
   "tg://proxy?server=jlpokcu.cloud&port=443&secret=ee3f8a91c2d7e04b6a9f12c5e8370bd4aa786170692e6f7a6f6e2e7275": {
     "msg_id": 114,
