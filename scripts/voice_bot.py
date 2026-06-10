@@ -1686,6 +1686,30 @@ async def start_news_search(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> i
     ctx.user_data["news_index"] = 0
     return await show_news_page(update, ctx)
 
+def translate_to_russian_if_english(title: str, body: str) -> tuple[str, str]:
+    import re
+    has_english = bool(re.search(r'[a-zA-Z]{4,}', title + " " + body))
+    has_russian = bool(re.search(r'[а-яА-ЯёЁ]{4,}', title + " " + body))
+    if has_english and not has_russian:
+        try:
+            prompt = (
+                f"Переведи заголовок и описание новости на русский язык. Сделай перевод естественным и кратким.\n\n"
+                f"Заголовок: {title}\n"
+                f"Описание: {body}\n\n"
+                f"Верни ответ строго в формате JSON с ключами \"title\" и \"body\". Не добавляй никакого другого текста."
+            )
+            res = llm_chat(prompt, system="Ты технический переводчик.")
+            res_clean = res.strip()
+            if res_clean.startswith("```json"):
+                res_clean = res_clean[7:]
+            if res_clean.endswith("```"):
+                res_clean = res_clean[:-3]
+            data = json.loads(res_clean.strip())
+            return data.get("title", title), data.get("body", body)
+        except Exception:
+            pass
+    return title, body
+
 async def show_news_page(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     pool = ctx.user_data.get("news_pool", [])
     index = ctx.user_data.get("news_index", 0)
@@ -1701,6 +1725,17 @@ async def show_news_page(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         await update.message.reply_text("Вы просмотрели все новости. Показываю сначала (по второму кругу).")
 
     items = pool[index:index + 3]
+    
+    # Переводим англоязычные статьи на лету
+    for item in items:
+        if not item.get("translated", False):
+            orig_title = item.get("title", "")
+            orig_body = item.get("body", "")
+            t_title, t_body = translate_to_russian_if_english(orig_title, orig_body)
+            item["title"] = t_title
+            item["body"] = t_body
+            item["translated"] = True
+
     ctx.user_data["news_items"] = items
 
     lines = []
