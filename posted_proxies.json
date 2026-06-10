@@ -53,7 +53,7 @@
   },
   "tg://proxy?server=1.fulle7.info&port=8443&secret=EERighJJvXrFGRMCIMJdCQ%3D%3D": {
     "msg_id": 103,
-    "fails": 0
+    "fails": 1
   },
   "tg://proxy?server=rec.nolags.pw&port=443&secret=dd0603553657b3f54b6bff0d3759e8db1d": {
     "msg_id": 104,
