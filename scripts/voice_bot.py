@@ -1559,6 +1559,16 @@ def get_source_tier(url: str) -> int:
         pass
     return 3
 
+def parse_date(date_str: str):
+    if not date_str:
+        return None
+    try:
+        from datetime import datetime
+        clean_str = date_str.replace('Z', '+00:00')
+        return datetime.fromisoformat(clean_str)
+    except Exception:
+        return None
+
 def fetch_news(query: str, max_results: int = 15) -> list[dict]:
     """Ищет свежие новости через DuckDuckGo с качественной фильтрацией по exclusions и ранжированием по TIER."""
     articles = []
@@ -1615,8 +1625,37 @@ def fetch_news(query: str, max_results: int = 15) -> list[dict]:
         except Exception as e:
             log.warning("News fetch error (text): %s", e)
             
-    # Сортируем по авторитетности (tier 1 -> tier 2 -> tier 3)
-    articles.sort(key=lambda x: x["tier"])
+    # Фильтруем по дате с шагом в 1 сутки
+    from datetime import datetime, timezone
+    now_dt = datetime.now(timezone.utc)
+    filtered_articles = []
+    
+    for max_days in range(1, 8):  # Шаг от 1 до 7 суток
+        filtered_articles = []
+        for art in articles:
+            art_dt = parse_date(art.get("date"))
+            if art_dt:
+                age_days = (now_dt - art_dt).days
+                if age_days <= max_days:
+                    filtered_articles.append(art)
+            else:
+                # Статьи без даты допускаем только со 5-го шага
+                if max_days >= 5:
+                    filtered_articles.append(art)
+        # Если нашли хотя бы 6 качественных статей, останавливаем расширение временного окна
+        if len(filtered_articles) >= 6:
+            break
+            
+    if filtered_articles:
+        articles = filtered_articles
+
+    # Сортируем: сначала самые свежие (по дате), при равенстве - по авторитетности (tier)
+    def sort_key(art):
+        dt = parse_date(art.get("date"))
+        dt_val = dt if dt is not None else datetime.min.replace(tzinfo=timezone.utc)
+        return (dt_val, 4 - art.get("tier", 3))
+
+    articles.sort(key=sort_key, reverse=True)
     return articles
 
 async def choose_news_topic(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
