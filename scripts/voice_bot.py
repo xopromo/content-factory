@@ -2742,9 +2742,18 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     text = update.message.text.strip()
     
-    if text in ["🔄 Новые новости", "1️⃣", "2️⃣", "3️⃣"]:
-        await update.message.reply_text("⏳ Сессия была сброшена из-за обновления бота. Возвращаю вас к темам новостей...")
-        return await choose_news_topic(update, ctx)
+    # Перехватываем все кнопки устаревшей сессии (например, после перезапуска бота)
+    news_buttons = [
+        "🔄 Новые новости", "1️⃣", "2️⃣", "3️⃣",
+        "🎯 VK-реклама", "🤖 Нейросети и ИИ", "🪙 Криптовалюта", "➕ Другая тема",
+        "🏠", "🏠 Главное меню"
+    ]
+    if text in news_buttons:
+        await update.message.reply_text(
+            "⏳ Сессия была сброшена из-за обновления бота. Пожалуйста, начните заново, нажав на кнопку ниже:",
+            reply_markup=MAIN_KEYBOARD
+        )
+        return
 
     review_file = ROOT / "business" / "review_waiting.txt"
     if review_file.exists():
@@ -2830,11 +2839,26 @@ async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
                 "Отвечай кратко, грамотно, без лишней «воды», на русском языке. Используй легкое форматирование Telegram (жирный шрифт)."
             )
         )
-        await status_msg.delete()
-        await update.message.reply_text(response, reply_markup=MAIN_KEYBOARD, parse_mode="Markdown")
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
+            
+        try:
+            await update.message.reply_text(response, reply_markup=MAIN_KEYBOARD, parse_mode="Markdown")
+        except Exception:
+            # Резервный вариант отправки без разметки, если Markdown-парсер Telegram выдал ошибку
+            await update.message.reply_text(response, reply_markup=MAIN_KEYBOARD)
+            
     except Exception as e:
         log.error("Failed to generate text response: %s", e)
-        await status_msg.edit_text("Извините, произошла ошибка при генерации ответа.")
+        try:
+            await status_msg.edit_text("Извините, произошла ошибка при генерации ответа.")
+        except Exception:
+            try:
+                await update.message.reply_text("Извините, произошла ошибка при генерации ответа.")
+            except Exception:
+                pass
 
 async def _direct_log(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     # Ищем лог-файл в корневой директории
