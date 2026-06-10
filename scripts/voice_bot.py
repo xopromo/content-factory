@@ -2683,9 +2683,14 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 60))
 
 async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    text = update.message.text.strip()
+    
+    if text in ["🔄 Новые новости", "1️⃣", "2️⃣", "3️⃣"]:
+        await update.message.reply_text("⏳ Сессия была сброшена из-за обновления бота. Возвращаю вас к темам новостей...")
+        return await choose_news_topic(update, ctx)
+
     review_file = ROOT / "business" / "review_waiting.txt"
     if review_file.exists():
-        text = update.message.text.strip()
         latest_reply = ROOT / "business" / "latest_reply.json"
         latest_reply.write_text(json.dumps({
             "timestamp": time.time(),
@@ -2696,7 +2701,6 @@ async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         return
         
     # Проверяем, содержит ли входящий текст прокси
-    text = update.message.text.strip()
     lines = text.splitlines()
     new_proxies_found = []
     
