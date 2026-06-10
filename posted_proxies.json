@@ -69,7 +69,7 @@
   },
   "tg://proxy?server=167.233.54.153&port=443&secret=ddf0eeb0bd9adc4fd4a93994ee3b2a216b": {
     "msg_id": 111,
-    "fails": 0
+    "fails": 1
   },
   "tg://proxy?server=212.56.44.184&port=443&secret=ee79ba93b4e649ba70dcd191e72539c99e676f6f676c65617069732e636f6d": {
     "msg_id": 112,

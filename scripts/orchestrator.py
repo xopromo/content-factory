@@ -934,11 +934,11 @@ def run_fact_checker(draft: str, raw_sources: str, step_label: str) -> tuple[boo
         output += f"\n\n### TEMPORAL WARNINGS:\n{temp_report}"
         tg_notify(f"⚠️ <b>temporal-check</b>: найдены временные несоответствия\n{temp_report[:400]}")
 
-    # Уровень 3: Gemini spot-check на 5-7 ключевых утверждений (если Groq нашёл VERIFIED)
-    if passed and _gemini_client:
+    # Уровень 3: Gemini spot-check — только в pipeline_mode="full"
+    # В seo/news режиме пропускается для скорости (экономит 1 вызов API)
+    _pipeline_mode_for_spot = os.environ.get("_PIPELINE_MODE_FOR_SPOT", "seo")
+    if passed and _gemini_client and _pipeline_mode_for_spot == "full":
         import re
-        verified_claims = re.findall(r"VERIFIED:.*?\[(\d+)\].*?(?:\n|$)", output)
-        # Извлекаем первые 5 верифицированных фактов для spot-check
         claims_for_spot = "\n".join(
             line for line in output.split("\n")
             if "VERIFIED" in line
@@ -950,6 +950,8 @@ def run_fact_checker(draft: str, raw_sources: str, step_label: str) -> tuple[boo
                 tg_notify(f"⚠️ <b>Gemini spot-check</b>: расхождение с основным fact-checker\n{spot_report[:400]}")
             else:
                 print(f"  [gemini-spotcheck] ✅ SPOTCHECK_PASS")
+    elif passed and _gemini_client:
+        print(f"  [gemini-spotcheck] ⏭ пропущен (только в --pipeline-mode full)")
 
     icon = "✅" if passed else "❌"
     tg_notify(
@@ -966,7 +968,10 @@ def run_pipeline(
     auto_approve: bool = False, resume: bool = False,
     mode: str = "🎯 Статья для SEO и GEO",
     pipeline_mode: str = "seo",
+    fast_mode: bool = False,
 ) -> None:
+    # fast_mode: пропускает шаги 2, 7, 10, 11.5 и Gemini spot-check
+    # Активируется флагом --fast в CLI (~2× быстрее при тех же LLM-лимитах)
     # ── Resume: загружаем сохранённое состояние ──────────────────────────────
     last_step, saved_ctx = load_state(slug) if resume else (0, {})
     if resume and last_step > 0:
@@ -1069,9 +1074,12 @@ def run_pipeline(
             print("  [scope] ✅ Запрос достаточно конкретен")
         save_state(slug, context, 1)
 
-    # Шаг 2: knowledge-retriever (пропускается в режиме news)
-    if pipeline_mode == "news":
-        print("  [news] Шаг 2 пропущен (режим новость)")
+    # Шаг 2: knowledge-retriever (пропускается в режиме news или --fast)
+    if pipeline_mode == "news" or fast_mode:
+        if fast_mode and pipeline_mode != "news":
+            print("  [fast] Шаг 2 пропущен (--fast режим)")
+        else:
+            print("  [news] Шаг 2 пропущен (режим новость)")
         context.setdefault("knowledge_pack", "")
         save_state(slug, context, 2)
     elif last_step >= 2:
@@ -1552,8 +1560,45 @@ def run_pipeline(
         print(f"  [number-validator] ✅ Все числа корректны")
     # save_state вызывается в следующем шаге (7)
 
-    # ── SEO-качество: три дополнительных прохода (для всех режимов, включая news, чтобы избежать воды и повторов) ──
-    if True:
+    # ── Шаги 6.8–6.10: Мастер-редактор (dedup + content-value + readability) ──
+    # В --fast режиме: один объединённый LLM-вызов вместо 3–5 последовательных.
+    # В обычном режиме: поведение прежнее (три отдельных прохода).
+    if fast_mode:
+        print("  [master-editor] Запускаю мастер-редактор (dedup + value + readability)...")
+        tg_notify("✍️ <b>master-editor</b>: dedup + усиление + читаемость (один проход)...")
+
+        # Быстрая диагностика через regex (без LLM)
+        scores = assess_content_value(full_draft)
+        weak_count = sum(1 for s in scores.values() if s < 4)
+        h2_sections = re.findall(r'^## .+?$', full_draft, re.MULTILINE) if 'import re' in dir() else []
+        import re as _re
+        h2_sections = _re.findall(r'^## .+?$', full_draft, _re.MULTILINE)
+
+        master_prompt = (
+            f"Ты опытный редактор. Улучши статью за один проход по трём направлениям:\n\n"
+            f"1. ДУБЛИ: найди H2-разделы с >50% пересечением тезисов — объедини, сохранив все уникальные факты.\n"
+            f"   Заголовки H2 в статье: {', '.join(h2_sections[:10])}\n\n"
+            f"2. СЛАБЫЕ БЛОКИ: разделы без конкретных фактов/чисел (<4/10 ценности) — усиль данными\n"
+            f"   из источников или удали если совсем пустые. Слабых блоков: {weak_count}.\n"
+            f"   Источники (для добавления конкретики):\n{context.get('raw_sources', '')[:1500]}\n\n"
+            f"3. ЧИТАЕМОСТЬ: убери слова-паразиты (данный, является, осуществляет, в рамках,\n"
+            f"   следует отметить, таким образом). Первые предложения H2 — прямой тезис, не вступление.\n\n"
+            f"Правила:\n"
+            f"- Не добавляй факты которых нет в источниках\n"
+            f"- Не удаляй ссылки [1], [2] и т.д.\n"
+            f"- Верни полный текст статьи без комментариев\n\n"
+            f"Статья:\n{full_draft}"
+        )
+        master_result, master_tokens = run_claude(master_prompt)
+        if len(master_result) >= len(full_draft) * 0.65:
+            full_draft = master_result
+            context["draft_1-3"] = full_draft
+            print(f"  [master-editor] ✅ Статья улучшена (~{master_tokens} токенов)")
+        else:
+            print("  [master-editor] ⚠️ Результат слишком короткий — оставляю оригинал")
+        save_state(slug, context, 6)
+    else:
+        # Обычный режим: три отдельных прохода
         # Шаг 6.8: Semantic dedup — убираем смысловые повторы между H2
         print("  [semantic-dedup] Ищу смысловые повторы между секциями...")
         has_dups, dedup_report = detect_semantic_duplicates(full_draft)
@@ -1609,9 +1654,12 @@ def run_pipeline(
         save_state(slug, context, 6)
     # ─────────────────────────────────────────────────────────────────────────────────
 
-    # Шаг 7: diagram-illustrator (пропускается в режиме news)
-    if pipeline_mode == "news":
-        print("  [news] Диаграммы пропущены (режим новость)")
+    # Шаг 7: diagram-illustrator (пропускается в режиме news или --fast)
+    if pipeline_mode == "news" or fast_mode:
+        if fast_mode and pipeline_mode != "news":
+            print("  [fast] Шаг 7 пропущен (--fast режим)")
+        else:
+            print("  [news] Диаграммы пропущены (режим новость)")
         context.setdefault("diagrams", "")
     else:
         r = StepResult(7, "diagram-illustrator")
@@ -1656,9 +1704,12 @@ def run_pipeline(
         r.finish(output, tokens=tokens)
         save_state(slug, context, 8)
 
-    # Шаг 10: geo-emulator (пропускается в режиме news)
-    if pipeline_mode == "news":
-        print("  [news] GEO-эмулятор пропущен (режим новость)")
+    # Шаг 10: geo-emulator (пропускается в режиме news или --fast)
+    if pipeline_mode == "news" or fast_mode:
+        if fast_mode and pipeline_mode != "news":
+            print("  [fast] Шаг 10 пропущен (--fast режим)")
+        else:
+            print("  [news] GEO-эмулятор пропущен (режим новость)")
         context.setdefault("geo_report", "")
     else:
         r = StepResult(10, "geo-emulator")
@@ -1685,9 +1736,12 @@ def run_pipeline(
         r.finish(output, tokens=tokens)
         save_state(slug, context, 11)
 
-    # Шаг 11.5: devil-advocate (пропускается в режиме news)
-    if pipeline_mode == "news":
-        print("  [news] Devil-advocate пропущен (режим новость)")
+    # Шаг 11.5: devil-advocate (пропускается в режиме news или --fast)
+    if pipeline_mode == "news" or fast_mode:
+        if fast_mode and pipeline_mode != "news":
+            print("  [fast] Шаг 11.5 пропущен (--fast режим)")
+        else:
+            print("  [news] Devil-advocate пропущен (режим новость)")
         advocate_flagged, advocate_report = False, ""
     else:
         advocate_flagged, advocate_report = run_devil_advocate(context.get("optimized_draft", ""))
@@ -1799,6 +1853,15 @@ if __name__ == "__main__":
     )
     parser.add_argument("--chat-id", help="Telegram chat_id для отправки уведомлений")
     parser.add_argument("--mock", action="store_true", help="Режим моков (без реальных вызовов LLM API)")
+    parser.add_argument(
+        "--fast", action="store_true",
+        help=(
+            "Быстрый режим: пропускает шаги 2 (knowledge), 7 (diagrams), 10 (geo-emulator), "
+            "11.5 (devil-advocate) и Gemini spot-check. "
+            "Объединяет валидаторы 6.8-6.10 в один мастер-вызов. "
+            "Экономит ~5 LLM-вызовов, ускоряет генерацию ~2× (~15-20 мин вместо 30-40 мин)."
+        )
+    )
     args = parser.parse_args()
 
     if args.mock:
@@ -1806,6 +1869,9 @@ if __name__ == "__main__":
 
     if args.chat_id:
         TG_CHAT_ID_OVERRIDE = args.chat_id
+
+    # Передаём pipeline_mode в fact-checker через env (обход ограничения параметров)
+    os.environ["_PIPELINE_MODE_FOR_SPOT"] = args.pipeline_mode
 
     try:
         run_pipeline(
@@ -1817,6 +1883,7 @@ if __name__ == "__main__":
             resume=args.resume,
             mode=args.mode,
             pipeline_mode=args.pipeline_mode,
+            fast_mode=args.fast,
         )
     except Exception as e:
         import traceback

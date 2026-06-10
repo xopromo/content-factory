@@ -113,10 +113,7 @@ AUDIENCE_QUESTIONS = [
 
 MAIN_KEYBOARD = ReplyKeyboardMarkup(
     [
-        ["🎤 Голосовая заметка"],
-        ["💡 Экспертиза", "💼 Бизнес"],
-        ["🎯 Аудитория", "📋 Заметки"],
-        ["📰 Новости ниши", "🚀 Создать статью"],
+        ["📰 Новости ниши"],
     ],
     resize_keyboard=True,
     is_persistent=True,
