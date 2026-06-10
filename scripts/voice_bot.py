@@ -200,7 +200,7 @@ def gh_write(path: str, content: str, message: str) -> str:
     except Exception as local_err:
         log.error("Failed to write local file in gh_write: %s", local_err)
 
-    if not os.environ.get("GITHUB_TOKEN"):
+    if path.startswith("knowledge/voice/") or not os.environ.get("GITHUB_TOKEN"):
         return str(Path(__file__).parent.parent / path)
     repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
     branch = os.environ.get("GITHUB_BRANCH", "main")
@@ -239,7 +239,7 @@ def gh_write_bin(path: str, data: bytes, message: str) -> str:
     except Exception as local_err:
         log.error("Failed to write local bin file in gh_write_bin: %s", local_err)
 
-    if not os.environ.get("GITHUB_TOKEN"):
+    if path.startswith("knowledge/voice/") or not os.environ.get("GITHUB_TOKEN"):
         return str(Path(__file__).parent.parent / path)
     repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
     branch = os.environ.get("GITHUB_BRANCH", "main")

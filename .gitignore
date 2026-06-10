@@ -45,3 +45,7 @@ Thumbs.db
 # Logs
 *.log
 plans/.state/
+
+# Voice transcripts (kept locally only)
+knowledge/voice/
+knowledge/voice/*
