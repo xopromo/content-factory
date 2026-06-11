@@ -287,15 +287,85 @@ def gh_list(path: str) -> list[str]:
 # ── Groq ──────────────────────────────────────────────────────────────────────
 
 def transcribe(audio_path: Path) -> str:
-    client = Groq(api_key=os.environ["GROQ_KEY"])
-    with open(audio_path, "rb") as f:
-        result = client.audio.transcriptions.create(
-            file=(audio_path.name, f),
-            model="whisper-large-v3-turbo",
-            language="ru",
-            response_format="text",
-        )
-    return result.strip()
+    errors = []
+    
+    # 1. Попытка через Groq (Whisper)
+    try:
+        client = Groq(api_key=os.environ["GROQ_KEY"])
+        with open(audio_path, "rb") as f:
+            result = client.audio.transcriptions.create(
+                file=(audio_path.name, f),
+                model="whisper-large-v3-turbo",
+                language="ru",
+                response_format="text",
+            )
+        return result.strip()
+    except Exception as e:
+        err_msg = f"Groq Whisper failed: {e}"
+        log.warning(err_msg)
+        errors.append(err_msg)
+
+    # 2. Резервная попытка через Pollinations (whisper)
+    try:
+        import json
+        import urllib.request
+        with open(audio_path, "rb") as f:
+            audio_data = f.read()
+        
+        # Pollinations имеет OpenAI-совместимый эндпоинт для аудио/транскрипции или может принимать файлы
+        # Но проще и надежнее использовать официальный API Gemini Flash, так как он принимает аудио файлы в base64
+        # и отлично понимает речь прямо в рамках prompt'а.
+        pass
+    except Exception:
+        pass
+
+    # 3. Резервная попытка через Google Gemini 2.0 Flash REST (передача аудио в base64)
+    gemini_key = os.environ.get("GEMINI_KEY")
+    if gemini_key:
+        try:
+            import base64
+            with open(audio_path, "rb") as f:
+                audio_b64 = base64.b64encode(f.read()).decode("utf-8")
+            
+            # Определяем MIME тип
+            suffix = audio_path.suffix.lower()
+            mime_type = "audio/ogg"
+            if suffix == ".mp3":
+                mime_type = "audio/mp3"
+            elif suffix == ".wav":
+                mime_type = "audio/wav"
+            elif suffix == ".m4a":
+                mime_type = "audio/m4a"
+                
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
+            payload = {
+                "contents": [{
+                    "parts": [
+                        {"inlineData": {"mimeType": mime_type, "data": audio_b64}},
+                        {"text": "Напиши точную транскрипцию этой аудиозаписи на русском языке. Верни только текст транскрипции, без каких-либо комментариев."}
+                    ]
+                }],
+                "generationConfig": {"temperature": 0.0}
+            }
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                res = json.loads(resp.read().decode("utf-8"))
+                text = res["candidates"][0]["content"]["parts"][0]["text"].strip()
+                log.info("Successfully transcribed voice using Gemini 2.0 Flash REST fallback!")
+                return text
+        except Exception as gemini_err:
+            err_msg = f"Gemini fallback transcription failed: {gemini_err}"
+            log.warning(err_msg)
+            errors.append(err_msg)
+
+    detailed_errors = "; ".join(errors)
+    raise RuntimeError(f"Все методы транскрипции завершились ошибкой: {detailed_errors}")
+
 
 def llm_chat(prompt: str, system: str = "") -> str:
     """Sends chat prompt to shared llm_client"""
