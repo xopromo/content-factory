@@ -1064,6 +1064,10 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                     log.info("Successfully added task #%s to tasks.json on GitHub", next_id)
                 except Exception as gh_err:
                     log.error("Failed to sync task with GitHub tasks.json: %s", gh_err)
+                    try:
+                        await update.message.reply_text(f"❌ Ошибка синхронизации с GitHub: {gh_err}")
+                    except Exception:
+                        pass
 
             try:
                 await status_msg.delete()
@@ -3446,6 +3450,10 @@ async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
             log.info("Successfully added channel task #%s to tasks.json on GitHub", next_id)
         except Exception as gh_err:
             log.error("Failed to sync channel task with GitHub tasks.json: %s", gh_err)
+            try:
+                await status_msg.reply_text(f"❌ Ошибка синхронизации с GitHub: {gh_err}")
+            except Exception:
+                pass
             
     except Exception as e:
         log.error("Error in handle_channel_voice: %s", e)
