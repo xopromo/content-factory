@@ -42,77 +42,50 @@ REPO = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
 BRANCH = os.environ.get("GITHUB_BRANCH", "main")
 TASKS_PATH = "docs/articles/tasks.json"
 
-def _gh_headers() -> dict:
-    return {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "antigravity-agent/1.0"
-    }
+def git_pull():
+    import subprocess
+    try:
+        # Run git pull to get latest changes from remote main
+        subprocess.run(["git", "pull", "origin", BRANCH], cwd=str(ROOT), check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception as e:
+        print(f"git pull failed: {e}")
+
+def git_push(message):
+    import subprocess
+    try:
+        # Commit and push tasks.json changes
+        subprocess.run(["git", "add", TASKS_PATH], cwd=str(ROOT), check=True)
+        # Check if there are changes to commit
+        status = subprocess.run(["git", "status", "--porcelain", TASKS_PATH], cwd=str(ROOT), capture_output=True, text=True)
+        if status.stdout.strip():
+            subprocess.run(["git", "commit", "-m", f"{message} [skip render]"], cwd=str(ROOT), check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(["git", "push", "origin", BRANCH], cwd=str(ROOT), check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            print(f"Successfully pushed: {message}")
+    except Exception as e:
+        print(f"git push failed: {e}")
 
 def gh_read_tasks():
-    if not GITHUB_TOKEN:
-        # Local fallback
-        p = ROOT / TASKS_PATH
-        if p.exists():
-            try:
-                return json.loads(p.read_text(encoding="utf-8"))
-            except Exception:
-                pass
-        return []
-
-    url = f"https://api.github.com/repos/{REPO}/contents/{urllib.parse.quote(TASKS_PATH)}?ref={BRANCH}"
-    try:
-        req = urllib.request.Request(url, headers=_gh_headers())
-        with urllib.request.urlopen(req, timeout=15) as r:
-            d = json.loads(r.read())
-            import base64
-            content_str = base64.b64decode(d["content"].replace("\n", "")).decode("utf-8")
-            return json.loads(content_str)
-    except Exception as e:
-        # File might not exist yet, return empty list
-        return []
+    # Sync via git pull first
+    git_pull()
+    
+    p = ROOT / TASKS_PATH
+    if p.exists():
+        try:
+            return json.loads(p.read_text(encoding="utf-8"))
+        except Exception as e:
+            print(f"Failed to parse tasks.json: {e}")
+    return []
 
 def gh_write_tasks(tasks, message="chore: update tasks list"):
     content = json.dumps(tasks, indent=2, ensure_ascii=False)
     
-    # Save locally first
+    # Save locally
     p = ROOT / TASKS_PATH
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(content, encoding="utf-8")
 
-    if not GITHUB_TOKEN:
-        return
-
-    url = f"https://api.github.com/repos/{REPO}/contents/{urllib.parse.quote(TASKS_PATH)}"
-    sha = None
-    try:
-        req = urllib.request.Request(url + f"?ref={BRANCH}", headers=_gh_headers())
-        with urllib.request.urlopen(req, timeout=10) as r:
-            sha = json.loads(r.read()).get("sha")
-    except Exception:
-        pass
-
-    import base64
-    payload = {
-        "message": f"{message} [skip render]",
-        "content": base64.b64encode(content.encode()).decode(),
-        "branch": BRANCH,
-    }
-    if sha:
-        payload["sha"] = sha
-
-    try:
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode(),
-            headers={**_gh_headers(), "Content-Type": "application/json"},
-            method="PUT",
-        )
-        with urllib.request.urlopen(req, timeout=15) as r:
-            pass
-    except Exception as e:
-        print(f"Failed to write tasks list to GitHub: {e}")
+    # Sync via git push
+    git_push(message)
 
 def execute_ai_task(task_text):
     """
