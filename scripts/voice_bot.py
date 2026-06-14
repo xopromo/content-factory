@@ -127,6 +127,8 @@ NEWS_TOPICS = {
     "🪙 Криптовалюта": "криптовалюта биткоин трейдинг новости",
 }
 
+TASK_CHANNEL_ID = -1004378273791
+
 NAV_KEYBOARD = ReplyKeyboardMarkup(
     [["🏠"]],
     resize_keyboard=True,
@@ -137,7 +139,8 @@ TRANSCRIPT_ACTION_KEYBOARD = ReplyKeyboardMarkup(
         ["💾 Сохранить в базу", "📝 Пост+Коммент"],
         ["✨ Восстановить речь", "📖 Разбить на абзацы"],
         ["🎬 Свернутый конспект", "📊 Сделать саммари"],
-        ["🚀 Создать статью", "🏠 Главное меню"]
+        ["📢 Отправить ИИ-агенту", "🚀 Создать статью"],
+        ["🏠 Главное меню"]
     ],
     resize_keyboard=True,
     one_time_keyboard=True
@@ -1003,6 +1006,45 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
             
         return WAIT_TRANSCRIPT_ACTION
         
+    elif action == "📢 Отправить ИИ-агенту":
+        if not text:
+            msg = await update.message.reply_text("Нет текста задачи для отправки.")
+            asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 5))
+            return WAIT_TRANSCRIPT_ACTION
+            
+        status_msg = await update.message.reply_text("📢 Отправляю задачу в канал ИИ-агента...")
+        try:
+            # Отправляем задачу в наш ИИ-канал
+            task_msg = await ctx.bot.send_message(
+                chat_id=TASK_CHANNEL_ID,
+                text=(
+                    f"🎯 <b>Новая голосовая задача от пользователя:</b>\n\n"
+                    f"{text}\n\n"
+                    f"⚡️ <i>ИИ-агент, возьми в работу. Отчет отправь ответом на это сообщение.</i>"
+                ),
+                parse_mode="HTML"
+            )
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            await update.message.reply_text(
+                f"✅ Задача успешно отправлена в канал! ID сообщения: <code>{task_msg.message_id}</code>.\n"
+                f"Antigravity увидит задачу при следующем сканировании канала.",
+                reply_markup=MAIN_KEYBOARD,
+                parse_mode="HTML"
+            )
+            return ConversationHandler.END
+        except Exception as e:
+            log.error("Failed to forward task to channel: %s", e)
+            try:
+                await status_msg.delete()
+            except Exception:
+                pass
+            msg = await update.message.reply_text(f"❌ Не удалось отправить задачу: {e}\nУбедитесь, что бот добавлен администратором в канал задач.")
+            asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
+            return WAIT_TRANSCRIPT_ACTION
+
     elif action in ["🚀 Создать статью", "🚀 Создать статью на эту тему"]:
         if not text:
             msg = await update.message.reply_text("Нет темы/текста для генерации статьи.")
