@@ -3374,6 +3374,66 @@ async def post_init(application: Application) -> None:
     # Запускаем фоновую задачу сборщика прокси
     asyncio.create_task(proxy_harvester_loop())
 
+async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    msg = update.effective_message
+    if not msg or not msg.voice:
+        return
+        
+    try:
+        # Отправляем сообщение-заглушку в ответ на голосовое
+        status_msg = await msg.reply_text("⏳ Расшифровываю голосовую задачу...")
+        
+        # Расшифровываем аудио
+        text = await _download_and_transcribe_media(msg, ctx, status_msg=None)
+        if not text:
+            await status_msg.edit_text("❌ Не удалось расшифровать голосовое сообщение.")
+            return
+            
+        # Формируем HTML для задачи
+        task_html = (
+            f"🎯 <b>Новая голосовая задача от пользователя:</b>\n\n"
+            f"{text}\n\n"
+            f"⚡️ <i>ИИ-агент, возьми в работу. Отчет отправь ответом на это сообщение.</i>"
+        )
+        
+        # Обновляем заглушку на полноценную задачу
+        await status_msg.edit_text(task_html, parse_mode="HTML")
+        
+        # Записываем задачу в docs/articles/tasks.json на GitHub
+        try:
+            tasks_content = gh_read("docs/articles/tasks.json")
+            tasks = []
+            if tasks_content:
+                try:
+                    tasks = json.loads(tasks_content)
+                except Exception as je:
+                    log.error("Failed to parse existing tasks.json: %s", je)
+            
+            next_id = 1
+            if tasks:
+                next_id = max(t.get("id", 0) for t in tasks) + 1
+            
+            new_task = {
+                "id": next_id,
+                "message_id": status_msg.message_id, # Локальный агент будет отвечать на это сообщение
+                "text": text,
+                "status": "pending",
+                "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+            tasks.append(new_task)
+            
+            gh_write(
+                "docs/articles/tasks.json",
+                json.dumps(tasks, indent=2, ensure_ascii=False),
+                f"task: add task #{next_id}"
+            )
+            log.info("Successfully added channel task #%s to tasks.json on GitHub", next_id)
+        except Exception as gh_err:
+            log.error("Failed to sync channel task with GitHub tasks.json: %s", gh_err)
+            
+    except Exception as e:
+        log.error("Error in handle_channel_voice: %s", e)
+
 def main() -> None:
     try:
         asyncio.get_event_loop()
@@ -3529,6 +3589,7 @@ def main() -> None:
     app.add_handler(CommandHandler("check_proxies", cmd_proxies))
     app.add_handler(CommandHandler("harvester", cmd_harvester))
     app.add_handler(CommandHandler("status", cmd_status))
+    app.add_handler(MessageHandler(filters.Chat(chat_id=TASK_CHANNEL_ID) & filters.VOICE, handle_channel_voice))
     app.add_handler(conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
