@@ -163,8 +163,8 @@ def gh_read(path: str) -> str:
     if not os.environ.get("GITHUB_TOKEN"):
         p = Path(__file__).parent.parent / path
         return p.read_text("utf-8") if p.exists() else ""
-    repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
-    branch = os.environ.get("GITHUB_BRANCH", "main")
+    repo = os.environ.get("GITHUB_REPO") or "xopromo/content-factory"
+    branch = os.environ.get("GITHUB_BRANCH") or "main"
     url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}?ref={branch}"
     try:
         req = urllib.request.Request(url, headers=_gh_headers())
@@ -180,8 +180,8 @@ def gh_list_dir(path: str) -> list[dict]:
         if not p.exists():
             return []
         return [{"name": f.name, "type": "file"} for f in p.glob("*")]
-    repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
-    branch = os.environ.get("GITHUB_BRANCH", "main")
+    repo = os.environ.get("GITHUB_REPO") or "xopromo/content-factory"
+    branch = os.environ.get("GITHUB_BRANCH") or "main"
     url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}?ref={branch}"
     try:
         req = urllib.request.Request(url, headers=_gh_headers())
@@ -201,11 +201,11 @@ def gh_write(path: str, content: str, message: str) -> str:
     except Exception as local_err:
         log.error("Failed to write local file in gh_write: %s", local_err)
 
-    repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
+    repo = os.environ.get("GITHUB_REPO") or "xopromo/content-factory"
     is_public = (repo == "xopromo/content-factory")
     if (is_public and path.startswith("knowledge/voice/")) or not os.environ.get("GITHUB_TOKEN"):
         return str(Path(__file__).parent.parent / path)
-    branch = os.environ.get("GITHUB_BRANCH", "main")
+    branch = os.environ.get("GITHUB_BRANCH") or "main"
     url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}"
     sha = None
     try:
@@ -241,11 +241,11 @@ def gh_write_bin(path: str, data: bytes, message: str) -> str:
     except Exception as local_err:
         log.error("Failed to write local bin file in gh_write_bin: %s", local_err)
 
-    repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
+    repo = os.environ.get("GITHUB_REPO") or "xopromo/content-factory"
     is_public = (repo == "xopromo/content-factory")
     if (is_public and path.startswith("knowledge/voice/")) or not os.environ.get("GITHUB_TOKEN"):
         return str(Path(__file__).parent.parent / path)
-    branch = os.environ.get("GITHUB_BRANCH", "main")
+    branch = os.environ.get("GITHUB_BRANCH") or "main"
     url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}"
     sha = None
     try:
@@ -277,8 +277,8 @@ def gh_list(path: str) -> list[str]:
     if not os.environ.get("GITHUB_TOKEN"):
         p = Path(__file__).parent.parent / path
         return sorted([f.name for f in p.glob("*.md")], reverse=True) if p.exists() else []
-    repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
-    branch = os.environ.get("GITHUB_BRANCH", "main")
+    repo = os.environ.get("GITHUB_REPO") or "xopromo/content-factory"
+    branch = os.environ.get("GITHUB_BRANCH") or "main"
     url = f"https://api.github.com/repos/{repo}/contents/{urllib.parse.quote(path)}?ref={branch}"
     try:
         req = urllib.request.Request(url, headers=_gh_headers())
@@ -2649,8 +2649,8 @@ async def handle_voice_note_button(update: Update, ctx: ContextTypes.DEFAULT_TYP
 async def menu_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     files = gh_list("knowledge/voice")[:5]
     if files:
-        repo = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
-        branch = os.environ.get("GITHUB_BRANCH", "main")
+        repo = os.environ.get("GITHUB_REPO") or "xopromo/content-factory"
+        branch = os.environ.get("GITHUB_BRANCH") or "main"
         
         lines = []
         for n in files:
