@@ -151,8 +151,9 @@ NUMS = {"1️⃣": 0, "2️⃣": 1, "3️⃣": 2}
 # ── Работа с файлами (GitHub API или локальный диск) ──────────────────────────
 
 def _gh_headers() -> dict:
+    token = os.environ.get("GITHUB_TOKEN", "")
     return {
-        "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+        "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
         "User-Agent": "content-factory-bot/1.0"
@@ -1026,36 +1027,43 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
             )
             
             # Запись задачи в docs/articles/tasks.json на GitHub
-            try:
-                tasks_content = gh_read("docs/articles/tasks.json")
-                tasks = []
-                if tasks_content:
-                    try:
-                        tasks = json.loads(tasks_content)
-                    except Exception as je:
-                        log.error("Failed to parse existing tasks.json: %s", je)
-                
-                next_id = 1
-                if tasks:
-                    next_id = max(t.get("id", 0) for t in tasks) + 1
-                
-                new_task = {
-                    "id": next_id,
-                    "message_id": task_msg.message_id,
-                    "text": text,
-                    "status": "pending",
-                    "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
-                }
-                tasks.append(new_task)
-                
-                gh_write(
-                    "docs/articles/tasks.json",
-                    json.dumps(tasks, indent=2, ensure_ascii=False),
-                    f"task: add task #{next_id}"
+            if not os.environ.get("GITHUB_TOKEN"):
+                await update.message.reply_text(
+                    "⚠️ <b>Внимание:</b> Переменная окружения <code>GITHUB_TOKEN</code> не настроена на сервере Render. "
+                    "Не удалось синхронизировать задачу с GitHub. Настройте токен в панели управления Render.",
+                    parse_mode="HTML"
                 )
-                log.info("Successfully added task #%s to tasks.json on GitHub", next_id)
-            except Exception as gh_err:
-                log.error("Failed to sync task with GitHub tasks.json: %s", gh_err)
+            else:
+                try:
+                    tasks_content = gh_read("docs/articles/tasks.json")
+                    tasks = []
+                    if tasks_content:
+                        try:
+                            tasks = json.loads(tasks_content)
+                        except Exception as je:
+                            log.error("Failed to parse existing tasks.json: %s", je)
+                    
+                    next_id = 1
+                    if tasks:
+                        next_id = max(t.get("id", 0) for t in tasks) + 1
+                    
+                    new_task = {
+                        "id": next_id,
+                        "message_id": task_msg.message_id,
+                        "text": text,
+                        "status": "pending",
+                        "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+                    }
+                    tasks.append(new_task)
+                    
+                    gh_write(
+                        "docs/articles/tasks.json",
+                        json.dumps(tasks, indent=2, ensure_ascii=False),
+                        f"task: add task #{next_id}"
+                    )
+                    log.info("Successfully added task #%s to tasks.json on GitHub", next_id)
+                except Exception as gh_err:
+                    log.error("Failed to sync task with GitHub tasks.json: %s", gh_err)
 
             try:
                 await status_msg.delete()
@@ -3400,6 +3408,14 @@ async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
         await status_msg.edit_text(task_html, parse_mode="HTML")
         
         # Записываем задачу в docs/articles/tasks.json на GitHub
+        if not os.environ.get("GITHUB_TOKEN"):
+            await status_msg.reply_text(
+                "⚠️ <b>Внимание:</b> Переменная окружения <code>GITHUB_TOKEN</code> не настроена на сервере Render.\n"
+                "Задача опубликована в канале, но ИИ-агент не сможет получить её с GitHub. Настройте токен в панели управления Render.",
+                parse_mode="HTML"
+            )
+            return
+
         try:
             tasks_content = gh_read("docs/articles/tasks.json")
             tasks = []
