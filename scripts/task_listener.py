@@ -52,23 +52,31 @@ def git_pull():
     import subprocess
     try:
         # Run git pull to get latest changes from remote main
-        subprocess.run(["git", "pull", "origin", BRANCH], cwd=str(ROOT), check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        res = subprocess.run(["git", "pull", "origin", BRANCH], cwd=str(ROOT), capture_output=True, text=True, shell=True)
+        if res.returncode != 0:
+            print(f"git pull failed (code {res.returncode}): {res.stderr.strip()}")
     except Exception as e:
-        print(f"git pull failed: {e}")
+        print(f"git pull exception: {e}")
 
 def git_push(message):
     import subprocess
     try:
         # Commit and push tasks.json changes
-        subprocess.run(["git", "add", TASKS_PATH], cwd=str(ROOT), check=True)
+        subprocess.run(["git", "add", TASKS_PATH], cwd=str(ROOT), check=True, shell=True)
         # Check if there are changes to commit
-        status = subprocess.run(["git", "status", "--porcelain", TASKS_PATH], cwd=str(ROOT), capture_output=True, text=True)
+        status = subprocess.run(["git", "status", "--porcelain", TASKS_PATH], cwd=str(ROOT), capture_output=True, text=True, shell=True)
         if status.stdout.strip():
-            subprocess.run(["git", "commit", "-m", f"{message} [skip render]"], cwd=str(ROOT), check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run(["git", "push", "origin", BRANCH], cwd=str(ROOT), check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            print(f"Successfully pushed: {message}")
+            res_commit = subprocess.run(["git", "commit", "-m", f"{message} [skip render]"], cwd=str(ROOT), capture_output=True, text=True, shell=True)
+            if res_commit.returncode != 0:
+                print(f"git commit failed: {res_commit.stderr.strip()}")
+                return
+            res_push = subprocess.run(["git", "push", "origin", BRANCH], cwd=str(ROOT), capture_output=True, text=True, shell=True)
+            if res_push.returncode != 0:
+                print(f"git push failed: {res_push.stderr.strip()}")
+            else:
+                print(f"Successfully pushed: {message}")
     except Exception as e:
-        print(f"git push failed: {e}")
+        print(f"git push exception: {e}")
 
 def gh_read_tasks():
     # Sync via git pull first
