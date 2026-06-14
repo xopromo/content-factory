@@ -1024,6 +1024,39 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                 ),
                 parse_mode="HTML"
             )
+            
+            # Запись задачи в docs/articles/tasks.json на GitHub
+            try:
+                tasks_content = gh_read("docs/articles/tasks.json")
+                tasks = []
+                if tasks_content:
+                    try:
+                        tasks = json.loads(tasks_content)
+                    except Exception as je:
+                        log.error("Failed to parse existing tasks.json: %s", je)
+                
+                next_id = 1
+                if tasks:
+                    next_id = max(t.get("id", 0) for t in tasks) + 1
+                
+                new_task = {
+                    "id": next_id,
+                    "message_id": task_msg.message_id,
+                    "text": text,
+                    "status": "pending",
+                    "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+                }
+                tasks.append(new_task)
+                
+                gh_write(
+                    "docs/articles/tasks.json",
+                    json.dumps(tasks, indent=2, ensure_ascii=False),
+                    f"task: add task #{next_id}"
+                )
+                log.info("Successfully added task #%s to tasks.json on GitHub", next_id)
+            except Exception as gh_err:
+                log.error("Failed to sync task with GitHub tasks.json: %s", gh_err)
+
             try:
                 await status_msg.delete()
             except Exception:
