@@ -85,6 +85,9 @@ def git_pull():
 def git_push(message):
     import subprocess
     try:
+        # First, ensure we pull latest changes to merge cleanly
+        git_pull()
+        
         # Commit tasks.json changes
         subprocess.run(["git", "add", TASKS_PATH], cwd=str(GIT_DIR), check=True, shell=True)
         status = subprocess.run(["git", "status", "--porcelain", TASKS_PATH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
@@ -94,16 +97,13 @@ def git_push(message):
                 print(f"git commit failed: {res_commit.stderr.strip()}")
                 return
         
-        # Loop to handle push retries with pull --rebase
-        for attempt in range(3):
-            git_pull()
-            res_push = subprocess.run(["git", "push", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
-            if res_push.returncode == 0:
-                print(f"Successfully pushed: {message}")
-                return
-            else:
-                print(f"git push failed (attempt {attempt + 1}): {res_push.stderr.strip()}")
-                time.sleep(2)
+        # Push to origin
+        res_push = subprocess.run(["git", "push", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
+        if res_push.returncode == 0:
+            print(f"Successfully pushed: {message}")
+            return
+        else:
+            print(f"git push failed: {res_push.stderr.strip()}")
     except Exception as e:
         print(f"git push exception: {e}")
 
