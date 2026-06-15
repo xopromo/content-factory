@@ -3506,7 +3506,10 @@ async def cmd_checkenv(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     for k in env_keys:
         v = os.environ.get(k)
         if v:
-            res[k] = f"Set (length {len(v)}, prefix {v[:4]}...)"
+            if "TOKEN" in k or "KEY" in k:
+                res[k] = f"Set (length {len(v)}, prefix {v[:4]}...)"
+            else:
+                res[k] = v
         else:
             res[k] = "Empty / Not Set"
     await update.effective_message.reply_text(
