@@ -3495,6 +3495,25 @@ async def cmd_botlog(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         await update.effective_message.reply_text(f"Ошибка чтения лога: {e}")
 
+async def cmd_checkenv(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.effective_message:
+        try:
+            await update.effective_message.delete()
+        except Exception:
+            pass
+    env_keys = ["GITHUB_TOKEN", "GITHUB_REPO", "GITHUB_BRANCH", "TG_BOT_TOKEN"]
+    res = {}
+    for k in env_keys:
+        v = os.environ.get(k)
+        if v:
+            res[k] = f"Set (length {len(v)}, prefix {v[:4]}...)"
+        else:
+            res[k] = "Empty / Not Set"
+    await update.effective_message.reply_text(
+        f"⚙️ <b>GitHub & Telegram Environment variables:</b>\n\n<code>{json.dumps(res, indent=2)}</code>",
+        parse_mode="HTML"
+    )
+
 def main() -> None:
     try:
         asyncio.get_event_loop()
@@ -3645,6 +3664,7 @@ def main() -> None:
     app.add_handler(CommandHandler("version", cmd_version))
     app.add_handler(CommandHandler("log", cmd_log))
     app.add_handler(CommandHandler("botlog", cmd_botlog))
+    app.add_handler(CommandHandler("checkenv", cmd_checkenv))
     app.add_handler(CommandHandler("pushlog", cmd_pushlog))
     app.add_handler(CommandHandler("resume", cmd_resume))
     app.add_handler(CommandHandler("proxies", cmd_proxies))
