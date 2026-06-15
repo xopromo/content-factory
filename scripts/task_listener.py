@@ -191,7 +191,7 @@ def execute_ai_task(task_text, history=None):
     full_prompt += task_text
     
     try:
-        response, _ = run_fast_common(full_prompt, quality="strong")
+        response, _ = run_fast_common(full_prompt, quality="fast")
         return response
     except Exception as e:
         return f"Ошибка при выполнении задачи: {e}\n{traceback.format_exc()}"
@@ -262,8 +262,8 @@ def run_loop():
         except Exception as e:
             print(f"Error in task listener loop: {e}")
             
-        # Poll interval: 30 seconds
-        time.sleep(30)
+        # Poll interval: 3 seconds
+        time.sleep(3)
 
 if __name__ == "__main__":
     run_loop()
