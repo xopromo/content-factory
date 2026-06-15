@@ -44,15 +44,37 @@ except ImportError:
 from scripts.utils.llm_client import run_fast_common
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
-REPO = os.environ.get("GITHUB_REPO", "xopromo/content-factory")
-BRANCH = os.environ.get("GITHUB_BRANCH", "main")
+REPO = os.environ.get("GITHUB_REPO") or "xopromo/vibe-coding-hub"
+BRANCH = os.environ.get("GITHUB_BRANCH") or "main"
 TASKS_PATH = "docs/articles/tasks.json"
+
+# Check if we should use a separate clone directory for the target repository
+if "content-factory" in REPO.lower():
+    GIT_DIR = ROOT
+else:
+    repo_name = REPO.split("/")[-1]
+    GIT_DIR = ROOT / "scratch" / repo_name
+    
+    # Auto-clone if it doesn't exist yet
+    if not GIT_DIR.exists():
+        print(f"Directory {GIT_DIR} not found. Cloning repository {REPO}...")
+        import subprocess
+        GIT_DIR.parent.mkdir(parents=True, exist_ok=True)
+        res = subprocess.run(
+            ["git", "clone", f"https://github.com/{REPO}.git", repo_name],
+            cwd=str(ROOT / "scratch"),
+            capture_output=True,
+            text=True,
+            shell=True
+        )
+        if res.returncode != 0:
+            print(f"Auto-clone failed: {res.stderr.strip()}")
 
 def git_pull():
     import subprocess
     try:
         # Run git pull to get latest changes from remote main
-        res = subprocess.run(["git", "pull", "origin", BRANCH], cwd=str(ROOT), capture_output=True, text=True, shell=True)
+        res = subprocess.run(["git", "pull", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
         if res.returncode != 0:
             print(f"git pull failed (code {res.returncode}): {res.stderr.strip()}")
     except Exception as e:
@@ -62,15 +84,15 @@ def git_push(message):
     import subprocess
     try:
         # Commit and push tasks.json changes
-        subprocess.run(["git", "add", TASKS_PATH], cwd=str(ROOT), check=True, shell=True)
+        subprocess.run(["git", "add", TASKS_PATH], cwd=str(GIT_DIR), check=True, shell=True)
         # Check if there are changes to commit
-        status = subprocess.run(["git", "status", "--porcelain", TASKS_PATH], cwd=str(ROOT), capture_output=True, text=True, shell=True)
+        status = subprocess.run(["git", "status", "--porcelain", TASKS_PATH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
         if status.stdout.strip():
-            res_commit = subprocess.run(["git", "commit", "-m", f"{message} [skip render]"], cwd=str(ROOT), capture_output=True, text=True, shell=True)
+            res_commit = subprocess.run(["git", "commit", "-m", f"{message} [skip render]"], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
             if res_commit.returncode != 0:
                 print(f"git commit failed: {res_commit.stderr.strip()}")
                 return
-            res_push = subprocess.run(["git", "push", "origin", BRANCH], cwd=str(ROOT), capture_output=True, text=True, shell=True)
+            res_push = subprocess.run(["git", "push", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
             if res_push.returncode != 0:
                 print(f"git push failed: {res_push.stderr.strip()}")
             else:
@@ -82,7 +104,7 @@ def gh_read_tasks():
     # Sync via git pull first
     git_pull()
     
-    p = ROOT / TASKS_PATH
+    p = GIT_DIR / TASKS_PATH
     if p.exists():
         try:
             return json.loads(p.read_text(encoding="utf-8"))
@@ -94,7 +116,7 @@ def gh_write_tasks(tasks, message="chore: update tasks list"):
     content = json.dumps(tasks, indent=2, ensure_ascii=False)
     
     # Save locally
-    p = ROOT / TASKS_PATH
+    p = GIT_DIR / TASKS_PATH
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(content, encoding="utf-8")
 
