@@ -37,7 +37,16 @@ from telegram.ext import (
     ApplicationHandlerStop,
 )
 
-logging.basicConfig(format="%(asctime)s [%(levelname)s] %(message)s", level=logging.INFO)
+# Настройка логирования в консоль и в файл bot.log
+log_format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+logging.basicConfig(
+    level=logging.INFO,
+    format=log_format,
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler(Path(__file__).parent.parent / "bot.log", encoding="utf-8", mode="a")
+    ]
+)
 log = logging.getLogger(__name__)
 
 # Monkey-patch python-telegram-bot's webhook server to handle GET / requests with a 200 OK status
@@ -3378,6 +3387,7 @@ async def post_init(application: Application) -> None:
         BotCommand("start", "Главное меню / Запуск"),
         BotCommand("cancel", "Сбросить текущий режим / Отмена"),
         BotCommand("log", "Показать лог оркестратора"),
+        BotCommand("botlog", "Показать лог бота"),
         BotCommand("pushlog", "Отправить лог в репозиторий GitHub"),
         BotCommand("resume", "Возобновить генерацию статьи"),
         BotCommand("version", "Показать текущую версию бота"),
@@ -3457,6 +3467,33 @@ async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
             
     except Exception as e:
         log.error("Error in handle_channel_voice: %s", e)
+
+async def cmd_botlog(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.effective_message:
+        try:
+            await update.effective_message.delete()
+        except Exception:
+            pass
+            
+    log_file = Path(__file__).parent.parent / "bot.log"
+    if not log_file.exists():
+        msg = await update.effective_message.reply_text("Файл bot.log не найден.")
+        asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 10))
+        return
+        
+    try:
+        content = log_file.read_text(encoding="utf-8", errors="replace")
+        content_tail = content[-3000:] if len(content) > 3000 else content
+        
+        import html
+        content_tail_escaped = html.escape(content_tail)
+        
+        await update.effective_message.reply_text(
+            f"📋 <b>Последние строки bot.log:</b>\n\n<code>{content_tail_escaped}</code>",
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        await update.effective_message.reply_text(f"Ошибка чтения лога: {e}")
 
 def main() -> None:
     try:
@@ -3607,6 +3644,7 @@ def main() -> None:
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("version", cmd_version))
     app.add_handler(CommandHandler("log", cmd_log))
+    app.add_handler(CommandHandler("botlog", cmd_botlog))
     app.add_handler(CommandHandler("pushlog", cmd_pushlog))
     app.add_handler(CommandHandler("resume", cmd_resume))
     app.add_handler(CommandHandler("proxies", cmd_proxies))
