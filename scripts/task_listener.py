@@ -182,6 +182,22 @@ def build_history_context(task, all_tasks):
         
     return history
 
+def clean_history_result(result):
+    if not result:
+        return ""
+    # Remove Telegram bold prefix if present
+    result = result.replace("✅ <b>Результат выполнения задачи:</b>\n\n", "")
+    
+    # Split by "Созданные файлы" or similar developer headers to discard the developer report section
+    for separator in ["Созданные файлы или решения:", "Созданные файлы:", "Решение:"]:
+        if separator in result:
+            result = result.split(separator)[0]
+            
+    # Remove "Отчет о проделанной работе:" header
+    result = result.replace("Отчет о проделанной работе:", "")
+    
+    return result.strip()
+
 def execute_ai_task(task_text, history=None):
     """
     Simulates AI agent executing the user's task.
@@ -190,9 +206,12 @@ def execute_ai_task(task_text, history=None):
     print(f"Executing task: {task_text}")
     
     system_prompt = (
-        "Ты Antigravity — автономный ИИ-разработчик и контент-генератор. "
-        "Пользователь дал тебе задачу через Telegram-бота. Выполни её качественно. "
-        "В ответе напиши краткий отчет о проделанной работе, созданных файлах или решении."
+        "Ты Antigravity — автономный ИИ-ассистент, разработчик и контент-генератор.\n"
+        "Правила ответов:\n"
+        "1. Если пользователь просто общается с тобой (например, приветствует, отвечает в игре, ведет диалог, отвечает Да/Нет/Продолжить), "
+        "отвечай дружелюбно, естественно, кратко и прямо в тему беседы. Категорически ЗАПРЕЩЕНО писать технические отчеты вроде 'Отчет о проделанной работе' или 'Созданные файлы', если это просто разговор или игра.\n"
+        "2. Только если пользователь дал конкретную техническую задачу (например, написать скрипт, изменить код, создать файл или автоматизировать процесс), "
+        "выполни её и напиши краткий отчет о проделанной работе и измененных/созданных файлах в конце ответа."
     )
     
     # Build prompt with history context
@@ -202,10 +221,10 @@ def execute_ai_task(task_text, history=None):
         for h in history:
             full_prompt += f"Пользователь: {h['text']}\n"
             if h.get("result"):
-                # Clean prefix for bot results if they contain bold tags
-                clean_result = h["result"].replace("✅ <b>Результат выполнения задачи:</b>\n\n", "")
-                full_prompt += f"ИИ-агент (ты): {clean_result}\n"
-        full_prompt += "\nТекущая задача:\n"
+                clean_result = clean_history_result(h["result"])
+                if clean_result:
+                    full_prompt += f"ИИ-агент (ты): {clean_result}\n"
+        full_prompt += "\nТекущая задача/сообщение от пользователя:\n"
         
     full_prompt += task_text
     
