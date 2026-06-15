@@ -249,8 +249,7 @@ def send_telegram_reply(message_id, reply_text):
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     payload = {
         "chat_id": channel_id,
-        "text": f"✅ <b>Результат выполнения задачи:</b>\n\n{reply_text}",
-        "reply_to_message_id": message_id,
+        "text": reply_text,
         "parse_mode": "HTML"
     }
     try:
