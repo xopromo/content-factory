@@ -85,9 +85,6 @@ def git_pull():
 def git_push(message):
     import subprocess
     try:
-        # First, ensure we pull latest changes to merge cleanly
-        git_pull()
-        
         # Commit tasks.json changes
         subprocess.run(["git", "add", TASKS_PATH], cwd=str(GIT_DIR), check=True, shell=True)
         status = subprocess.run(["git", "status", "--porcelain", TASKS_PATH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
@@ -97,20 +94,23 @@ def git_push(message):
                 print(f"git commit failed: {res_commit.stderr.strip()}")
                 return
         
-        # Push to origin
+        # Push to origin. If it fails, fetch, reset (discarding local, but here we expect no conflicts since we just write status), and try again once.
         res_push = subprocess.run(["git", "push", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
         if res_push.returncode == 0:
             print(f"Successfully pushed: {message}")
             return
         else:
-            print(f"git push failed: {res_push.stderr.strip()}")
+            print(f"git push failed, pulling changes and retrying...")
+            git_pull()
+            res_push = subprocess.run(["git", "push", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
+            if res_push.returncode == 0:
+                print(f"Successfully pushed after pull: {message}")
+            else:
+                print(f"git push retry failed: {res_push.stderr.strip()}")
     except Exception as e:
         print(f"git push exception: {e}")
 
 def gh_read_tasks():
-    # Sync via git pull first
-    git_pull()
-    
     p = GIT_DIR / TASKS_PATH
     if p.exists():
         try:
@@ -288,6 +288,9 @@ def run_loop():
     
     while True:
         try:
+            # Sync via git pull at the start of the loop
+            git_pull()
+            
             tasks = gh_read_tasks()
             updated = False
             
@@ -295,9 +298,8 @@ def run_loop():
                 if task.get("status") == "pending":
                     print(f"Found new pending task #{task['id']}")
                     
-                    # Update status to running
+                    # Update status to running locally
                     task["status"] = "running"
-                    gh_write_tasks(tasks, message=f"task: start execution of #{task['id']}")
                     
                     # Get thread history context
                     history = build_history_context(task, tasks)
@@ -324,8 +326,8 @@ def run_loop():
         except Exception as e:
             print(f"Error in task listener loop: {e}")
             
-        # Poll interval: 3 seconds
-        time.sleep(3)
+        # Poll interval: 5 seconds
+        time.sleep(5)
 
 if __name__ == "__main__":
     run_loop()
