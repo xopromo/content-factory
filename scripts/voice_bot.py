@@ -1030,11 +1030,7 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
             # Отправляем задачу в наш ИИ-канал
             task_msg = await ctx.bot.send_message(
                 chat_id=TASK_CHANNEL_ID,
-                text=(
-                    f"🎯 <b>Новая голосовая задача от пользователя:</b>\n\n"
-                    f"{text}\n\n"
-                    f"⚡️ <i>ИИ-агент, возьми в работу. Отчет отправь ответом на это сообщение.</i>"
-                ),
+                text=text,
                 parse_mode="HTML"
             )
             
@@ -1087,8 +1083,7 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
             except Exception:
                 pass
             await update.message.reply_text(
-                f"✅ Задача успешно отправлена в канал! ID сообщения: <code>{task_msg.message_id}</code>.\n"
-                f"Antigravity увидит задачу при следующем сканировании канала.",
+                "✅ Задача успешно отправлена!",
                 reply_markup=MAIN_KEYBOARD,
                 parse_mode="HTML"
             )
