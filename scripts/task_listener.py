@@ -79,15 +79,13 @@ def git_pull():
             err_msg = res.stderr.strip()
             print(f"git pull failed (code {res.returncode}): {err_msg}")
             
-            # Self-healing: if we have merge/rebase conflicts, abort and force reset to origin
-            err_lower = err_msg.lower()
-            if "conflict" in err_lower or "unmerged" in err_lower or "rebasing" in err_lower or "pulling is not possible" in err_lower:
-                print("Merge/rebase conflict detected. Aborting rebase and force resetting to origin...")
-                subprocess.run(["git", "rebase", "--abort"], cwd=str(GIT_DIR), capture_output=True, shell=True)
-                subprocess.run(["git", "merge", "--abort"], cwd=str(GIT_DIR), capture_output=True, shell=True)
-                subprocess.run(["git", "reset", "--hard", f"origin/{BRANCH}"], cwd=str(GIT_DIR), capture_output=True, shell=True)
-                # Try pull again after reset
-                subprocess.run(["git", "pull", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, shell=True)
+            # Self-healing: abort rebase and force reset to origin
+            print("Attempting self-healing: aborting rebase/merge and force resetting to origin...")
+            subprocess.run(["git", "rebase", "--abort"], cwd=str(GIT_DIR), capture_output=True, shell=True)
+            subprocess.run(["git", "merge", "--abort"], cwd=str(GIT_DIR), capture_output=True, shell=True)
+            subprocess.run(["git", "reset", "--hard", f"origin/{BRANCH}"], cwd=str(GIT_DIR), capture_output=True, shell=True)
+            # Try pull again after reset
+            subprocess.run(["git", "pull", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, shell=True)
     except Exception as e:
         print(f"git pull exception: {e}")
 
