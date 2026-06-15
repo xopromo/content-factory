@@ -818,6 +818,9 @@ async def go_home(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 # ── Режим: обычная голосовая заметка ─────────────────────────────────────────
 
 async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    if update.message:
+        reply_to = update.message.reply_to_message
+        ctx.user_data["reply_to_message_id"] = reply_to.message_id if reply_to else None
     # ── Делегирование голосовых сообщений активным сценариям ───────────────────
     if "article_mode" in ctx.user_data and "article_topic" not in ctx.user_data:
         return await handle_article_topic(update, ctx)
@@ -1059,6 +1062,7 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                     new_task = {
                         "id": next_id,
                         "message_id": task_msg.message_id,
+                        "reply_to_message_id": ctx.user_data.get("reply_to_message_id"),
                         "text": text,
                         "status": "pending",
                         "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
@@ -2905,7 +2909,10 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     )
     asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 60))
 
-async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    if update.message:
+        reply_to = update.message.reply_to_message
+        ctx.user_data["reply_to_message_id"] = reply_to.message_id if reply_to else None
     text = update.message.text.strip()
     
     # Перехватываем все кнопки устаревшей сессии (например, после перезапуска бота)
@@ -3417,6 +3424,7 @@ async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
             new_task = {
                 "id": next_id,
                 "message_id": status_msg.message_id,
+                "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None,
                 "text": text,
                 "status": "pending",
                 "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
@@ -3488,7 +3496,8 @@ async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
             
             new_task = {
                 "id": next_id,
-                "message_id": status_msg.message_id, # Локальный агент будет отвечать на это сообщение
+                "message_id": status_msg.message_id,
+                "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None,
                 "text": text,
                 "status": "pending",
                 "created_at": time.strftime("%Y-%m-%d %H:%M:%S")

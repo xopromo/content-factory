@@ -139,7 +139,31 @@ def gh_write_tasks(tasks, message="chore: update tasks list"):
     # Sync via git push
     git_push(message)
 
-def execute_ai_task(task_text):
+def find_task_by_any_msg_id(msg_id, all_tasks):
+    for t in all_tasks:
+        if t.get("message_id") == msg_id or t.get("reply_message_id") == msg_id:
+            return t
+    return None
+
+def build_history_context(task, all_tasks):
+    history = []
+    current_reply_to_id = task.get("reply_to_message_id")
+    
+    visited_ids = set()
+    while current_reply_to_id and current_reply_to_id not in visited_ids:
+        visited_ids.add(current_reply_to_id)
+        parent = find_task_by_any_msg_id(current_reply_to_id, all_tasks)
+        if parent:
+            history.append(parent)
+            current_reply_to_id = parent.get("reply_to_message_id")
+        else:
+            break
+            
+    # Reverse to get chronological order
+    history.reverse()
+    return history
+
+def execute_ai_task(task_text, history=None):
     """
     Simulates AI agent executing the user's task.
     You can customize this to run real code, generate articles, files, etc.
@@ -152,8 +176,22 @@ def execute_ai_task(task_text):
         "В ответе напиши краткий отчет о проделанной работе, созданных файлах или решении."
     )
     
+    # Build prompt with history context
+    full_prompt = ""
+    if history:
+        full_prompt += "История предыдущей беседы (контекст):\n"
+        for h in history:
+            full_prompt += f"Пользователь: {h['text']}\n"
+            if h.get("result"):
+                # Clean prefix for bot results if they contain bold tags
+                clean_result = h["result"].replace("✅ <b>Результат выполнения задачи:</b>\n\n", "")
+                full_prompt += f"ИИ-агент (ты): {clean_result}\n"
+        full_prompt += "\nТекущая задача:\n"
+        
+    full_prompt += task_text
+    
     try:
-        response, _ = run_fast_common(f"Task: {task_text}", quality="strong")
+        response, _ = run_fast_common(full_prompt, quality="strong")
         return response
     except Exception as e:
         return f"Ошибка при выполнении задачи: {e}\n{traceback.format_exc()}"
@@ -162,7 +200,7 @@ def send_telegram_reply(message_id, reply_text):
     token = os.environ.get("TG_BOT_TOKEN")
     channel_id = -1004378273791
     if not token:
-        return
+        return None
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     payload = {
         "chat_id": channel_id,
@@ -177,9 +215,11 @@ def send_telegram_reply(message_id, reply_text):
             headers={"Content-Type": "application/json"}
         )
         with urllib.request.urlopen(req, timeout=15) as r:
-            pass
+            res_data = json.loads(r.read())
+            return res_data.get("result", {}).get("message_id")
     except Exception as e:
         print(f"Failed to send reply to Telegram: {e}")
+    return None
 
 def run_loop():
     print("🤖 Antigravity Task Listener is active and scanning for tasks...")
@@ -197,11 +237,18 @@ def run_loop():
                     task["status"] = "running"
                     gh_write_tasks(tasks, message=f"task: start execution of #{task['id']}")
                     
+                    # Get thread history context
+                    history = build_history_context(task, tasks)
+                    if history:
+                        print(f"Loaded context history with {len(history)} messages")
+                    
                     # Execute task
-                    result = execute_ai_task(task["text"])
+                    result = execute_ai_task(task["text"], history)
                     
                     # Send response back to Telegram channel
-                    send_telegram_reply(task["message_id"], result)
+                    reply_msg_id = send_telegram_reply(task["message_id"], result)
+                    if reply_msg_id:
+                        task["reply_message_id"] = reply_msg_id
                     
                     # Update task state to completed
                     task["status"] = "completed"
