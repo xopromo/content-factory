@@ -3377,6 +3377,114 @@ async def post_init(application: Application) -> None:
     # Запускаем фоновую задачу сборщика прокси
     asyncio.create_task(proxy_harvester_loop())
 
+def is_coding_task(text: str) -> bool:
+    text_lower = text.lower()
+    keywords = ["код", "скрипт", "файл", "доработай", "напиши", "запусти", "проверь", "git", "python", "listener", "бот", "логи", "посмотри"]
+    return any(w in text_lower for w in keywords) or len(text) > 150
+
+def clean_history_result(result):
+    if not result:
+        return ""
+    result = result.replace("✅ <b>Результат выполнения задачи:</b>\n\n", "")
+    for separator in ["Созданные файлы или решения:", "Созданные файлы:", "Решение:"]:
+        if separator in result:
+            result = result.split(separator)[0]
+    result = result.replace("Отчет о проделанной работе:", "")
+    
+    import re
+    result_clean = result.strip()
+    match = re.search(r'(?:Мой следующий вопрос|Следующий вопрос|вопрос):\s*(.*)', result_clean, re.IGNORECASE | re.DOTALL)
+    if match:
+        result_clean = match.group(1).strip()
+        
+    sentences = re.split(r'(?<=[.!?])\s+', result_clean)
+    question_sentences = []
+    for s in sentences:
+        s_strip = s.strip()
+        if not s_strip:
+            continue
+        if any(w in s_strip.lower() for w in ["вы ответили", "ответили:", "ожидайте ответа"]):
+            continue
+        question_sentences.append(s_strip)
+        
+    if question_sentences:
+        result_clean = " ".join(question_sentences)
+        
+    for prefix in ["ИИ-агент (ты):", "ИИ-агент:", "Antigravity:", "Ответ:"]:
+        if result_clean.startswith(prefix):
+            result_clean = result_clean[len(prefix):].strip()
+            
+    return result_clean.strip()
+
+def build_history_context(task, all_tasks):
+    history = []
+    current_reply_to_id = task.get("reply_to_message_id")
+    
+    def find_task_by_any_msg_id(msg_id, tasks_list):
+        for t in tasks_list:
+            if t.get("message_id") == msg_id or t.get("reply_message_id") == msg_id:
+                return t
+        return None
+
+    if current_reply_to_id:
+        visited_ids = set()
+        while current_reply_to_id and current_reply_to_id not in visited_ids:
+            visited_ids.add(current_reply_to_id)
+            parent = find_task_by_any_msg_id(current_reply_to_id, all_tasks)
+            if parent:
+                history.append(parent)
+                current_reply_to_id = parent.get("reply_to_message_id")
+            else:
+                break
+        history.reverse()
+        
+    target_history_len = 8
+    if len(history) < target_history_len:
+        ref_task = history[0] if history else task
+        completed_before = []
+        for t in all_tasks:
+            if t.get("id") == ref_task.get("id"):
+                break
+            if t.get("status") == "completed" and t.get("result"):
+                completed_before.append(t)
+        
+        needed = target_history_len - len(history)
+        extra_history = completed_before[-needed:]
+        history = extra_history + history
+        
+    return history
+
+def run_direct_llm(task_text, history):
+    system_prompt = (
+        "Ты Antigravity — умный ИИ-собеседник и разработчик.\n"
+        "Правила ведения диалога:\n"
+        "1. Отвечай кратко, естественно и лаконично (максимум 1-3 предложения), как реальный собеседник в чате.\n"
+        "2. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО пересказывать историю диалога, повторять предыдущие вопросы и ответы («Вы ответили...», «Я задал вопрос...») или писать мета-комментарии о ходе игры.\n"
+        "3. Если идет игра в 20 вопросов, просто отреагируй на последний ответ (например: 'Понял, значит не в офисе.') и сразу задай следующий вопрос (например: 'Этот предмет больше футбольного мяча?').\n"
+        "4. Только если пользователь дал конкретную техническую задачу по программированию или созданию файлов, выполни её и приложи лаконичный отчет в самом конце ответа."
+    )
+    
+    full_prompt = f"{system_prompt}\n\n"
+    if history:
+        full_prompt += "История предыдущей беседы (контекст):\n"
+        for h in history:
+            full_prompt += f"Пользователь: {h['text']}\n"
+            if h.get("result"):
+                clean_res = clean_history_result(h["result"])
+                if clean_res:
+                    full_prompt += f"ИИ-агент (ты): {clean_res}\n"
+        full_prompt += f"\nТекущее сообщение от пользователя: {task_text}\n\n"
+        full_prompt += "ИИ-агент (ты): "
+    else:
+        full_prompt += task_text
+        
+    response = llm_chat(full_prompt)
+    response_clean = response.strip()
+    for prefix in ["ИИ-агент (ты):", "ИИ-агент:", "Antigravity:", "Ответ:"]:
+        if response_clean.startswith(prefix):
+            response_clean = response_clean[len(prefix):].strip()
+    return response_clean
+
 async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     msg = update.effective_message
     if not msg or not msg.text:
@@ -3384,61 +3492,91 @@ async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
     text = msg.text.strip()
     
     try:
-        status_msg = await msg.reply_text("⏳ Регистрирую текстовую задачу...")
-        
-        # Формируем HTML для задачи
-        task_html = (
-            f"🎯 <b>Новая текстовая задача от пользователя:</b>\n\n"
-            f"{text}\n\n"
-            f"⚡️ <i>ИИ-агент, возьми в работу. Отчет отправь ответом на это сообщение.</i>"
-        )
-        
-        await status_msg.edit_text(task_html, parse_mode="HTML")
-        
-        if not os.environ.get("GITHUB_TOKEN"):
-            await status_msg.reply_text(
-                "⚠️ <b>Внимание:</b> Переменная окружения <code>GITHUB_TOKEN</code> не настроена на сервере Render.\n"
-                "Задача опубликована, но ИИ-агент не сможет получить её с GitHub.",
-                parse_mode="HTML"
-            )
-            return
-
-        try:
+        if not is_coding_task(text):
+            # API Direct Mode: execute immediately on Render
+            # Load tasks list for context history
             tasks_content = gh_read("docs/articles/tasks.json")
             tasks = []
             if tasks_content:
                 try:
                     tasks = json.loads(tasks_content)
                 except Exception as je:
-                    log.error("Failed to parse existing tasks.json: %s", je)
+                    log.error("Failed to parse tasks.json: %s", je)
             
+            # Temporary dict representing the current task for history generation
+            temp_task = {
+                "id": 999999,
+                "text": text,
+                "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None
+            }
+            history = build_history_context(temp_task, tasks)
+            
+            # Run LLM
+            reply_text = run_direct_llm(text, history)
+            
+            # Send message without reply/thread quotes
+            tg_reply = await ctx.bot.send_message(
+                chat_id=TASK_CHANNEL_ID,
+                text=reply_text,
+                parse_mode="HTML"
+            )
+            
+            # Record it in tasks.json
             next_id = 1
             if tasks:
                 next_id = max(t.get("id", 0) for t in tasks) + 1
             
             new_task = {
                 "id": next_id,
-                "message_id": status_msg.message_id,
+                "message_id": msg.message_id,
                 "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None,
+                "reply_message_id": tg_reply.message_id,
                 "text": text,
-                "status": "pending",
-                "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+                "status": "completed",
+                "result": reply_text,
+                "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "completed_at": time.strftime("%Y-%m-%d %H:%M:%S")
             }
             tasks.append(new_task)
             
             gh_write(
                 "docs/articles/tasks.json",
                 json.dumps(tasks, indent=2, ensure_ascii=False),
-                f"task: add task #{next_id}"
+                f"task: api completed task #{next_id}"
             )
-            log.info("Successfully added channel text task #%s to tasks.json on GitHub", next_id)
-        except Exception as gh_err:
-            log.error("Failed to sync channel text task with GitHub tasks.json: %s", gh_err)
+            return
+
+        # Coding Task: append as pending and let local PC agent run it
+        # No extra status_msg or template messages. Just append silently to tasks.json
+        tasks_content = gh_read("docs/articles/tasks.json")
+        tasks = []
+        if tasks_content:
             try:
-                await status_msg.reply_text(f"❌ Ошибка синхронизации с GitHub: {gh_err}")
-            except Exception:
-                pass
-            
+                tasks = json.loads(tasks_content)
+            except Exception as je:
+                log.error("Failed to parse tasks.json: %s", je)
+        
+        next_id = 1
+        if tasks:
+            next_id = max(t.get("id", 0) for t in tasks) + 1
+        
+        new_task = {
+            "id": next_id,
+            "message_id": msg.message_id,
+            "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None,
+            "text": text,
+            "status": "pending",
+            "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        tasks.append(new_task)
+        
+        gh_write(
+            "docs/articles/tasks.json",
+            json.dumps(tasks, indent=2, ensure_ascii=False),
+            f"task: add code task #{next_id}"
+        )
+        log.info("Successfully added coding task #%s to tasks.json on GitHub for local execution", next_id)
+        
     except Exception as e:
         log.error("Error in handle_channel_text: %s", e)
 
@@ -3448,42 +3586,34 @@ async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
         return
         
     try:
-        # Отправляем сообщение-заглушку в ответ на голосовое
-        status_msg = await msg.reply_text("⏳ Расшифровываю голосовую задачу...")
-        
-        # Расшифровываем аудио
+        # Transcribe audio file
         text = await _download_and_transcribe_media(msg, ctx, status_msg=None)
         if not text:
-            await status_msg.edit_text("❌ Не удалось расшифровать голосовое сообщение.")
             return
             
-        # Формируем HTML для задачи
-        task_html = (
-            f"🎯 <b>Новая голосовая задача от пользователя:</b>\n\n"
-            f"{text}\n\n"
-            f"⚡️ <i>ИИ-агент, возьми в работу. Отчет отправь ответом на это сообщение.</i>"
-        )
-        
-        # Обновляем заглушку на полноценную задачу
-        await status_msg.edit_text(task_html, parse_mode="HTML")
-        
-        # Записываем задачу в docs/articles/tasks.json на GitHub
-        if not os.environ.get("GITHUB_TOKEN"):
-            await status_msg.reply_text(
-                "⚠️ <b>Внимание:</b> Переменная окружения <code>GITHUB_TOKEN</code> не настроена на сервере Render.\n"
-                "Задача опубликована в канале, но ИИ-агент не сможет получить её с GitHub. Настройте токен в панели управления Render.",
-                parse_mode="HTML"
-            )
-            return
-
-        try:
+        if not is_coding_task(text):
+            # API Direct Mode
             tasks_content = gh_read("docs/articles/tasks.json")
             tasks = []
             if tasks_content:
                 try:
                     tasks = json.loads(tasks_content)
                 except Exception as je:
-                    log.error("Failed to parse existing tasks.json: %s", je)
+                    log.error("Failed to parse tasks.json: %s", je)
+            
+            temp_task = {
+                "id": 999999,
+                "text": text,
+                "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None
+            }
+            history = build_history_context(temp_task, tasks)
+            reply_text = run_direct_llm(text, history)
+            
+            tg_reply = await ctx.bot.send_message(
+                chat_id=TASK_CHANNEL_ID,
+                text=reply_text,
+                parse_mode="HTML"
+            )
             
             next_id = 1
             if tasks:
@@ -3491,29 +3621,53 @@ async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
             
             new_task = {
                 "id": next_id,
-                "message_id": status_msg.message_id,
+                "message_id": msg.message_id,
                 "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None,
+                "reply_message_id": tg_reply.message_id,
                 "text": text,
-                "status": "pending",
-                "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+                "status": "completed",
+                "result": reply_text,
+                "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "completed_at": time.strftime("%Y-%m-%d %H:%M:%S")
             }
             tasks.append(new_task)
             
             gh_write(
                 "docs/articles/tasks.json",
                 json.dumps(tasks, indent=2, ensure_ascii=False),
-                f"task: add task #{next_id}"
+                f"task: api completed voice task #{next_id}"
             )
-            log.info("Successfully added channel task #%s to tasks.json on GitHub", next_id)
-        except Exception as gh_err:
-            log.error("Failed to sync channel task with GitHub tasks.json: %s", gh_err)
+            return
+
+        # Coding Task: silently register as pending
+        tasks_content = gh_read("docs/articles/tasks.json")
+        tasks = []
+        if tasks_content:
             try:
-                await status_msg.reply_text(f"❌ Ошибка синхронизации с GitHub: {gh_err}")
-            except Exception:
-                pass
-            
-    except Exception as e:
-        log.error("Error in handle_channel_voice: %s", e)
+                tasks = json.loads(tasks_content)
+            except Exception as je:
+                log.error("Failed to parse tasks.json: %s", je)
+        
+        next_id = 1
+        if tasks:
+            next_id = max(t.get("id", 0) for t in tasks) + 1
+        
+        new_task = {
+            "id": next_id,
+            "message_id": msg.message_id,
+            "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None,
+            "text": text,
+            "status": "pending",
+            "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        tasks.append(new_task)
+        
+        gh_write(
+            "docs/articles/tasks.json",
+            json.dumps(tasks, indent=2, ensure_ascii=False),
+            f"task: add voice code task #{next_id}"
+        )
+        log.info("Successfully added coding voice task #%s to tasks.json on GitHub for local execution", next_id)
 
 async def cmd_botlog(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_message:
