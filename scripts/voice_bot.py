@@ -2992,39 +2992,18 @@ async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
             await update.message.reply_text(
                 f"ℹ️ Отправленные прокси уже присутствуют в списке (всего: {len(existing_raws)})."
             )
-        return
+        return ConversationHandler.END
     
-    # Если это просто текстовое сообщение, отвечаем с помощью LLM
-    status_msg = await update.message.reply_text("💬 Думаю...")
-    try:
-        response = llm_chat(
-            text,
-            system=(
-                "Ты профессиональный и дружелюбный ИИ-помощник автора Контент-Фабрики (Content Factory). "
-                "Помогай автору отвечать на вопросы, придумывать идеи для постов, формулировать мысли. "
-                "Отвечай кратко, грамотно, без лишней «воды», на русском языке. Используй легкое форматирование Telegram (жирный шрифт)."
-            )
-        )
-        try:
-            await status_msg.delete()
-        except Exception:
-            pass
-            
-        try:
-            await update.message.reply_text(response, reply_markup=MAIN_KEYBOARD, parse_mode="Markdown")
-        except Exception:
-            # Резервный вариант отправки без разметки, если Markdown-парсер Telegram выдал ошибку
-            await update.message.reply_text(response, reply_markup=MAIN_KEYBOARD)
-            
-    except Exception as e:
-        log.error("Failed to generate text response: %s", e)
-        try:
-            await status_msg.edit_text("Извините, произошла ошибка при генерации ответа.")
-        except Exception:
-            try:
-                await update.message.reply_text("Извините, произошла ошибка при генерации ответа.")
-            except Exception:
-                pass
+    # Если это просто текстовое сообщение, предлагаем отправить ИИ-агенту наравне с голосовыми
+    ctx.user_data["text"] = text
+    ctx.user_data["duration"] = 0
+    
+    await _send_menu_with_cleanup(
+        update, ctx,
+        "Что сделать с этой текстовой задачей?",
+        reply_markup=TRANSCRIPT_ACTION_KEYBOARD,
+    )
+    return WAIT_TRANSCRIPT_ACTION
 
 async def _direct_log(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     # Ищем лог-файл в корневой директории
@@ -3396,6 +3375,70 @@ async def post_init(application: Application) -> None:
     # Запускаем фоновую задачу сборщика прокси
     asyncio.create_task(proxy_harvester_loop())
 
+async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    msg = update.effective_message
+    if not msg or not msg.text:
+        return
+    text = msg.text.strip()
+    
+    try:
+        status_msg = await msg.reply_text("⏳ Регистрирую текстовую задачу...")
+        
+        # Формируем HTML для задачи
+        task_html = (
+            f"🎯 <b>Новая текстовая задача от пользователя:</b>\n\n"
+            f"{text}\n\n"
+            f"⚡️ <i>ИИ-агент, возьми в работу. Отчет отправь ответом на это сообщение.</i>"
+        )
+        
+        await status_msg.edit_text(task_html, parse_mode="HTML")
+        
+        if not os.environ.get("GITHUB_TOKEN"):
+            await status_msg.reply_text(
+                "⚠️ <b>Внимание:</b> Переменная окружения <code>GITHUB_TOKEN</code> не настроена на сервере Render.\n"
+                "Задача опубликована, но ИИ-агент не сможет получить её с GitHub.",
+                parse_mode="HTML"
+            )
+            return
+
+        try:
+            tasks_content = gh_read("docs/articles/tasks.json")
+            tasks = []
+            if tasks_content:
+                try:
+                    tasks = json.loads(tasks_content)
+                except Exception as je:
+                    log.error("Failed to parse existing tasks.json: %s", je)
+            
+            next_id = 1
+            if tasks:
+                next_id = max(t.get("id", 0) for t in tasks) + 1
+            
+            new_task = {
+                "id": next_id,
+                "message_id": status_msg.message_id,
+                "text": text,
+                "status": "pending",
+                "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+            tasks.append(new_task)
+            
+            gh_write(
+                "docs/articles/tasks.json",
+                json.dumps(tasks, indent=2, ensure_ascii=False),
+                f"task: add task #{next_id}"
+            )
+            log.info("Successfully added channel text task #%s to tasks.json on GitHub", next_id)
+        except Exception as gh_err:
+            log.error("Failed to sync channel text task with GitHub tasks.json: %s", gh_err)
+            try:
+                await status_msg.reply_text(f"❌ Ошибка синхронизации с GitHub: {gh_err}")
+            except Exception:
+                pass
+            
+    except Exception as e:
+        log.error("Error in handle_channel_text: %s", e)
+
 async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     msg = update.effective_message
     if not msg or not msg.voice:
@@ -3550,6 +3593,7 @@ def main() -> None:
             MessageHandler(filters.Regex("^🎤 Голосовая заметка$"), handle_voice_note_button),
             MessageHandler(filters.FORWARDED, handle_forwarded_message),
             MessageHandler(filters.REPLY & ~filters.COMMAND, handle_reply_entry),
+            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message),
         ],
         states={
             WAIT_CATEGORY: [
@@ -3675,8 +3719,8 @@ def main() -> None:
     app.add_handler(CommandHandler("harvester", cmd_harvester))
     app.add_handler(CommandHandler("status", cmd_status))
     app.add_handler(MessageHandler(filters.Chat(chat_id=TASK_CHANNEL_ID) & filters.VOICE, handle_channel_voice))
+    app.add_handler(MessageHandler(filters.Chat(chat_id=TASK_CHANNEL_ID) & filters.TEXT & ~filters.COMMAND, handle_channel_text))
     app.add_handler(conv)
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
     log_bot_startup()
 
