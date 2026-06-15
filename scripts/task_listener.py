@@ -149,18 +149,29 @@ def build_history_context(task, all_tasks):
     history = []
     current_reply_to_id = task.get("reply_to_message_id")
     
-    visited_ids = set()
-    while current_reply_to_id and current_reply_to_id not in visited_ids:
-        visited_ids.add(current_reply_to_id)
-        parent = find_task_by_any_msg_id(current_reply_to_id, all_tasks)
-        if parent:
-            history.append(parent)
-            current_reply_to_id = parent.get("reply_to_message_id")
-        else:
-            break
-            
-    # Reverse to get chronological order
-    history.reverse()
+    # Method 1: Follow reply-to chain if available
+    if current_reply_to_id:
+        visited_ids = set()
+        while current_reply_to_id and current_reply_to_id not in visited_ids:
+            visited_ids.add(current_reply_to_id)
+            parent = find_task_by_any_msg_id(current_reply_to_id, all_tasks)
+            if parent:
+                history.append(parent)
+                current_reply_to_id = parent.get("reply_to_message_id")
+            else:
+                break
+        history.reverse()
+        
+    # Method 2: Fallback to last 5 completed tasks chronologically
+    if not history:
+        completed_before = []
+        for t in all_tasks:
+            if t.get("id") == task.get("id"):
+                break
+            if t.get("status") == "completed" and t.get("result"):
+                completed_before.append(t)
+        history = completed_before[-5:]
+        
     return history
 
 def execute_ai_task(task_text, history=None):
