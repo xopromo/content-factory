@@ -162,15 +162,23 @@ def build_history_context(task, all_tasks):
                 break
         history.reverse()
         
-    # Method 2: Fallback to last 5 completed tasks chronologically
-    if not history:
+    # If the reply chain is too short or empty, we fill it up with preceding completed tasks
+    # to maintain continuous conversation context.
+    target_history_len = 8
+    if len(history) < target_history_len:
+        # Find the earliest message currently in history (or the current task if history is empty)
+        ref_task = history[0] if history else task
+        
         completed_before = []
         for t in all_tasks:
-            if t.get("id") == task.get("id"):
+            if t.get("id") == ref_task.get("id"):
                 break
             if t.get("status") == "completed" and t.get("result"):
                 completed_before.append(t)
-        history = completed_before[-5:]
+        
+        needed = target_history_len - len(history)
+        extra_history = completed_before[-needed:]
+        history = extra_history + history
         
     return history
 
@@ -188,7 +196,7 @@ def execute_ai_task(task_text, history=None):
     )
     
     # Build prompt with history context
-    full_prompt = ""
+    full_prompt = f"{system_prompt}\n\n"
     if history:
         full_prompt += "История предыдущей беседы (контекст):\n"
         for h in history:
