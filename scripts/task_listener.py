@@ -73,19 +73,12 @@ else:
 def git_pull():
     import subprocess
     try:
-        # Run git pull to get latest changes from remote main
-        res = subprocess.run(["git", "pull", "--rebase", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
+        # Run fetch first
+        subprocess.run(["git", "fetch", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, shell=True)
+        # Force reset to origin to ensure we are exactly matched and have no merge/rebase issues
+        res = subprocess.run(["git", "reset", "--hard", f"origin/{BRANCH}"], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
         if res.returncode != 0:
-            err_msg = res.stderr.strip()
-            print(f"git pull failed (code {res.returncode}): {err_msg}")
-            
-            # Self-healing: abort rebase and force reset to origin
-            print("Attempting self-healing: aborting rebase/merge and force resetting to origin...")
-            subprocess.run(["git", "rebase", "--abort"], cwd=str(GIT_DIR), capture_output=True, shell=True)
-            subprocess.run(["git", "merge", "--abort"], cwd=str(GIT_DIR), capture_output=True, shell=True)
-            subprocess.run(["git", "reset", "--hard", f"origin/{BRANCH}"], cwd=str(GIT_DIR), capture_output=True, shell=True)
-            # Try pull again after reset
-            subprocess.run(["git", "pull", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, shell=True)
+            print(f"git reset failed: {res.stderr.strip()}")
     except Exception as e:
         print(f"git pull exception: {e}")
 
