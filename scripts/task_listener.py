@@ -74,7 +74,7 @@ def git_pull():
     import subprocess
     try:
         # Run git pull to get latest changes from remote main
-        res = subprocess.run(["git", "pull", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
+        res = subprocess.run(["git", "pull", "--rebase", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
         if res.returncode != 0:
             print(f"git pull failed (code {res.returncode}): {res.stderr.strip()}")
     except Exception as e:
@@ -83,20 +83,25 @@ def git_pull():
 def git_push(message):
     import subprocess
     try:
-        # Commit and push tasks.json changes
+        # Commit tasks.json changes
         subprocess.run(["git", "add", TASKS_PATH], cwd=str(GIT_DIR), check=True, shell=True)
-        # Check if there are changes to commit
         status = subprocess.run(["git", "status", "--porcelain", TASKS_PATH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
         if status.stdout.strip():
             res_commit = subprocess.run(["git", "commit", "-m", f"{message} [skip render]"], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
             if res_commit.returncode != 0:
                 print(f"git commit failed: {res_commit.stderr.strip()}")
                 return
+        
+        # Loop to handle push retries with pull --rebase
+        for attempt in range(3):
+            git_pull()
             res_push = subprocess.run(["git", "push", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
-            if res_push.returncode != 0:
-                print(f"git push failed: {res_push.stderr.strip()}")
-            else:
+            if res_push.returncode == 0:
                 print(f"Successfully pushed: {message}")
+                return
+            else:
+                print(f"git push failed (attempt {attempt + 1}): {res_push.stderr.strip()}")
+                time.sleep(2)
     except Exception as e:
         print(f"git push exception: {e}")
 
