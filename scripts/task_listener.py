@@ -196,7 +196,36 @@ def clean_history_result(result):
     # Remove "Отчет о проделанной работе:" header
     result = result.replace("Отчет о проделанной работе:", "")
     
-    return result.strip()
+    # Aggressively clean game meta-commentary:
+    import re
+    result_clean = result.strip()
+    
+    # Discard everything before "Мой следующий вопрос" or similar if present
+    match = re.search(r'(?:Мой следующий вопрос|Следующий вопрос|вопрос):\s*(.*)', result_clean, re.IGNORECASE | re.DOTALL)
+    if match:
+        result_clean = match.group(1).strip()
+        
+    # Extract only the sentences that actually contain a question mark and are not repeating what user said
+    sentences = re.split(r'(?<=[.!?])\s+', result_clean)
+    question_sentences = []
+    for s in sentences:
+        s_strip = s.strip()
+        if not s_strip:
+            continue
+        # Skip sentences containing common game state explanations
+        if any(w in s_strip.lower() for w in ["вы ответили", "ответили:", "ожидайте ответа"]):
+            continue
+        question_sentences.append(s_strip)
+        
+    if question_sentences:
+        result_clean = " ".join(question_sentences)
+        
+    # Strip any bot prefixes
+    for prefix in ["ИИ-агент (ты):", "ИИ-агент:", "Antigravity:", "Ответ:"]:
+        if result_clean.startswith(prefix):
+            result_clean = result_clean[len(prefix):].strip()
+            
+    return result_clean.strip()
 
 def execute_ai_task(task_text, history=None):
     """
@@ -206,14 +235,12 @@ def execute_ai_task(task_text, history=None):
     print(f"Executing task: {task_text}")
     
     system_prompt = (
-        "Ты Antigravity — автономный ИИ-ассистент, разработчик и контент-генератор.\n"
-        "Правила ответов:\n"
-        "1. Если пользователь просто ведет диалог (приветствует, отвечает на вопросы, играет в '20 вопросов' и т.д.), "
-        "отвечай дружелюбно, естественно, кратко и только от первого лица. НЕ повторяй реплики пользователя, НЕ пиши мета-комментарии (вроде 'Вы ответили нет, теперь я...') "
-        "и НЕ пиши никаких технических отчетов и списков созданных файлов.\n"
-        "2. Пиши ответ напрямую, как реплику в чате.\n"
-        "3. Только если пользователь дал конкретную техническую задачу (например, написать скрипт, изменить код, создать файл или автоматизировать процесс), "
-        "выполни её и в самом конце ответа напиши краткий отчет о проделанной работе и измененных файлах."
+        "Ты Antigravity — умный ИИ-собеседник и разработчик.\n"
+        "Правила ведения диалога:\n"
+        "1. Отвечай кратко, естественно и лаконично (максимум 1-3 предложения), как реальный собеседник в чате.\n"
+        "2. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО пересказывать историю диалога, повторять предыдущие вопросы и ответы («Вы ответили...», «Я задал вопрос...») или писать мета-комментарии о ходе игры.\n"
+        "3. Если идет игра в 20 вопросов, просто отреагируй на последний ответ (например: 'Понял, значит не в офисе.') и сразу задай следующий вопрос (например: 'Этот предмет больше футбольного мяча?').\n"
+        "4. Только если пользователь дал конкретную техническую задачу по программированию или созданию файлов, выполни её и приложи лаконичный отчет в самом конце ответа."
     )
     
     # Build prompt with history context
