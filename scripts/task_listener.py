@@ -878,6 +878,43 @@ def delete_telegram_message(message_id):
 
 def run_proactive_checks_loop():
     import threading
+    import json
+    import subprocess
+    import sys
+
+    def trigger_auto_healer(source, traceback_content):
+        error_data = {
+            "source": source,
+            "error_type": "AutonomousLocalLogCrash",
+            "error_message": f"Detected traceback in local {source} logs.",
+            "traceback": traceback_content
+        }
+        error_file = ROOT / "critical_error.json"
+        try:
+            error_file.write_text(json.dumps(error_data, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(f"Written local critical_error.json for {source}. Launching autonomous healer...")
+            
+            # Notify via Telegram that healing has started
+            start_text = (
+                f"🛠 <b>[Автономный ремонт локально]</b>\n"
+                f"В логах <code>{source}</code> обнаружен сбой. Запускаю авто-исправление..."
+            )
+            send_telegram_reply(None, start_text)
+            
+            # Run cloud_healer.py process
+            healer_script = ROOT / "scripts" / "cloud_healer.py"
+            result = subprocess.run(
+                [sys.executable, str(healer_script)],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                cwd=str(ROOT)
+            )
+            print("Healer Output:", result.stdout)
+            if result.stderr:
+                print("Healer Error:", result.stderr)
+        except Exception as ex:
+            print(f"Failed to trigger auto-healer: {ex}")
     
     def check_worker():
         print("🤖 Proactive checks loop started in background thread...")
@@ -908,18 +945,8 @@ def run_proactive_checks_loop():
                             
                         # Search for errors or tracebacks
                         if "ERROR" in new_content or "CRITICAL" in new_content or "Traceback" in new_content:
-                            lines = new_content.splitlines()
-                            err_lines = [l for l in lines if any(w in l for w in ("ERROR", "CRITICAL", "Traceback", "Exception"))]
-                            snippet = "\n".join(err_lines[-5:])
-                            
-                            print(f"Proactive Alert: found errors in bot.log")
-                            alert_text = (
-                                f"⚠️ <b>[Проактивный алерт Джарвиса]</b>\n"
-                                f"Обнаружены критические логи в <code>bot.log</code>:\n\n"
-                                f"<code>{snippet[:600]}</code>\n\n"
-                                f"<i>Я могу исследовать и исправить их, если вы напишете мне команду.</i>"
-                            )
-                            send_telegram_reply(None, alert_text)
+                            print(f"Proactive Alert: found errors in bot.log. Triggering auto-healer.")
+                            trigger_auto_healer("telegram_bot_handler", new_content)
                             
                         last_positions["bot_log"] = size
                         
@@ -937,17 +964,8 @@ def run_proactive_checks_loop():
                             new_content = f.read()
                             
                         if "ERROR" in new_content or "Traceback" in new_content:
-                            lines = new_content.splitlines()
-                            err_lines = [l for l in lines if any(w in l for w in ("ERROR", "Traceback", "Exception"))]
-                            snippet = "\n".join(err_lines[-5:])
-                            
-                            print(f"Proactive Alert: found errors in orchestrator_run.log")
-                            alert_text = (
-                                f"⚠️ <b>[Проактивный алерт Джарвиса]</b>\n"
-                                f"Обнаружены ошибки в <code>orchestrator_run.log</code>:\n\n"
-                                f"<code>{snippet[:600]}</code>"
-                            )
-                            send_telegram_reply(None, alert_text)
+                            print(f"Proactive Alert: found errors in orchestrator_run.log. Triggering auto-healer.")
+                            trigger_auto_healer("orchestrator", new_content)
                             
                         last_positions["orch_log"] = size
                         
