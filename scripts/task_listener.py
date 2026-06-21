@@ -101,8 +101,12 @@ def git_push(message):
             print(f"Successfully pushed: {message}")
             return
         else:
-            print(f"git push failed, pulling changes and retrying...")
-            git_pull()
+            print(f"git push failed, pulling changes with rebase and retrying...")
+            res_rebase = subprocess.run(["git", "pull", "--rebase", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
+            if res_rebase.returncode != 0:
+                print(f"git pull --rebase failed: {res_rebase.stderr.strip()}. Aborting rebase and resetting to origin.")
+                subprocess.run(["git", "rebase", "--abort"], cwd=str(GIT_DIR), capture_output=True, shell=True)
+                git_pull()
             res_push = subprocess.run(["git", "push", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
             if res_push.returncode == 0:
                 print(f"Successfully pushed after pull: {message}")
@@ -623,7 +627,122 @@ def send_telegram_document(file_path, caption=""):
         except Exception as e:
             print(f"Failed to run proxy document fallback: {e}")
             
-    return None
+def convert_markdown_tables(text):
+    if not text:
+        return ""
+    lines = text.split("\n")
+    new_lines = []
+    table_lines = []
+    
+    def flush_table(t_lines):
+        if not t_lines:
+            return []
+        
+        parsed_rows = []
+        for line in t_lines:
+            stripped = line.strip()
+            if stripped.startswith("|"):
+                stripped = stripped[1:]
+            if stripped.endswith("|"):
+                stripped = stripped[:-1]
+            parts = [p.strip() for p in stripped.split("|")]
+            parsed_rows.append(parts)
+            
+        if len(parsed_rows) < 2:
+            return t_lines
+            
+        headers = parsed_rows[0]
+        sep_row = parsed_rows[1]
+        
+        is_sep = all(all(c in "-: " for c in cell) for cell in sep_row) if sep_row else False
+        if not is_sep:
+            return t_lines
+            
+        data_rows = parsed_rows[2:]
+        formatted = []
+        for row in data_rows:
+            if not any(row):
+                continue
+                
+            idx_str = ""
+            col_start = 0
+            if len(row) > 0:
+                first_cell = row[0].replace("**", "").strip()
+                if first_cell.isdigit():
+                    idx_str = f"{first_cell}. "
+                    col_start = 1
+                    
+            row_desc = []
+            for col_idx in range(col_start + 1, len(headers)):
+                if col_idx < len(row):
+                    val = row[col_idx].strip()
+                    if not val:
+                        continue
+                    header = headers[col_idx].strip()
+                    row_desc.append(f"  • {header}: {val}")
+                    
+            main_title = row[col_start].strip() if len(row) > col_start else ""
+            if main_title or row_desc:
+                formatted.append(f"\n{idx_str}{main_title}")
+                formatted.extend(row_desc)
+                
+        return formatted
+
+    for line in lines:
+        if "|" in line:
+            table_lines.append(line)
+        else:
+            if table_lines:
+                new_lines.extend(flush_table(table_lines))
+                table_lines = []
+            new_lines.append(line)
+            
+    if table_lines:
+        new_lines.extend(flush_table(table_lines))
+        
+    return "\n".join(new_lines)
+
+def clean_markdown_for_telegram(text):
+    if not text:
+        return ""
+    
+    # 1. Convert markdown tables to clean indented lists
+    text = convert_markdown_tables(text)
+    
+    # 2. Escape the text to be HTML safe first
+    import html
+    escaped = html.escape(text)
+    
+    # 3. Process code blocks: ```[lang]\n(code)\n```
+    import re
+    escaped = re.sub(r'```[a-zA-Z0-9_-]*\n?(.*?)\n?```', r'<pre><code>\1</code></pre>', escaped, flags=re.DOTALL)
+    
+    # 4. Process inline code: `code`
+    escaped = re.sub(r'`(.*?)`', r'<code>\1</code>', escaped)
+    
+    # 5. Process bold: **text**
+    escaped = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', escaped)
+    
+    # 6. Process italic: *text* and __text__ and _text_
+    escaped = re.sub(r'\*(.*?)\*', r'<i>\1</i>', escaped)
+    escaped = re.sub(r'__(.*?)__', r'<i>\1</i>', escaped)
+    escaped = re.sub(r'\b_(.*?)_\b', r'<i>\1</i>', escaped)
+    
+    # 6.5. Process links: [text](url) -> <a href="url">text</a>
+    escaped = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', escaped)
+    
+    # 7. Process headers line-by-line (e.g. ### Header)
+    lines = escaped.split("\n")
+    cleaned_lines = []
+    for line in lines:
+        if re.match(r'^#+\s+', line):
+            header_content = re.sub(r'^#+\s+', '', line)
+            header_content = re.sub(r'^<b>(.*?)</b>$', r'\1', header_content)
+            line = f"<b>{header_content}</b>"
+        cleaned_lines.append(line)
+        
+    return "\n".join(cleaned_lines)
+
 def send_telegram_reply(message_id, reply_text):
     token = os.environ.get("TG_BOT_TOKEN")
     channel_id = -1004378273791
@@ -876,7 +995,8 @@ def run_loop():
                     result = execute_ai_task(task["text"], history)
                     
                     # Send response back to Telegram channel
-                    reply_msg_id = send_telegram_reply(task["message_id"], result)
+                    escaped_result = clean_markdown_for_telegram(result)
+                    reply_msg_id = send_telegram_reply(task["message_id"], escaped_result)
                     if reply_msg_id:
                         task["reply_message_id"] = reply_msg_id
                     
