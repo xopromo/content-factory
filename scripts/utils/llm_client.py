@@ -277,6 +277,35 @@ def run_pollinations_rest(prompt: str, model: str = "qwen-2.5-72b") -> str:
         return resp.read().decode("utf-8").strip()
 
 
+def run_openrouter_rest(prompt: str, model: str = "openrouter/free", max_tokens: int = 1024) -> str:
+    openrouter_key = os.getenv("OPENROUTER_KEY")
+    if not openrouter_key:
+        raise ValueError("OPENROUTER_KEY is not set")
+    import urllib.request
+    import json
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": max_tokens,
+        "temperature": 0.2
+    }
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {openrouter_key}",
+            "HTTP-Referer": "https://github.com/xopromo/content-factory",
+            "X-Title": "Content Factory"
+        },
+        method="POST"
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        res = json.loads(resp.read().decode("utf-8"))
+    return res["choices"][0]["message"]["content"].strip()
+
+
 def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = False) -> Tuple[str, int]:
     """
     Вызывает LLM для тяжелых задач (написание текстов, глубокий синтез).
@@ -343,6 +372,19 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
                     
         if gemini_success:
             return gemini_response, tokens
+
+    # 1.5. OpenRouter (используя бесплатные модели)
+    openrouter_key = os.getenv("OPENROUTER_KEY")
+    if openrouter_key:
+        for model in ["meta-llama/llama-3.3-70b-instruct:free", "openrouter/free"]:
+            try:
+                content = run_openrouter_rest(full_prompt, model=model, max_tokens=3000)
+                if content:
+                    return content, tokens
+            except Exception as e:
+                err_msg = f"OpenRouter Error ({model}): {e}"
+                print(f"  [LLM CLIENT WARNING] {err_msg}")
+                errors.append(err_msg)
 
     # 2. Groq (Llama 3.3 70B с ротацией и авто-бэкоффом)
     groq_clients = get_groq_clients()
@@ -558,6 +600,8 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
     if quality == "strong":
         steps_to_try = [
             ("pollinations", "qwen-2.5-72b"),
+            ("openrouter", "meta-llama/llama-3.3-70b-instruct:free"),
+            ("openrouter", "openrouter/free"),
             ("groq", "llama-3.3-70b-versatile"),
             ("gemini", None),
             ("groq", "llama-3.1-8b-instant"),
@@ -568,6 +612,8 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
     else:
         steps_to_try = [
             ("pollinations", "qwen-2.5-72b"),
+            ("openrouter", "meta-llama/llama-3.2-3b-instruct:free"),
+            ("openrouter", "openrouter/free"),
             ("groq", "llama-3.1-8b-instant"),
             ("gemini", None),
             ("groq", "llama-3.3-70b-versatile"),
@@ -612,6 +658,12 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
                 return run_pollinations_rest(prompt, model=model), tokens
             except Exception as e:
                 errors.append(f"Pollinations Fast Error: {e}")
+                continue
+        elif provider == "openrouter" and os.getenv("OPENROUTER_KEY"):
+            try:
+                return run_openrouter_rest(prompt, model=model, max_tokens=1024), tokens
+            except Exception as e:
+                errors.append(f"OpenRouter Fast Error ({model}): {e}")
                 continue
         elif provider == "claude_cli":
             try:
