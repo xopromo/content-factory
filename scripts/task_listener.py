@@ -270,17 +270,62 @@ def send_telegram_reply(message_id, reply_text):
         "text": reply_text,
         "parse_mode": "HTML"
     }
+    
+    # Try direct send first
     try:
         req = urllib.request.Request(
             url,
             data=json.dumps(payload).encode("utf-8"),
             headers={"Content-Type": "application/json"}
         )
-        with urllib.request.urlopen(req, timeout=15) as r:
+        with urllib.request.urlopen(req, timeout=10) as r:
             res_data = json.loads(r.read())
             return res_data.get("result", {}).get("message_id")
-    except Exception as e:
-        print(f"Failed to send reply to Telegram: {e}")
+    except Exception as direct_err:
+        print(f"Direct Telegram send failed: {direct_err}. Attempting via proxy...")
+        
+    # Proxy fallback: parse proxies.txt and try them
+    proxy_file = ROOT / "proxies.txt"
+    if proxy_file.exists():
+        try:
+            from scripts.check_proxies import parse_proxy_line
+            lines = proxy_file.read_text(encoding="utf-8", errors="ignore").splitlines()
+            valid_proxies = []
+            for line in lines:
+                parsed = parse_proxy_line(line)
+                if parsed and parsed.get("type") in ("socks5", "http"):
+                    valid_proxies.append(parsed)
+            
+            print(f"Found {len(valid_proxies)} proxies in proxies.txt for retry")
+            
+            # Try first 5 proxies
+            for p in valid_proxies[:5]:
+                try:
+                    import urllib.request
+                    # Create opener with proxy
+                    proxy_url = ""
+                    if p["username"] and p["password"]:
+                        proxy_url = f"{p['type']}://{p['username']}:{p['password']}@{p['server']}:{p['port']}"
+                    else:
+                        proxy_url = f"{p['type']}://{p['server']}:{p['port']}"
+                        
+                    proxy_handler = urllib.request.ProxyHandler({'http': proxy_url, 'https': proxy_url})
+                    opener = urllib.request.build_opener(proxy_handler)
+                    
+                    req = urllib.request.Request(
+                        url,
+                        data=json.dumps(payload).encode("utf-8"),
+                        headers={"Content-Type": "application/json"}
+                    )
+                    with opener.open(req, timeout=8) as r:
+                        res_data = json.loads(r.read())
+                        print(f"Successfully sent Telegram reply via proxy: {proxy_url[:40]}")
+                        return res_data.get("result", {}).get("message_id")
+                except Exception as proxy_err:
+                    print(f"Proxy send failed: {proxy_err}")
+        except Exception as e:
+            print(f"Failed to run proxy fallback: {e}")
+            
     return None
 
 def run_loop():
