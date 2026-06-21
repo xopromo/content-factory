@@ -1787,10 +1787,13 @@ def run_pipeline(
     files_to_add = [str(article_path), str(plan_path)]
     if html_path and html_path.exists():
         files_to_add.append(str(html_path))
-    subprocess.run(["git", "add"] + files_to_add, cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
+    env = os.environ.copy()
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    
+    subprocess.run(["git", "add"] + files_to_add, cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace", env=env, timeout=20)
     subprocess.run(
         ["git", "commit", "-m", f"feat: article '{title}' [{slug}]"],
-        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace"
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=20
     )
 
     # git push with GITHUB_TOKEN / Local fallback
@@ -1800,19 +1803,48 @@ def run_pipeline(
     if token:
         try:
             auth_url = f"https://x-access-token:{token}@github.com/{repo}.git"
-            subprocess.run(["git", "remote", "set-url", "origin", auth_url], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
-            subprocess.run(["git", "push", "origin", branch], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace")
-            print("  [deployer-publisher] Изменения успешно отправлены на GitHub с помощью GITHUB_TOKEN")
+            subprocess.run(["git", "remote", "set-url", "origin", auth_url], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace", env=env, timeout=20)
+            
+            # Push with retries
+            pushed_ok = False
+            for attempt in range(3):
+                try:
+                    res = subprocess.run(["git", "push", "origin", branch], cwd=ROOT, capture_output=True, encoding="utf-8", errors="replace", env=env, timeout=30)
+                    if res.returncode == 0:
+                        print("  [deployer-publisher] Изменения успешно отправлены на GitHub с помощью GITHUB_TOKEN")
+                        pushed_ok = True
+                        break
+                    print(f"  [deployer-publisher] Attempt {attempt + 1}/3 git push with token failed: {res.stderr.decode('utf-8', errors='ignore').strip()}")
+                except subprocess.TimeoutExpired:
+                    print(f"  [deployer-publisher] Attempt {attempt + 1}/3 git push with token timed out")
+                except Exception as ex:
+                    print(f"  [deployer-publisher] Attempt {attempt + 1}/3 git push exception: {ex}")
+                import time
+                time.sleep(2)
+            if not pushed_ok:
+                raise Exception("Git push failed after all retries with token")
         except Exception as e:
             print(f"  [deployer-publisher] [WARN] Ошибка отправки на GitHub с GITHUB_TOKEN: {e}")
     else:
         try:
             print("  [deployer-publisher] GITHUB_TOKEN не найден, пробуем обычный git push...")
-            res = subprocess.run(["git", "push", "origin", branch], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
-            if res.returncode == 0:
-                print("  [deployer-publisher] Изменения успешно отправлены на GitHub (local push)")
-            else:
-                print(f"  [deployer-publisher] [WARN] Ошибка git push: {res.stderr.strip()}")
+            pushed_ok = False
+            for attempt in range(3):
+                try:
+                    res = subprocess.run(["git", "push", "origin", branch], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=30)
+                    if res.returncode == 0:
+                        print("  [deployer-publisher] Изменения успешно отправлены на GitHub (local push)")
+                        pushed_ok = True
+                        break
+                    print(f"  [deployer-publisher] Attempt {attempt + 1}/3 local git push failed: {res.stderr.strip()}")
+                except subprocess.TimeoutExpired:
+                    print(f"  [deployer-publisher] Attempt {attempt + 1}/3 local git push timed out")
+                except Exception as ex:
+                    print(f"  [deployer-publisher] Attempt {attempt + 1}/3 local git push exception: {ex}")
+                import time
+                time.sleep(2)
+            if not pushed_ok:
+                raise Exception("Local git push failed after all retries")
         except Exception as e:
             print(f"  [deployer-publisher] [WARN] Не удалось выполнить локальный git push: {e}")
 

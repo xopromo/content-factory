@@ -141,12 +141,19 @@ def update_github_pages():
 def commit_and_push():
     """Коммитит и пушит изменения на GitHub"""
 
+    import os
+    import time
+    env = os.environ.copy()
+    env["GIT_TERMINAL_PROMPT"] = "0"
+
     try:
         # Проверяем есть ли изменения
         result = subprocess.run(
             ["git", "status", "--porcelain"],
             capture_output=True,
-            text=True
+            text=True,
+            env=env,
+            timeout=20
         )
 
         if not result.stdout.strip():
@@ -154,25 +161,38 @@ def commit_and_push():
             return True
 
         # Добавляем файлы
-        subprocess.run(["git", "add", "docs/pipeline/data/logs.json"], check=True)
+        subprocess.run(["git", "add", "docs/pipeline/data/logs.json"], check=True, env=env, timeout=20)
 
         # Коммитим
         subprocess.run(
             ["git", "commit", "-m", "Синхронизирует результаты эволюции на GitHub Pages"],
-            check=True
+            check=True,
+            env=env,
+            timeout=20
         )
 
-        # Пушим
-        subprocess.run(
-            ["git", "push", "origin", "claude/code-reviewer-agent-OyU0W"],
-            check=True
-        )
+        # Пушим с ретраями
+        for attempt in range(3):
+            try:
+                subprocess.run(
+                    ["git", "push", "origin", "claude/code-reviewer-agent-OyU0W"],
+                    check=True,
+                    env=env,
+                    timeout=30
+                )
+                print("✅ Пушед на GitHub Pages")
+                return True
+            except subprocess.TimeoutExpired:
+                print(f"⚠️ Пуш таймаут (попытка {attempt + 1}/3)")
+            except subprocess.CalledProcessError as push_err:
+                print(f"⚠️ Ошибка пуша (попытка {attempt + 1}/3): {push_err}")
+            time.sleep(2)
 
-        print("✅ Пушед на GitHub Pages")
-        return True
+        print("❌ Не удалось отправить на GitHub после всех попыток")
+        return False
 
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Ошибка при пуше: {e}")
+    except Exception as e:
+        print(f"❌ Ошибка при фиксации/пуше изменений: {e}")
         return False
 
 

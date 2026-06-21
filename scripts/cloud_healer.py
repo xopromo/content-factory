@@ -13,6 +13,33 @@ sys.path.append(str(ROOT))
 
 from scripts.telegram_notifier import send as tg_send
 
+def run_git(args, cwd=ROOT, timeout=30):
+    env = os.environ.copy()
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    for attempt in range(3):
+        try:
+            res = subprocess.run(
+                args,
+                cwd=cwd,
+                capture_output=True,
+                text=True,
+                shell=True,
+                timeout=timeout,
+                env=env
+            )
+            if res.returncode == 0 or args[1] not in ("push", "pull", "fetch", "clone"):
+                return res
+            print(f"Git command {' '.join(args)} failed (attempt {attempt + 1}/3): {res.stderr.strip()}")
+        except subprocess.TimeoutExpired:
+            print(f"Git command {' '.join(args)} timed out (attempt {attempt + 1}/3)")
+        except Exception as e:
+            print(f"Git command {' '.join(args)} exception: {e}")
+        import time
+        time.sleep(2)
+    # Fallback to a final try to return whatever result/returncode it gets
+    return subprocess.run(args, cwd=cwd, capture_output=True, text=True, shell=True, env=env)
+
+
 def call_gemini(prompt: str) -> str:
     api_key = os.getenv("GEMINI_KEY")
     if not api_key:
@@ -242,9 +269,9 @@ def main() -> None:
         tg_send(msg)
         # Удаляем файл ошибки, чтобы не зацикливаться
         error_file.unlink()
-        subprocess.run(["git", "rm", "critical_error.json"], cwd=ROOT)
-        subprocess.run(["git", "commit", "-m", "fail: remove unresolvable critical_error.json"], cwd=ROOT)
-        subprocess.run(["git", "push", "origin", "main"], cwd=ROOT)
+        run_git(["git", "rm", "critical_error.json"], cwd=ROOT)
+        run_git(["git", "commit", "-m", "fail: remove unresolvable critical_error.json"], cwd=ROOT)
+        run_git(["git", "push", "origin", "main"], cwd=ROOT)
         sys.exit(1)
         
     print(f"Файл для исправления: {target_file}")
@@ -321,20 +348,20 @@ def main() -> None:
         # Делаем коммит и пуш
         try:
             # Настраиваем гита пользователя
-            subprocess.run(["git", "config", "--global", "user.email", "auto-healer@content-factory.local"], cwd=ROOT)
-            subprocess.run(["git", "config", "--global", "user.name", "Cloud Auto Healer Agent"], cwd=ROOT)
+            run_git(["git", "config", "--global", "user.email", "auto-healer@content-factory.local"], cwd=ROOT)
+            run_git(["git", "config", "--global", "user.name", "Cloud Auto Healer Agent"], cwd=ROOT)
             
-            subprocess.run(["git", "add", str(target_file)], cwd=ROOT)
-            subprocess.run(["git", "rm", "critical_error.json"], cwd=ROOT)
-            subprocess.run(["git", "commit", "-m", f"fix: auto-healed {error_type} in {target_file.name}"], cwd=ROOT)
+            run_git(["git", "add", str(target_file)], cwd=ROOT)
+            run_git(["git", "rm", "critical_error.json"], cwd=ROOT)
+            run_git(["git", "commit", "-m", f"fix: auto-healed {error_type} in {target_file.name}"], cwd=ROOT)
             
             # Пушим в main
             token = os.getenv("GITHUB_TOKEN")
             repo = os.getenv("GITHUB_REPO", "xopromo/content-factory")
             branch = os.getenv("GITHUB_BRANCH", "main")
             auth_url = f"https://x-access-token:{token}@github.com/{repo}.git"
-            subprocess.run(["git", "remote", "set-url", "origin", auth_url], cwd=ROOT)
-            subprocess.run(["git", "push", "origin", branch], cwd=ROOT)
+            run_git(["git", "remote", "set-url", "origin", auth_url], cwd=ROOT)
+            run_git(["git", "push", "origin", branch], cwd=ROOT)
             
             msg = (
                 f"🎉 <b>Облачный автохилер:</b> Ошибка успешно исправлена!\n\n"
@@ -357,17 +384,17 @@ def main() -> None:
             error_file.unlink()
             
         try:
-            subprocess.run(["git", "config", "--global", "user.email", "auto-healer@content-factory.local"], cwd=ROOT)
-            subprocess.run(["git", "config", "--global", "user.name", "Cloud Auto Healer Agent"], cwd=ROOT)
-            subprocess.run(["git", "rm", "critical_error.json"], cwd=ROOT)
-            subprocess.run(["git", "commit", "-m", f"fail: auto-healer could not resolve {error_type} in {target_file.name}"], cwd=ROOT)
+            run_git(["git", "config", "--global", "user.email", "auto-healer@content-factory.local"], cwd=ROOT)
+            run_git(["git", "config", "--global", "user.name", "Cloud Auto Healer Agent"], cwd=ROOT)
+            run_git(["git", "rm", "critical_error.json"], cwd=ROOT)
+            run_git(["git", "commit", "-m", f"fail: auto-healer could not resolve {error_type} in {target_file.name}"], cwd=ROOT)
             
             token = os.getenv("GITHUB_TOKEN")
             repo = os.getenv("GITHUB_REPO", "xopromo/content-factory")
             branch = os.getenv("GITHUB_BRANCH", "main")
             auth_url = f"https://x-access-token:{token}@github.com/{repo}.git"
-            subprocess.run(["git", "remote", "set-url", "origin", auth_url], cwd=ROOT)
-            subprocess.run(["git", "push", "origin", branch], cwd=ROOT)
+            run_git(["git", "remote", "set-url", "origin", auth_url], cwd=ROOT)
+            run_git(["git", "push", "origin", branch], cwd=ROOT)
             
             msg = (
                 f"❌ <b>Облачный автохилер СДАЛСЯ:</b> Не удалось исправить ошибку за 3 попытки.\n\n"

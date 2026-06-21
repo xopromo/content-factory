@@ -61,59 +61,135 @@ else:
         print(f"Directory {GIT_DIR} not found. Cloning repository {REPO}...")
         import subprocess
         GIT_DIR.parent.mkdir(parents=True, exist_ok=True)
-        res = subprocess.run(
-            ["git", "clone", f"https://github.com/{REPO}.git", repo_name],
-            cwd=str(ROOT / "scratch"),
-            capture_output=True,
-            text=True,
-            shell=True
-        )
-        if res.returncode != 0:
-            print(f"Auto-clone failed: {res.stderr.strip()}")
+        env = os.environ.copy()
+        env["GIT_TERMINAL_PROMPT"] = "0"
+        
+        # Clone with retries
+        for attempt in range(3):
+            try:
+                res = subprocess.run(
+                    ["git", "clone", f"https://github.com/{REPO}.git", repo_name],
+                    cwd=str(ROOT / "scratch"),
+                    capture_output=True,
+                    text=True,
+                    shell=True,
+                    timeout=60,
+                    env=env
+                )
+                if res.returncode == 0:
+                    print("Auto-clone succeeded.")
+                    break
+                print(f"Auto-clone failed (attempt {attempt + 1}/3): {res.stderr.strip()}")
+            except subprocess.TimeoutExpired:
+                print(f"Auto-clone timed out (attempt {attempt + 1}/3)")
+            except Exception as e:
+                print(f"Auto-clone exception: {e}")
+            time.sleep(3)
 
 def git_pull():
     import subprocess
+    import time
+    env = os.environ.copy()
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    
+    # Try git fetch with retries
+    for attempt in range(3):
+        try:
+            res_fetch = subprocess.run(
+                ["git", "fetch", "origin", BRANCH],
+                cwd=str(GIT_DIR),
+                capture_output=True,
+                shell=True,
+                timeout=30,
+                env=env
+            )
+            if res_fetch.returncode == 0:
+                break
+            print(f"git fetch failed (attempt {attempt + 1}/3): {res_fetch.stderr.decode('utf-8', errors='ignore').strip()}")
+        except subprocess.TimeoutExpired:
+            print(f"git fetch timed out (attempt {attempt + 1}/3)")
+        except Exception as e:
+            print(f"git fetch exception: {e}")
+        time.sleep(2)
+        
     try:
-        # Run fetch first
-        subprocess.run(["git", "fetch", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, shell=True)
         # Force reset to origin to ensure we are exactly matched and have no merge/rebase issues
-        res = subprocess.run(["git", "reset", "--hard", f"origin/{BRANCH}"], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
+        res = subprocess.run(
+            ["git", "reset", "--hard", f"origin/{BRANCH}"],
+            cwd=str(GIT_DIR),
+            capture_output=True,
+            text=True,
+            shell=True,
+            timeout=30,
+            env=env
+        )
         if res.returncode != 0:
             print(f"git reset failed: {res.stderr.strip()}")
     except Exception as e:
-        print(f"git pull exception: {e}")
+        print(f"git pull exception during reset: {e}")
 
 def git_push(message):
     import subprocess
+    import time
+    env = os.environ.copy()
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    
     try:
         # Commit tasks.json changes
-        subprocess.run(["git", "add", TASKS_PATH], cwd=str(GIT_DIR), check=True, shell=True)
-        status = subprocess.run(["git", "status", "--porcelain", TASKS_PATH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
+        subprocess.run(["git", "add", TASKS_PATH], cwd=str(GIT_DIR), check=True, shell=True, timeout=20, env=env)
+        status = subprocess.run(["git", "status", "--porcelain", TASKS_PATH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True, timeout=20, env=env)
         if status.stdout.strip():
-            res_commit = subprocess.run(["git", "commit", "-m", f"{message} [skip render]"], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
+            res_commit = subprocess.run(["git", "commit", "-m", f"{message} [skip render]"], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True, timeout=20, env=env)
             if res_commit.returncode != 0:
                 print(f"git commit failed: {res_commit.stderr.strip()}")
                 return
         
-        # Push to origin. If it fails, fetch, reset (discarding local, but here we expect no conflicts since we just write status), and try again once.
-        res_push = subprocess.run(["git", "push", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
-        if res_push.returncode == 0:
-            print(f"Successfully pushed: {message}")
-            return
-        else:
-            print(f"git push failed, pulling changes with rebase and retrying...")
-            res_rebase = subprocess.run(["git", "pull", "--rebase", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
-            if res_rebase.returncode != 0:
-                print(f"git pull --rebase failed: {res_rebase.stderr.strip()}. Aborting rebase and resetting to origin.")
-                subprocess.run(["git", "rebase", "--abort"], cwd=str(GIT_DIR), capture_output=True, shell=True)
-                git_pull()
-            res_push = subprocess.run(["git", "push", "origin", BRANCH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True)
-            if res_push.returncode == 0:
-                print(f"Successfully pushed after pull: {message}")
-            else:
-                print(f"git push retry failed: {res_push.stderr.strip()}")
+        # Push to origin with retries
+        for attempt in range(3):
+            try:
+                res_push = subprocess.run(
+                    ["git", "push", "origin", BRANCH],
+                    cwd=str(GIT_DIR),
+                    capture_output=True,
+                    text=True,
+                    shell=True,
+                    timeout=30,
+                    env=env
+                )
+                if res_push.returncode == 0:
+                    print(f"Successfully pushed: {message}")
+                    return
+                
+                print(f"git push failed (attempt {attempt + 1}/3): {res_push.stderr.strip()}")
+            except subprocess.TimeoutExpired:
+                print(f"git push timed out (attempt {attempt + 1}/3)")
+            except Exception as e:
+                print(f"git push exception: {e}")
+            
+            # Pull with rebase before retrying
+            print(f"Attempting git pull --rebase before retrying push...")
+            try:
+                res_rebase = subprocess.run(
+                    ["git", "pull", "--rebase", "origin", BRANCH],
+                    cwd=str(GIT_DIR),
+                    capture_output=True,
+                    text=True,
+                    shell=True,
+                    timeout=30,
+                    env=env
+                )
+                if res_rebase.returncode != 0:
+                    print(f"git pull --rebase failed: {res_rebase.stderr.strip()}. Aborting rebase and resetting to origin.")
+                    subprocess.run(["git", "rebase", "--abort"], cwd=str(GIT_DIR), capture_output=True, shell=True, timeout=20, env=env)
+                    git_pull()
+            except Exception as rebase_err:
+                print(f"Error during pull --rebase: {rebase_err}")
+                
+            time.sleep(3)
+            
+        print("Failed to push changes to GitHub after all attempts.")
     except Exception as e:
-        print(f"git push exception: {e}")
+        print(f"git push outer exception: {e}")
 
 def gh_read_tasks():
     p = GIT_DIR / TASKS_PATH
