@@ -1025,7 +1025,7 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
             asyncio.create_task(_delete_message_after_delay(ctx.bot, update.effective_chat.id, msg.message_id, 5))
             return WAIT_TRANSCRIPT_ACTION
             
-        status_msg = await update.message.reply_text("📢 Отправляю задачу в канал ИИ-агента...")
+        status_msg = await update.message.reply_text("Ок")
         try:
             # Отправляем задачу в наш ИИ-канал
             task_msg = await ctx.bot.send_message(
@@ -3492,8 +3492,9 @@ async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
     text = msg.text.strip()
     
     try:
-        # Coding & Dialogue Task: always append as pending and let local PC agent run it
-        # No extra status_msg or template messages. Just append silently to tasks.json
+        # Reply with 'Ок' to the channel task
+        status_msg = await msg.reply_text("Ок")
+        
         tasks_content = gh_read("docs/articles/tasks.json")
         tasks = []
         if tasks_content:
@@ -3509,6 +3510,7 @@ async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         new_task = {
             "id": next_id,
             "message_id": msg.message_id,
+            "status_message_id": status_msg.message_id,
             "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None,
             "text": text,
             "status": "pending",
@@ -3537,7 +3539,9 @@ async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
         if not text:
             return
             
-        # Coding & Dialogue Task: silently register as pending
+        # Reply with 'Ок' to the voice message
+        status_msg = await msg.reply_text("Ок")
+        
         tasks_content = gh_read("docs/articles/tasks.json")
         tasks = []
         if tasks_content:
@@ -3553,6 +3557,7 @@ async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
         new_task = {
             "id": next_id,
             "message_id": msg.message_id,
+            "status_message_id": status_msg.message_id,
             "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None,
             "text": text,
             "status": "pending",
@@ -3566,6 +3571,9 @@ async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
             f"task: add voice code task #{next_id}"
         )
         log.info("Successfully added voice task #%s to tasks.json on GitHub for local execution", next_id)
+        
+    except Exception as e:
+        log.error("Error in handle_channel_voice: %s", e)
 
 async def cmd_botlog(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_message:

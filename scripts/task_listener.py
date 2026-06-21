@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python3
 """
 Task Listener Script (SOCKS5/HTTP compatible).
@@ -218,20 +219,191 @@ def clean_history_result(result):
             
     return result_clean.strip()
 
+
+def is_agent_command(text):
+    text_clean = text.strip().lower()
+    greetings = ["привет", "привет!", "как дела", "как дела?", "кто ты", "кто ты?", "прием", "прием прием"]
+    if text_clean in greetings:
+        return False
+    if len(text_clean) < 10 and not any(c in text_clean for c in ["/", "run", "do"]):
+        return False
+    return True
+
+def run_agent_loop(task_text, history=None):
+    import subprocess
+    import json
+    import re
+    from pathlib import Path
+
+    print(f"🤖 Entering agent loop for task: {task_text}")
+    
+    # Context of files
+    claude_path = ROOT / "CLAUDE.md"
+    project_state_path = ROOT / "PROJECT_STATE.md"
+    
+    claude_md = claude_path.read_text(encoding="utf-8", errors="ignore") if claude_path.exists() else ""
+    project_state_md = project_state_path.read_text(encoding="utf-8", errors="ignore") if project_state_path.exists() else ""
+    
+    context = (
+        f"=== CLAUDE.md ===\n{claude_md[:4000]}\n\n"
+        f"=== PROJECT_STATE.md ===\n{project_state_md[:4000]}\n\n"
+    )
+    
+    agent_history = []
+    
+    # We will loop up to 8 iterations
+    for step in range(8):
+        print(f"--- Step {step + 1} of 8 ---", flush=True)
+        prompt = (
+            "Ты — автономный ИИ-агент разработчик Antigravity. Ты запущен локально на ПК пользователя.\n"
+            "Твоя задача — выполнить поручение пользователя в текущей рабочей директории.\n"
+            "Доступные инструменты (вызывай их, выводя строго одну JSON-структуру в формате {\"tool\": \"...\"}):\n"
+            "1. Прочитать файл: {\"tool\": \"read_file\", \"path\": \"relative/path/to/file\"}\n"
+            "2. Записать/создать файл: {\"tool\": \"write_file\", \"path\": \"relative/path/to/file\", \"content\": \"содержимое\"}\n"
+            "3. Посмотреть список файлов в папке: {\"tool\": \"list_dir\", \"path\": \"relative/path\"}\n"
+            "4. Запустить терминальную команду (powershell): {\"tool\": \"run_command\", \"command\": \"команда\"}\n"
+            "5. Завершить выполнение и выдать финальный ответ: {\"tool\": \"final_answer\", \"answer\": \"твое сообщение\"}\n"
+            "6. Отправить документ в Telegram: {\"tool\": \"send_document\", \"path\": \"relative/path/to/file\", \"caption\": \"описание\"}\n"
+            "7. Отправить фото/картинку в Telegram (отобразится прямо в чате): {\"tool\": \"send_photo\", \"path\": \"relative/path/to/file\", \"caption\": \"описание\"}\n\n"
+            "Совет по генерации картинок: Если пользователь просит нарисовать или сгенерировать изображение/мем, ты можешь скачать изображение по URL: https://image.pollinations.ai/prompt/<url_encoded_prompt> с помощью python (например: python -c \"import urllib.request; urllib.request.urlretrieve('https://image.pollinations.ai/prompt/some_prompt', 'image.png')\") через run_command, а затем отправить файл с помощью send_photo.\n"
+            "ВАЖНО: Если пользователь просит сгенерировать изображение/картинку, весь текст на ней должен быть строго на РУССКОМ языке (кроме логотипов и брендов), если иное не указано пользователем.\n\n"
+            "Правила вызова инструментов:\n"
+            "- Выводи ровно один JSON-вызов инструмента в конце своего ответа.\n"
+            "- Если задача полностью выполнена, обязательно вызови tool 'final_answer'.\n\n"
+            "История текущих размышлений и шагов:\n"
+        )
+        
+        history_text = ""
+        for h in agent_history:
+            history_text += f"Шаг: {h['step']}\nМысли/Действие: {h['thought']}\nРезультат инструмента: {h['result']}\n\n"
+            
+        full_query = context + prompt + history_text + f"Текущая цель: {task_text}\nТвои мысли и следующий шаг (JSON):"
+        
+        # Call LLM
+        response, _ = run_fast_common(full_query, quality="strong")
+        print(f"Step {step + 1} thoughts:\n{response}", flush=True)
+        
+        # Try parsing JSON: find first '{' and last '}'
+        start_idx = response.find('{')
+        end_idx = response.rfind('}')
+        if start_idx == -1 or end_idx == -1 or end_idx < start_idx:
+            print(f"Step {step + 1} result: No JSON brackets found, treating as final answer.", flush=True)
+            return response
+            
+        json_str = response[start_idx:end_idx + 1]
+        try:
+            tool_call = json.loads(json_str)
+        except Exception as je:
+            err_msg = f"Ошибка парсинга JSON: {je} (извлеченная строка: {json_str!r})"
+            print(f"Step {step + 1} result: {err_msg}", flush=True)
+            agent_history.append({
+                "step": step + 1,
+                "thought": response,
+                "result": err_msg
+            })
+            continue
+            
+        tool = tool_call.get("tool")
+        print(f"Step {step + 1} calling tool: {tool_call}", flush=True)
+        if tool == "final_answer":
+            return tool_call.get("answer", response)
+            
+        # Execute tool
+        result = ""
+        try:
+            if tool == "read_file":
+                path = ROOT / tool_call.get("path", "")
+                if path.exists():
+                    result = path.read_text(encoding="utf-8", errors="ignore")[:4000]
+                else:
+                    result = f"Файл {tool_call.get('path')} не найден."
+            elif tool == "write_file":
+                path = ROOT / tool_call.get("path", "")
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(tool_call.get("content", ""), encoding="utf-8")
+                result = f"Успешно записано в {tool_call.get('path')}."
+            elif tool == "list_dir":
+                path = ROOT / tool_call.get("path", "")
+                if path.exists() and path.is_dir():
+                    files = [f.name for f in path.iterdir()]
+                    result = f"Содержимое директории: {files}"
+                else:
+                    result = f"Директория {tool_call.get('path')} не найдена или не является папкой."
+            elif tool == "run_command":
+                cmd = tool_call.get("command", "")
+                if cmd.strip().startswith("cd "):
+                    result = "cd команда не поддерживается. Укажи Cwd или относительный путь."
+                else:
+                    res = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=str(ROOT), timeout=30)
+                    result = f"Stdout: {res.stdout}\nStderr: {res.stderr}"
+            elif tool == "send_document":
+                file_rel = tool_call.get("path", "")
+                path = ROOT / file_rel
+                if path.exists() and path.is_file():
+                    caption = tool_call.get("caption", "")
+                    reply_msg_id = send_telegram_document(path, caption)
+                    if reply_msg_id:
+                        result = f"Документ {file_rel} успешно отправлен в Telegram. Message ID: {reply_msg_id}"
+                    else:
+                        result = f"Не удалось отправить документ {file_rel} в Telegram."
+                else:
+                    result = f"Файл {file_rel} для отправки не найден."
+            elif tool == "send_photo":
+                file_rel = tool_call.get("path", "")
+                path = ROOT / file_rel
+                if path.exists() and path.is_file():
+                    caption = tool_call.get("caption", "")
+                    reply_msg_id = send_telegram_photo(path, caption)
+                    if reply_msg_id:
+                        result = f"Изображение {file_rel} успешно отправлено в Telegram. Message ID: {reply_msg_id}"
+                    else:
+                        result = f"Не удалось отправить изображение {file_rel} в Telegram."
+                else:
+                    result = f"Файл {file_rel} для отправки не найден."
+            else:
+                result = f"Неизвестный инструмент: {tool}"
+        except Exception as te:
+            result = f"Ошибка: {te}"
+            
+        print(f"Step {step + 1} tool result: {result}", flush=True)
+        agent_history.append({
+            "step": step + 1,
+            "thought": response,
+            "result": result
+        })
+        
+    return "Задача не была завершена за отведенное количество шагов. Последнее состояние: " + str(agent_history[-1])
+
 def execute_ai_task(task_text, history=None):
-    """
-    Simulates AI agent executing the user's task.
-    You can customize this to run real code, generate articles, files, etc.
-    """
     print(f"Executing task: {task_text}")
+    
+    if is_agent_command(task_text):
+        try:
+            return run_agent_loop(task_text, history)
+        except Exception as ae:
+            return f"Ошибка при работе ИИ-агента: {ae}"
+            
+    # Level 1: Normal dialogue with project context
+    claude_path = ROOT / "CLAUDE.md"
+    project_state_path = ROOT / "PROJECT_STATE.md"
+    claude_md = claude_path.read_text(encoding="utf-8", errors="ignore") if claude_path.exists() else ""
+    project_state_md = project_state_path.read_text(encoding="utf-8", errors="ignore") if project_state_path.exists() else ""
+    
+    project_context = (
+        "\n--- ТЕКУЩИЙ КОНТЕКСТ ПРОЕКТОВ (ДЛЯ СПРАВКИ) ---\n"
+        f"CLAUDE.md:\n{claude_md[:2000]}\n\n"
+        f"PROJECT_STATE.md:\n{project_state_md[:2000]}\n"
+        "-----------------------------------------------\n"
+    )
     
     system_prompt = (
         "Ты Antigravity — умный ИИ-собеседник и разработчик.\n"
+        f"Тебе доступен текущий контекст проектов на ПК пользователя:\n{project_context}\n"
         "Правила ведения диалога:\n"
         "1. Отвечай кратко, естественно и лаконично (максимум 1-3 предложения), как реальный собеседник в чате.\n"
-        "2. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО пересказывать историю диалога, повторять предыдущие вопросы и ответы («Вы ответили...», «Я задал вопрос...») или писать мета-комментарии о ходе игры.\n"
-        "3. Если идет игра в 20 вопросов, просто отреагируй на последний ответ (например: 'Понял, значит не в офисе.') и сразу задай следующий вопрос (например: 'Этот предмет больше футбольного мяча?').\n"
-        "4. Только если пользователь дал конкретную техническую задачу по программированию или созданию файлов, выполни её и приложи лаконичный отчет в самом конце ответа."
+        "2. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО пересказывать историю диалога или писать мета-комментарии о ходе игры.\n"
+        "3. Если идет игра в 20 вопросов, просто отреагируй на последний ответ и сразу задай следующий вопрос.\n"
+        "4. Для выполнения сложных команд по программированию или изменения файлов используй префикс 'агент' или '/agent' в запросе."
     )
     
     # Build prompt with history context
@@ -257,8 +429,173 @@ def execute_ai_task(task_text, history=None):
                 response_clean = response_clean[len(prefix):].strip()
         return response_clean
     except Exception as e:
-        return f"Ошибка при выполнении задачи: {e}\n{traceback.format_exc()}"
+        return f"Ошибка при выполнении задачи: {e}"
 
+def send_telegram_photo(file_path, caption=""):
+    token = os.environ.get("TG_BOT_TOKEN")
+    channel_id = -1004378273791
+    if not token or not file_path.exists():
+        return None
+    url = f"https://api.telegram.org/bot{token}/sendPhoto"
+    
+    file_bytes = file_path.read_bytes()
+    file_name = file_path.name
+    boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
+    
+    parts = []
+    parts.append(f"--{boundary}")
+    parts.append(f'Content-Disposition: form-data; name="chat_id"')
+    parts.append("")
+    parts.append(str(channel_id))
+    
+    if caption:
+        parts.append(f"--{boundary}")
+        parts.append(f'Content-Disposition: form-data; name="caption"')
+        parts.append("")
+        parts.append(caption)
+        
+    parts.append(f"--{boundary}")
+    parts.append(f'Content-Disposition: form-data; name="photo"; filename="{file_name}"')
+    parts.append("Content-Type: image/png")
+    parts.append("")
+    
+    header_data = "\r\n".join(parts).encode("utf-8") + b"\r\n"
+    footer_data = f"\r\n--{boundary}--\r\n".encode("utf-8")
+    
+    body = header_data + file_bytes + footer_data
+    
+    headers = {
+        "Content-Type": f"multipart/form-data; boundary={boundary}",
+        "Content-Length": str(len(body))
+    }
+    
+    # Try direct send first
+    try:
+        req = urllib.request.Request(url, data=body, headers=headers)
+        with urllib.request.urlopen(req, timeout=20) as r:
+            res_data = json.loads(r.read())
+            return res_data.get("result", {}).get("message_id")
+    except Exception as direct_err:
+        print(f"Direct Telegram photo send failed: {direct_err}. Attempting via proxy...")
+        
+    # Proxy fallback
+    proxy_file = ROOT / "proxies.txt"
+    if proxy_file.exists():
+        try:
+            from scripts.check_proxies import parse_proxy_line
+            lines = proxy_file.read_text(encoding="utf-8", errors="ignore").splitlines()
+            valid_proxies = []
+            for line in lines:
+                parsed = parse_proxy_line(line)
+                if parsed and parsed.get("type") in ("socks5", "http"):
+                    valid_proxies.append(parsed)
+            
+            print(f"Found {len(valid_proxies)} proxies in proxies.txt for retry")
+            for p in valid_proxies[:5]:
+                try:
+                    proxy_url = ""
+                    if p["username"] and p["password"]:
+                        proxy_url = f"{p['type']}://{p['username']}:{p['password']}@{p['server']}:{p['port']}"
+                    else:
+                        proxy_url = f"{p['type']}://{p['server']}:{p['port']}"
+                        
+                    proxy_handler = urllib.request.ProxyHandler({'http': proxy_url, 'https': proxy_url})
+                    opener = urllib.request.build_opener(proxy_handler)
+                    
+                    req = urllib.request.Request(url, data=body, headers=headers)
+                    with opener.open(req, timeout=20) as r:
+                        res_data = json.loads(r.read())
+                        print(f"Successfully sent Telegram photo via proxy: {proxy_url[:40]}")
+                        return res_data.get("result", {}).get("message_id")
+                except Exception as proxy_err:
+                    print(f"Proxy photo send failed: {proxy_err}")
+        except Exception as e:
+            print(f"Failed to run proxy photo fallback: {e}")
+            
+    return None
+
+def send_telegram_document(file_path, caption=""):
+    token = os.environ.get("TG_BOT_TOKEN")
+    channel_id = -1004378273791
+    if not token or not file_path.exists():
+        return None
+    url = f"https://api.telegram.org/bot{token}/sendDocument"
+    
+    file_bytes = file_path.read_bytes()
+    file_name = file_path.name
+    boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
+    
+    parts = []
+    parts.append(f"--{boundary}")
+    parts.append(f'Content-Disposition: form-data; name="chat_id"')
+    parts.append("")
+    parts.append(str(channel_id))
+    
+    if caption:
+        parts.append(f"--{boundary}")
+        parts.append(f'Content-Disposition: form-data; name="caption"')
+        parts.append("")
+        parts.append(caption)
+        
+    parts.append(f"--{boundary}")
+    parts.append(f'Content-Disposition: form-data; name="document"; filename="{file_name}"')
+    parts.append("Content-Type: application/octet-stream")
+    parts.append("")
+    
+    header_data = "\r\n".join(parts).encode("utf-8") + b"\r\n"
+    footer_data = f"\r\n--{boundary}--\r\n".encode("utf-8")
+    
+    body = header_data + file_bytes + footer_data
+    
+    headers = {
+        "Content-Type": f"multipart/form-data; boundary={boundary}",
+        "Content-Length": str(len(body))
+    }
+    
+    # Try direct send first
+    try:
+        req = urllib.request.Request(url, data=body, headers=headers)
+        with urllib.request.urlopen(req, timeout=20) as r:
+            res_data = json.loads(r.read())
+            return res_data.get("result", {}).get("message_id")
+    except Exception as direct_err:
+        print(f"Direct Telegram document send failed: {direct_err}. Attempting via proxy...")
+        
+    # Proxy fallback
+    proxy_file = ROOT / "proxies.txt"
+    if proxy_file.exists():
+        try:
+            from scripts.check_proxies import parse_proxy_line
+            lines = proxy_file.read_text(encoding="utf-8", errors="ignore").splitlines()
+            valid_proxies = []
+            for line in lines:
+                parsed = parse_proxy_line(line)
+                if parsed and parsed.get("type") in ("socks5", "http"):
+                    valid_proxies.append(parsed)
+            
+            print(f"Found {len(valid_proxies)} proxies in proxies.txt for retry")
+            for p in valid_proxies[:5]:
+                try:
+                    proxy_url = ""
+                    if p["username"] and p["password"]:
+                        proxy_url = f"{p['type']}://{p['username']}:{p['password']}@{p['server']}:{p['port']}"
+                    else:
+                        proxy_url = f"{p['type']}://{p['server']}:{p['port']}"
+                        
+                    proxy_handler = urllib.request.ProxyHandler({'http': proxy_url, 'https': proxy_url})
+                    opener = urllib.request.build_opener(proxy_handler)
+                    
+                    req = urllib.request.Request(url, data=body, headers=headers)
+                    with opener.open(req, timeout=20) as r:
+                        res_data = json.loads(r.read())
+                        print(f"Successfully sent Telegram document via proxy: {proxy_url[:40]}")
+                        return res_data.get("result", {}).get("message_id")
+                except Exception as proxy_err:
+                    print(f"Proxy document send failed: {proxy_err}")
+        except Exception as e:
+            print(f"Failed to run proxy document fallback: {e}")
+            
+    return None
 def send_telegram_reply(message_id, reply_text):
     token = os.environ.get("TG_BOT_TOKEN")
     channel_id = -1004378273791
@@ -270,6 +607,8 @@ def send_telegram_reply(message_id, reply_text):
         "text": reply_text,
         "parse_mode": "HTML"
     }
+    if message_id:
+        payload["reply_to_message_id"] = message_id
     
     # Try direct send first
     try:
@@ -301,7 +640,7 @@ def send_telegram_reply(message_id, reply_text):
             # Try first 5 proxies
             for p in valid_proxies[:5]:
                 try:
-                    import urllib.request
+                    # urllib imported globally
                     # Create opener with proxy
                     proxy_url = ""
                     if p["username"] and p["password"]:
@@ -327,6 +666,68 @@ def send_telegram_reply(message_id, reply_text):
             print(f"Failed to run proxy fallback: {e}")
             
     return None
+
+def delete_telegram_message(message_id):
+    if not message_id:
+        return False
+    token = os.environ.get("TG_BOT_TOKEN")
+    channel_id = -1004378273791
+    if not token:
+        return False
+    url = f"https://api.telegram.org/bot{token}/deleteMessage"
+    payload = {
+        "chat_id": channel_id,
+        "message_id": message_id
+    }
+    
+    # Try direct first
+    try:
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return True
+    except Exception as direct_err:
+        print(f"Direct Telegram delete failed: {direct_err}. Attempting via proxy...")
+        
+    # Proxy fallback
+    proxy_file = ROOT / "proxies.txt"
+    if proxy_file.exists():
+        try:
+            from scripts.check_proxies import parse_proxy_line
+            lines = proxy_file.read_text(encoding="utf-8", errors="ignore").splitlines()
+            valid_proxies = []
+            for line in lines:
+                parsed = parse_proxy_line(line)
+                if parsed and parsed.get("type") in ("socks5", "http"):
+                    valid_proxies.append(parsed)
+            
+            for p in valid_proxies[:5]:
+                try:
+                    proxy_url = ""
+                    if p["username"] and p["password"]:
+                        proxy_url = f"{p['type']}://{p['username']}:{p['password']}@{p['server']}:{p['port']}"
+                    else:
+                        proxy_url = f"{p['type']}://{p['server']}:{p['port']}"
+                        
+                    proxy_handler = urllib.request.ProxyHandler({'http': proxy_url, 'https': proxy_url})
+                    opener = urllib.request.build_opener(proxy_handler)
+                    
+                    req = urllib.request.Request(
+                        url,
+                        data=json.dumps(payload).encode("utf-8"),
+                        headers={"Content-Type": "application/json"}
+                    )
+                    with opener.open(req, timeout=8) as r:
+                        print(f"Successfully deleted Telegram message via proxy: {proxy_url[:40]}")
+                        return True
+                except Exception as proxy_err:
+                    pass
+        except Exception:
+            pass
+    return False
 
 def run_loop():
     print("🤖 Antigravity Task Listener is active and scanning for tasks...")
@@ -358,6 +759,12 @@ def run_loop():
                     reply_msg_id = send_telegram_reply(task["message_id"], result)
                     if reply_msg_id:
                         task["reply_message_id"] = reply_msg_id
+                    
+                    # Delete the status message 'Ок' if present
+                    status_msg_id = task.get("status_message_id")
+                    if status_msg_id:
+                        print(f"Deleting status message {status_msg_id}...")
+                        delete_telegram_message(status_msg_id)
                     
                     # Update task state to completed
                     task["status"] = "completed"
