@@ -1,17 +1,22 @@
-# Learning Rules — Автоматическое обучение на обратной связи
+# Learning Rules — Автоматически генерируемые правила обучения
 
-> Правила, генерируемые на основе коррекций пользователя. Обновляются автоматически скриптом `scripts/feedback_learner.py`.
+> Формат: JSON-массив объектов. Обновляется скриптом `feedback_learner.py`.
+> Правила применяются в пайплайне: entity-validator, content-writer, editor-critic.
 
-## Формат правил
-```
-{
-  "rule_id": "уникальный_идентификатор",
-  "trigger": "триггерная фраза или паттерн (regex)",
-  "action": "что сделать при срабатывании",
-  "severity": "CRITICAL|WARNING|INFO",
-  "source": "источник обратной связи (например, user_feedback_2026-06-22)",
-  "applied_to": ["content-writer", "editor-critic", "entity-validator"]
-}
+## Шаблон правил
+```json
+[
+  {
+    "rule_id": "lr-XXX",
+    "trigger": "строка или regex для поиска",
+    "action": "что сделать при срабатывании",
+    "severity": "CRITICAL|WARNING|INFO",
+    "source": "источник правила (например, user_feedback_YYYY-MM-DD)",
+    "applied_to": ["список инструментов, где применяется"],
+    "created_at": "YYYY-MM-DD HH:MM:SS",
+    "updated_at": "YYYY-MM-DD HH:MM:SS"
+  }
+]
 ```
 
 ## Примеры правил
@@ -23,50 +28,12 @@
     "action": "Заменить на 'Devin' и заблокировать статью для проверки",
     "severity": "CRITICAL",
     "source": "user_feedback_2026-05-27",
-    "applied_to": [
-      "entity-validator",
-      "content-writer"
-    ]
-  },
-  {
-    "rule_id": "lr-002",
-    "trigger": "запомни: (.+?) — это ошибка, правильно (.+?)",
-    "action": "Добавить правило замены в learning_rules.md и обновить knowledge/",
-    "severity": "INFO",
-    "source": "user_feedback_2026-06-22",
-    "applied_to": [
-      "feedback_learner"
-    ]
-  },
-  {
-    "rule_id": "lr-06220045",
-    "trigger": "Devika|devika|Devika",
-    "action": "Заменить на 'Devin' и заблокировать статью для проверки",
-    "severity": "CRITICAL",
-    "source": "user_feedback_2026-06-22",
-    "applied_to": [
-      "entity-validator",
-      "content-writer"
-    ]
-  },
-  {
-    "rule_id": "lr-06220045",
-    "trigger": "Devika|devika|Devika",
-    "action": "Заменить на 'Devin' и заблокировать статью для проверки",
-    "severity": "CRITICAL",
-    "source": "user_feedback_2026-06-22",
-    "applied_to": [
-      "entity-validator",
-      "content-writer"
-    ]
+    "applied_to": ["entity-validator", "content-writer"],
+    "created_at": "2026-06-22 00:00:00",
+    "updated_at": "2026-06-22 00:00:00"
   }
 ]
 ```
 
-## Как использовать
-1. **Entity-validator**: Проверяет все capitalized phrases против триггеров с severity=CRITICAL.
-2. **Content-writer**: Использует правила для автокоррекции при генерации текста.
-3. **Feedback_learner**: Парсит обратную связь и добавляет новые правила.
-
----
-**Последнее обновление**: 2026-06-22 (автоматически)
+## Логи обновлений
+- 2026-06-22: Создан файл. Добавлен шаблон и пример правила.
