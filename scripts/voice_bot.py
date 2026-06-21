@@ -49,15 +49,52 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
+# Fallback function for WebSocket wakeup broadcast (overridden if Tornado starts webhook)
+def broadcast_ws_wakeup(task_id):
+    pass
+
 # Monkey-patch python-telegram-bot's webhook server to handle GET / requests with a 200 OK status
-# This prevents UptimeRobot from marking the server as down.
+# and WebSocket wakeup connection at /ws/wakeup
 try:
     import tornado.web
+    import tornado.websocket
     from telegram.ext._utils.webhookhandler import WebhookAppClass, TelegramHandler
+    
+    ws_clients = set()
     
     class RootHandler(tornado.web.RequestHandler):
         def get(self):
             self.write("OK")
+            
+    class PCWakeupWebSocketHandler(tornado.websocket.WebSocketHandler):
+        def check_origin(self, origin):
+            return True
+            
+        def open(self):
+            log.info("PC Task Listener WebSocket connected!")
+            ws_clients.add(self)
+            
+        def on_close(self):
+            log.info("PC Task Listener WebSocket disconnected!")
+            if self in ws_clients:
+                ws_clients.remove(self)
+                
+        def on_message(self, message):
+            log.info("Received message from PC WebSocket: %s", message)
+
+    def broadcast_ws_wakeup_impl(task_id):
+        import json
+        payload = json.dumps({"type": "wakeup", "task_id": task_id, "timestamp": time.time()})
+        log.info("Broadcasting WAKEUP to %d WebSocket client(s)", len(ws_clients))
+        for client in list(ws_clients):
+            try:
+                client.write_message(payload)
+            except Exception as e:
+                log.error("Failed to write message to WS client: %s", e)
+                if client in ws_clients:
+                    ws_clients.remove(client)
+
+    broadcast_ws_wakeup = broadcast_ws_wakeup_impl
             
     def patched_init(self, webhook_path, bot, update_queue, secret_token=None):
         self.shared_objects = {
@@ -67,12 +104,13 @@ try:
         }
         handlers = [
             (r"/?", RootHandler),
+            (r"/ws/wakeup/?", PCWakeupWebSocketHandler),
             (rf"{webhook_path}/?", TelegramHandler, self.shared_objects)
         ]
         tornado.web.Application.__init__(self, handlers)
         
     WebhookAppClass.__init__ = patched_init
-    log.info("Successfully monkey-patched WebhookAppClass to handle GET /")
+    log.info("Successfully monkey-patched WebhookAppClass to handle GET / and WS /ws/wakeup")
 except Exception as patch_err:
     log.error("Failed to monkey-patch WebhookAppClass: %s", patch_err)
 
@@ -1080,6 +1118,10 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                         f"task: add task #{next_id}"
                     )
                     log.info("Successfully added task #%s to tasks.json on GitHub", next_id)
+                    try:
+                        broadcast_ws_wakeup(next_id)
+                    except Exception as ws_ex:
+                        log.error("Failed to broadcast WS wakeup: %s", ws_ex)
                 except Exception as gh_err:
                     log.error("Failed to sync task with GitHub tasks.json: %s", gh_err)
                     try:
@@ -3533,6 +3575,10 @@ async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
             f"task: add code task #{next_id}"
         )
         log.info("Successfully added task #%s to tasks.json on GitHub for local execution", next_id)
+        try:
+            broadcast_ws_wakeup(next_id)
+        except Exception as ws_ex:
+            log.error("Failed to broadcast WS wakeup: %s", ws_ex)
         
     except Exception as e:
         log.error("Error in handle_channel_text: %s", e)
@@ -3580,6 +3626,10 @@ async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
             f"task: add voice code task #{next_id}"
         )
         log.info("Successfully added voice task #%s to tasks.json on GitHub for local execution", next_id)
+        try:
+            broadcast_ws_wakeup(next_id)
+        except Exception as ws_ex:
+            log.error("Failed to broadcast WS wakeup: %s", ws_ex)
         
     except Exception as e:
         log.error("Error in handle_channel_voice: %s", e)

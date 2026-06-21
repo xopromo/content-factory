@@ -12,4 +12,5 @@ imageio-ffmpeg
 telethon
 python-socks
 PySocks
+websocket-client
 

@@ -89,12 +89,14 @@ else:
 def git_pull():
     import subprocess
     import time
+    print("DEBUG: git_pull started")
     env = os.environ.copy()
     env["GIT_TERMINAL_PROMPT"] = "0"
     
     # Try git fetch with retries
     for attempt in range(3):
         try:
+            print(f"DEBUG: git fetch attempt {attempt + 1}")
             res_fetch = subprocess.run(
                 ["git", "fetch", "origin", BRANCH],
                 cwd=str(GIT_DIR),
@@ -103,6 +105,7 @@ def git_pull():
                 timeout=30,
                 env=env
             )
+            print(f"DEBUG: git fetch attempt {attempt + 1} finished, code={res_fetch.returncode}")
             if res_fetch.returncode == 0:
                 break
             print(f"git fetch failed (attempt {attempt + 1}/3): {res_fetch.stderr.decode('utf-8', errors='ignore').strip()}")
@@ -114,6 +117,7 @@ def git_pull():
         
     try:
         # Force reset to origin to ensure we are exactly matched and have no merge/rebase issues
+        print("DEBUG: git reset started")
         res = subprocess.run(
             ["git", "reset", "--hard", f"origin/{BRANCH}"],
             cwd=str(GIT_DIR),
@@ -123,6 +127,7 @@ def git_pull():
             timeout=30,
             env=env
         )
+        print(f"DEBUG: git reset finished, code={res.returncode}")
         if res.returncode != 0:
             print(f"git reset failed: {res.stderr.strip()}")
     except Exception as e:
@@ -1084,17 +1089,20 @@ def run_proactive_checks_loop():
 def run_loop():
     print("🤖 Antigravity Task Listener is active and scanning for tasks...")
     # Start proactive checks loop in background
-    try:
-        run_proactive_checks_loop()
-    except Exception as pe:
-        print(f"Failed to start proactive checks: {pe}")
+    # try:
+    #     run_proactive_checks_loop()
+    # except Exception as pe:
+    #     print(f"Failed to start proactive checks: {pe}")
     
     while True:
         try:
+            print("DEBUG: Loop iteration started")
             # Sync via git pull at the start of the loop
             git_pull()
             
+            print("DEBUG: Reading tasks...")
             tasks = gh_read_tasks()
+            print(f"DEBUG: Read {len(tasks)} tasks")
             updated = False
             
             for task in tasks:
@@ -1151,8 +1159,9 @@ def run_loop():
         except Exception as e:
             print(f"Error in task listener loop: {e}")
             
-        # Poll interval: 5 seconds
-        time.sleep(5)
+        # Poll interval: 600 seconds (10 minutes) - acts as a backup safety net.
+        # Primary wakeup is handled instantly via WebSockets!
+        time.sleep(600)
 
 if __name__ == "__main__":
     run_loop()
