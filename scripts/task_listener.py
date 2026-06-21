@@ -303,25 +303,49 @@ def run_agent_loop(task_text, history=None):
         response, _ = run_fast_common(full_query, quality="strong")
         print(f"Step {step + 1} thoughts:\n{response}", flush=True)
         
-        # Try parsing JSON: find first '{' and last '}'
-        start_idx = response.find('{')
-        end_idx = response.rfind('}')
-        if start_idx == -1 or end_idx == -1 or end_idx < start_idx:
-            print(f"Step {step + 1} result: No JSON brackets found, treating as final answer.", flush=True)
-            return response
-            
-        json_str = response[start_idx:end_idx + 1]
-        try:
-            tool_call = json.loads(json_str)
-        except Exception as je:
-            err_msg = f"Ошибка парсинга JSON: {je} (извлеченная строка: {json_str!r})"
-            print(f"Step {step + 1} result: {err_msg}", flush=True)
-            agent_history.append({
-                "step": step + 1,
-                "thought": response,
-                "result": err_msg
-            })
-            continue
+        # Try parsing JSON using a robust scanner
+        tool_call = None
+        open_indices = [i for i, char in enumerate(response) if char == '{']
+        close_indices = [i for i, char in enumerate(response) if char == '}']
+        
+        # Try outer-most combinations first
+        for s_idx in sorted(open_indices):
+            for e_idx in sorted(close_indices, reverse=True):
+                if e_idx > s_idx:
+                    try:
+                        tool_call = json.loads(response[s_idx:e_idx + 1])
+                        break
+                    except json.JSONDecodeError:
+                        continue
+            if tool_call:
+                break
+                
+        # Fallback to reverse search if not found (e.g. nested blocks)
+        if not tool_call:
+            for s_idx in sorted(open_indices, reverse=True):
+                for e_idx in sorted(close_indices, reverse=True):
+                    if e_idx > s_idx:
+                        try:
+                            tool_call = json.loads(response[s_idx:e_idx + 1])
+                            break
+                        except json.JSONDecodeError:
+                            continue
+                if tool_call:
+                    break
+                    
+        if not tool_call:
+            if not open_indices or not close_indices:
+                print(f"Step {step + 1} result: No JSON brackets found, treating as final answer.", flush=True)
+                return response
+            else:
+                err_msg = "Ошибка парсинга JSON: не удалось извлечь валидный JSON блок из ответа."
+                print(f"Step {step + 1} result: {err_msg}", flush=True)
+                agent_history.append({
+                    "step": step + 1,
+                    "thought": response,
+                    "result": err_msg
+                })
+                continue
             
         tool = tool_call.get("tool")
         print(f"Step {step + 1} calling tool: {tool_call}", flush=True)
