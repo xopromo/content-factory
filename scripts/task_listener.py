@@ -1025,6 +1025,12 @@ def run_loop():
                 if task.get("status") == "pending":
                     print(f"Found new pending task #{task['id']}")
                     
+                    # Always delegate tasks to VSCode Agent as requested by user
+                    print(f"Task #{task['id']} delegated to VSCode...")
+                    task["status"] = "pending_vscode"
+                    updated = True
+                    continue
+                    
                     # Update status to running locally
                     task["status"] = "running"
                     
