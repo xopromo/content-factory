@@ -237,6 +237,20 @@ def run_agent_loop(task_text, history=None):
 
     print(f"🤖 Entering agent loop for task: {task_text}")
     
+    # Retrieve relevant semantic memories
+    memories_str = ""
+    try:
+        from scripts.jarvis_memory import search_memories
+        memories = search_memories(task_text, limit=4)
+        valid_m = [m for m in memories if m.get("similarity", 0) > 0.5]
+        if valid_m:
+            memories_str = "=== RELEVANT PAST MEMORIES ===\n"
+            for m in valid_m:
+                memories_str += f"- [{m['created_at']}] {m['content']}\n"
+            memories_str += "\n"
+    except Exception as me:
+        print(f"Error fetching semantic memories: {me}")
+    
     # Context of files
     claude_path = ROOT / "CLAUDE.md"
     project_state_path = ROOT / "PROJECT_STATE.md"
@@ -247,6 +261,7 @@ def run_agent_loop(task_text, history=None):
     context = (
         f"=== CLAUDE.md ===\n{claude_md[:4000]}\n\n"
         f"=== PROJECT_STATE.md ===\n{project_state_md[:4000]}\n\n"
+        f"{memories_str}"
     )
     
     agent_history = []
@@ -264,7 +279,8 @@ def run_agent_loop(task_text, history=None):
             "4. Запустить терминальную команду (powershell): {\"tool\": \"run_command\", \"command\": \"команда\"}\n"
             "5. Завершить выполнение и выдать финальный ответ: {\"tool\": \"final_answer\", \"answer\": \"твое сообщение\"}\n"
             "6. Отправить документ в Telegram: {\"tool\": \"send_document\", \"path\": \"relative/path/to/file\", \"caption\": \"описание\"}\n"
-            "7. Отправить фото/картинку в Telegram (отобразится прямо в чате): {\"tool\": \"send_photo\", \"path\": \"relative/path/to/file\", \"caption\": \"описание\"}\n\n"
+            "7. Отправить фото/картинку в Telegram (отобразится прямо в чате): {\"tool\": \"send_photo\", \"path\": \"relative/path/to/file\", \"caption\": \"описание\"}\n"
+            "8. Поиск по долговременной памяти (Jarvis Memory): {\"tool\": \"search_memory\", \"query\": \"поисковый запрос\"}\n\n"
             "Совет по генерации картинок: Если пользователь просит нарисовать или сгенерировать изображение/мем, ты можешь скачать изображение по URL: https://image.pollinations.ai/prompt/<url_encoded_prompt> с помощью python (например: python -c \"import urllib.request; urllib.request.urlretrieve('https://image.pollinations.ai/prompt/some_prompt', 'image.png')\") через run_command, а затем отправить файл с помощью send_photo.\n"
             "ВАЖНО: Если пользователь просит сгенерировать изображение/картинку, весь текст на ней должен быть строго на РУССКОМ языке (кроме логотипов и брендов), если иное не указано пользователем.\n\n"
             "Правила вызова инструментов:\n"
@@ -360,6 +376,18 @@ def run_agent_loop(task_text, history=None):
                         result = f"Не удалось отправить изображение {file_rel} в Telegram."
                 else:
                     result = f"Файл {file_rel} для отправки не найден."
+            elif tool == "search_memory":
+                query = tool_call.get("query", "")
+                try:
+                    from scripts.jarvis_memory import search_memories
+                    results = search_memories(query, limit=5)
+                    if results:
+                        formatted = "\n".join(f"- [{r['created_at']}] {r['content']} (similarity: {r['similarity']:.4f})" for r in results)
+                        result = f"Результаты поиска в памяти:\n{formatted}"
+                    else:
+                        result = "В памяти ничего не найдено."
+                except Exception as me:
+                    result = f"Ошибка при поиске в памяти: {me}"
             else:
                 result = f"Неизвестный инструмент: {tool}"
         except Exception as te:
@@ -729,8 +757,100 @@ def delete_telegram_message(message_id):
             pass
     return False
 
+def run_proactive_checks_loop():
+    import threading
+    
+    def check_worker():
+        print("🤖 Proactive checks loop started in background thread...")
+        state_file = ROOT / "scratch" / "proactive_state.json"
+        state_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        last_positions = {}
+        if state_file.exists():
+            try:
+                last_positions = json.loads(state_file.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+                
+        while True:
+            try:
+                # 1. Check bot.log for errors
+                bot_log = ROOT / "bot.log"
+                if bot_log.exists():
+                    curr_pos = last_positions.get("bot_log", 0)
+                    size = bot_log.stat().st_size
+                    if size < curr_pos:
+                        curr_pos = 0 # log rotated
+                        
+                    if size > curr_pos:
+                        with open(bot_log, "r", encoding="utf-8", errors="ignore") as f:
+                            f.seek(curr_pos)
+                            new_content = f.read()
+                            
+                        # Search for errors or tracebacks
+                        if "ERROR" in new_content or "CRITICAL" in new_content or "Traceback" in new_content:
+                            lines = new_content.splitlines()
+                            err_lines = [l for l in lines if any(w in l for w in ("ERROR", "CRITICAL", "Traceback", "Exception"))]
+                            snippet = "\n".join(err_lines[-5:])
+                            
+                            print(f"Proactive Alert: found errors in bot.log")
+                            alert_text = (
+                                f"⚠️ <b>[Проактивный алерт Джарвиса]</b>\n"
+                                f"Обнаружены критические логи в <code>bot.log</code>:\n\n"
+                                f"<code>{snippet[:600]}</code>\n\n"
+                                f"<i>Я могу исследовать и исправить их, если вы напишете мне команду.</i>"
+                            )
+                            send_telegram_reply(None, alert_text)
+                            
+                        last_positions["bot_log"] = size
+                        
+                # 2. Check orchestrator_run.log for errors
+                orch_log = ROOT / "orchestrator_run.log"
+                if orch_log.exists():
+                    curr_pos = last_positions.get("orch_log", 0)
+                    size = orch_log.stat().st_size
+                    if size < curr_pos:
+                        curr_pos = 0
+                        
+                    if size > curr_pos:
+                        with open(orch_log, "r", encoding="utf-8", errors="ignore") as f:
+                            f.seek(curr_pos)
+                            new_content = f.read()
+                            
+                        if "ERROR" in new_content or "Traceback" in new_content:
+                            lines = new_content.splitlines()
+                            err_lines = [l for l in lines if any(w in l for w in ("ERROR", "Traceback", "Exception"))]
+                            snippet = "\n".join(err_lines[-5:])
+                            
+                            print(f"Proactive Alert: found errors in orchestrator_run.log")
+                            alert_text = (
+                                f"⚠️ <b>[Проактивный алерт Джарвиса]</b>\n"
+                                f"Обнаружены ошибки в <code>orchestrator_run.log</code>:\n\n"
+                                f"<code>{snippet[:600]}</code>"
+                            )
+                            send_telegram_reply(None, alert_text)
+                            
+                        last_positions["orch_log"] = size
+                        
+                # Save state
+                state_file.write_text(json.dumps(last_positions), encoding="utf-8")
+                
+            except Exception as e:
+                print(f"Error in proactive check iteration: {e}")
+                
+            # Check every 10 minutes (600 seconds)
+            time.sleep(600)
+            
+    t = threading.Thread(target=check_worker, daemon=True)
+    t.start()
+
 def run_loop():
     print("🤖 Antigravity Task Listener is active and scanning for tasks...")
+    # Start proactive checks loop in background
+    try:
+        run_proactive_checks_loop()
+    except Exception as pe:
+        print(f"Failed to start proactive checks: {pe}")
     
     while True:
         try:
@@ -765,6 +885,15 @@ def run_loop():
                     if status_msg_id:
                         print(f"Deleting status message {status_msg_id}...")
                         delete_telegram_message(status_msg_id)
+                    
+                    # Save completed task to semantic memory
+                    try:
+                        from scripts.jarvis_memory import add_memory
+                        memory_text = f"Пользователь спросил: {task['text']}\nОтвет ИИ-агента (ты): {result}"
+                        add_memory(memory_text, {"task_id": task["id"], "type": "task_completed"})
+                        print(f"Task #{task['id']} successfully recorded to semantic memory.")
+                    except Exception as me:
+                        print(f"Failed to save task to semantic memory: {me}")
                     
                     # Update task state to completed
                     task["status"] = "completed"

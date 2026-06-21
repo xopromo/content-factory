@@ -49,3 +49,7 @@ plans/.state/
 # Voice transcripts (kept locally only)
 knowledge/voice/
 knowledge/voice/*
+
+# Jarvis Local Database
+jarvis_memory.db
+jarvis_memory.db-journal
