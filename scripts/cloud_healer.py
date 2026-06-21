@@ -86,6 +86,40 @@ def call_groq(prompt: str) -> str:
     except (KeyError, IndexError) as e:
         raise ValueError(f"Некорректный ответ от API Groq: {res}") from e
 
+def call_openrouter(prompt: str) -> str:
+    api_key = os.getenv("OPENROUTER_KEY")
+    if not api_key:
+        raise ValueError("OPENROUTER_KEY не задан в переменных окружения")
+        
+    errors = []
+    for model in ["meta-llama/llama-3.3-70b-instruct:free", "openrouter/free"]:
+        try:
+            url = "https://openrouter.ai/api/v1/chat/completions"
+            payload = {
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.1,
+                "max_tokens": 8192
+            }
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {api_key}",
+                    "HTTP-Referer": "https://github.com/xopromo/content-factory",
+                    "X-Title": "Content Factory"
+                },
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                res = json.loads(resp.read().decode("utf-8"))
+            return res["choices"][0]["message"]["content"]
+        except Exception as e:
+            errors.append(f"{model} failed: {e}")
+            
+    raise ValueError(f"OpenRouter failed with all models: {'; '.join(errors)}")
+
 def call_llm(prompt: str) -> str:
     errors = []
     
@@ -104,6 +138,15 @@ def call_llm(prompt: str) -> str:
         return call_groq(prompt)
     except Exception as e:
         err_msg = f"Groq Error: {e}"
+        print(err_msg)
+        errors.append(err_msg)
+
+    # 3. Пробуем OpenRouter
+    try:
+        print("Обращение к API OpenRouter...")
+        return call_openrouter(prompt)
+    except Exception as e:
+        err_msg = f"OpenRouter Error: {e}"
         print(err_msg)
         errors.append(err_msg)
         
