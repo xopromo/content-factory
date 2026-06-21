@@ -48,6 +48,17 @@
       "entity-validator",
       "content-writer"
     ]
+  },
+  {
+    "rule_id": "lr-06220045",
+    "trigger": "Devika|devika|Devika",
+    "action": "Заменить на 'Devin' и заблокировать статью для проверки",
+    "severity": "CRITICAL",
+    "source": "user_feedback_2026-06-22",
+    "applied_to": [
+      "entity-validator",
+      "content-writer"
+    ]
   }
 ]
 ```
