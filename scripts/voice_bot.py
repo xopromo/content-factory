@@ -3379,7 +3379,7 @@ async def post_init(application: Application) -> None:
 
 def is_coding_task(text: str) -> bool:
     text_lower = text.lower()
-    keywords = ["код", "скрипт", "файл", "доработай", "напиши", "запусти", "проверь", "git", "python", "listener", "бот", "логи", "посмотри"]
+    keywords = ["код", "скрипт", "файл", "доработай", "напиши", "запусти", "проверь", "git", "python", "listener", "бот", "логи", "посмотри", "агент", "agent"]
     return any(w in text_lower for w in keywords) or len(text) > 150
 
 def clean_history_result(result):
