@@ -232,15 +232,24 @@ def gh_write(path: str, content: str, message: str) -> str:
     }
     if sha:
         payload["sha"] = sha
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode(),
-        headers={**_gh_headers(), "Content-Type": "application/json"},
-        method="PUT",
-    )
-    with urllib.request.urlopen(req, timeout=15) as r:
-        result = json.loads(r.read())
-        return result.get("content", {}).get("html_url", path)
+    # Retry loop (up to 3 attempts) for writing to GitHub
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode(),
+                headers={**_gh_headers(), "Content-Type": "application/json"},
+                method="PUT",
+            )
+            with urllib.request.urlopen(req, timeout=15) as r:
+                result = json.loads(r.read())
+                return result.get("content", {}).get("html_url", path)
+        except Exception as e:
+            log.warning(f"gh_write attempt {attempt + 1}/3 failed: {e}")
+            if attempt == 2:
+                log.error("All gh_write attempts failed. Gracefully falling back to local file.")
+                return str(Path(__file__).parent.parent / path)
+            time.sleep(2)
 
 def gh_write_bin(path: str, data: bytes, message: str) -> str:
     try:
