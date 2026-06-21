@@ -3800,11 +3800,11 @@ def main() -> None:
             port=port,
             url_path=token,
             webhook_url=f"{external_url.rstrip('/')}/{token}",
-            drop_pending_updates=True
+            drop_pending_updates=False
         )
     else:
         print("Starting polling...")
-        app.run_polling(drop_pending_updates=True)
+        app.run_polling(drop_pending_updates=False)
 
 
 if __name__ == "__main__":
