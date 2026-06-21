@@ -3492,61 +3492,7 @@ async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
     text = msg.text.strip()
     
     try:
-        if not is_coding_task(text):
-            # API Direct Mode: execute immediately on Render
-            # Load tasks list for context history
-            tasks_content = gh_read("docs/articles/tasks.json")
-            tasks = []
-            if tasks_content:
-                try:
-                    tasks = json.loads(tasks_content)
-                except Exception as je:
-                    log.error("Failed to parse tasks.json: %s", je)
-            
-            # Temporary dict representing the current task for history generation
-            temp_task = {
-                "id": 999999,
-                "text": text,
-                "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None
-            }
-            history = build_history_context(temp_task, tasks)
-            
-            # Run LLM
-            reply_text = run_direct_llm(text, history)
-            
-            # Send message without reply/thread quotes
-            tg_reply = await ctx.bot.send_message(
-                chat_id=TASK_CHANNEL_ID,
-                text=reply_text,
-                parse_mode="HTML"
-            )
-            
-            # Record it in tasks.json
-            next_id = 1
-            if tasks:
-                next_id = max(t.get("id", 0) for t in tasks) + 1
-            
-            new_task = {
-                "id": next_id,
-                "message_id": msg.message_id,
-                "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None,
-                "reply_message_id": tg_reply.message_id,
-                "text": text,
-                "status": "completed",
-                "result": reply_text,
-                "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "completed_at": time.strftime("%Y-%m-%d %H:%M:%S")
-            }
-            tasks.append(new_task)
-            
-            gh_write(
-                "docs/articles/tasks.json",
-                json.dumps(tasks, indent=2, ensure_ascii=False),
-                f"task: api completed task #{next_id}"
-            )
-            return
-
-        # Coding Task: append as pending and let local PC agent run it
+        # Coding & Dialogue Task: always append as pending and let local PC agent run it
         # No extra status_msg or template messages. Just append silently to tasks.json
         tasks_content = gh_read("docs/articles/tasks.json")
         tasks = []
@@ -3575,7 +3521,7 @@ async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
             json.dumps(tasks, indent=2, ensure_ascii=False),
             f"task: add code task #{next_id}"
         )
-        log.info("Successfully added coding task #%s to tasks.json on GitHub for local execution", next_id)
+        log.info("Successfully added task #%s to tasks.json on GitHub for local execution", next_id)
         
     except Exception as e:
         log.error("Error in handle_channel_text: %s", e)
@@ -3591,55 +3537,7 @@ async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
         if not text:
             return
             
-        if not is_coding_task(text):
-            # API Direct Mode
-            tasks_content = gh_read("docs/articles/tasks.json")
-            tasks = []
-            if tasks_content:
-                try:
-                    tasks = json.loads(tasks_content)
-                except Exception as je:
-                    log.error("Failed to parse tasks.json: %s", je)
-            
-            temp_task = {
-                "id": 999999,
-                "text": text,
-                "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None
-            }
-            history = build_history_context(temp_task, tasks)
-            reply_text = run_direct_llm(text, history)
-            
-            tg_reply = await ctx.bot.send_message(
-                chat_id=TASK_CHANNEL_ID,
-                text=reply_text,
-                parse_mode="HTML"
-            )
-            
-            next_id = 1
-            if tasks:
-                next_id = max(t.get("id", 0) for t in tasks) + 1
-            
-            new_task = {
-                "id": next_id,
-                "message_id": msg.message_id,
-                "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None,
-                "reply_message_id": tg_reply.message_id,
-                "text": text,
-                "status": "completed",
-                "result": reply_text,
-                "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "completed_at": time.strftime("%Y-%m-%d %H:%M:%S")
-            }
-            tasks.append(new_task)
-            
-            gh_write(
-                "docs/articles/tasks.json",
-                json.dumps(tasks, indent=2, ensure_ascii=False),
-                f"task: api completed voice task #{next_id}"
-            )
-            return
-
-        # Coding Task: silently register as pending
+        # Coding & Dialogue Task: silently register as pending
         tasks_content = gh_read("docs/articles/tasks.json")
         tasks = []
         if tasks_content:
@@ -3667,7 +3565,7 @@ async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
             json.dumps(tasks, indent=2, ensure_ascii=False),
             f"task: add voice code task #{next_id}"
         )
-        log.info("Successfully added coding voice task #%s to tasks.json on GitHub for local execution", next_id)
+        log.info("Successfully added voice task #%s to tasks.json on GitHub for local execution", next_id)
 
 async def cmd_botlog(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_message:
