@@ -114,6 +114,69 @@ try:
                 self.write({"status": "ok", "message": f"Downloaded to {filename}"})
             except Exception as e:
                 self.write({"status": "error", "message": str(e)})
+
+    class RecoverTaskMediaHandler(tornado.web.RequestHandler):
+        async def get(self):
+            message_id_str = self.get_argument("message_id")
+            try:
+                message_id = int(message_id_str)
+                bot = self.application.bot
+                chat_id = int(os.environ.get("TG_CHAT_ID", "220023136"))
+                
+                log.info("Recovering media for message %d via copyMessage", message_id)
+                # Copy the message to the same chat to retrieve the Message object
+                copied_msg = await bot.copy_message(
+                    chat_id=chat_id,
+                    from_chat_id=chat_id,
+                    message_id=message_id
+                )
+                
+                # Delete the copied message immediately to keep the chat clean
+                try:
+                    await bot.delete_message(chat_id=chat_id, message_id=copied_msg.message_id)
+                except Exception as del_err:
+                    log.warning("Failed to delete copied message: %s", del_err)
+                
+                media_obj = None
+                suffix = ".mp4"
+                if copied_msg.video:
+                    media_obj = copied_msg.video
+                    suffix = ".mp4"
+                elif copied_msg.document:
+                    media_obj = copied_msg.document
+                    suffix = Path(media_obj.file_name or "file").suffix or ".dat"
+                elif copied_msg.photo:
+                    media_obj = copied_msg.photo[-1]
+                    suffix = ".jpg"
+                
+                if not media_obj:
+                    self.write({"status": "error", "message": "Copied message does not contain photo, video or document"})
+                    return
+                
+                file_id = media_obj.file_id
+                log.info("Found file_id: %s", file_id)
+                
+                # Download
+                now = datetime.now(timezone.utc)
+                import random
+                rand_id = random.randint(1000, 9999)
+                filename = f"{now.strftime('%Y%m%d_%H%M%S')}_{rand_id}{suffix}"
+                
+                media_dir = Path(__file__).parent.parent / "docs" / "articles" / "media"
+                media_dir.mkdir(parents=True, exist_ok=True)
+                local_path = media_dir / filename
+                
+                file = await bot.get_file(file_id)
+                await file.download_to_drive(local_path)
+                
+                self.write({
+                    "status": "ok",
+                    "filename": filename,
+                    "file_id": file_id,
+                    "size": local_path.stat().st_size
+                })
+            except Exception as e:
+                self.write({"status": "error", "message": str(e)})
             
     class PCWakeupWebSocketHandler(tornado.websocket.WebSocketHandler):
         def check_origin(self, origin):
@@ -228,6 +291,7 @@ try:
             (r"/list-media/?", ListMediaHandler),
             (r"/get-tasks/?", GetTasksHandler),
             (r"/download-telegram/?", DownloadTelegramMediaHandler),
+            (r"/recover-task-media/?", RecoverTaskMediaHandler),
             (r"/media/(.*)", tornado.web.StaticFileHandler, {"path": str(Path(__file__).parent.parent / "docs" / "articles" / "media")}),
             (rf"{webhook_path}/?", TelegramHandler, self.shared_objects)
         ]
