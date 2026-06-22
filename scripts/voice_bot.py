@@ -3237,54 +3237,19 @@ async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         
         # Проверяем, есть ли инструкция прямо в этом же сообщении
         instruction = text.replace(url, "").strip()
+        ctx.user_data["pending_instruction"] = instruction
         if instruction:
-            keywords = ["шорт", "short", "коммент", "нарезка", "видео", "монтаж", "перевести", "сделать", "нарезать"]
-            is_shorts_process = any(kw in instruction.lower() for kw in keywords)
-            if is_shorts_process:
-                status_msg = await update.message.reply_text("⏳ <b>[0%]</b> ИИ-Агент: Запуск автоматической обработки видео...")
-                task_id = ""
-                try:
-                    tasks = gh_read_tasks()
-                    for t in tasks:
-                        if t.get("message_id") == update.message.message_id:
-                            task_id = str(t.get("id"))
-                            t["status"] = "in_progress"
-                            t["status_message_id"] = status_msg.message_id
-                            gh_write_tasks(tasks, message=f"task: start task #{task_id} via direct link trigger")
-                            break
-                except Exception as ge:
-                    log.error("Failed to read/write tasks: %s", ge)
-                
-                cmd = [
-                    sys.executable,
-                    "scripts/process_shorts_telegram.py",
-                    "--url", url,
-                    "--chat-id", str(update.effective_chat.id),
-                    "--reply-to", str(update.message.message_id),
-                    "--status-msg-id", str(status_msg.message_id)
-                ]
-                if task_id:
-                    cmd.extend(["--task-id", task_id])
-                
-                log.info("Starting process_shorts_telegram.py in background directly: %s", cmd)
-                try:
-                    project_root = Path(__file__).parent.parent
-                    log_file_path = project_root / "shorts_processor.log"
-                    log_file = open(log_file_path, "a", encoding="utf-8")
-                    subprocess.Popen(cmd, cwd=project_root, stdout=log_file, stderr=log_file)
-                except Exception as e:
-                    log.error("Failed to start shorts processor: %s", e)
-                    await update.message.reply_text(f"❌ Ошибка запуска процессора: {e}")
-                
-                ctx.user_data.pop("pending_link", None)
-                ctx.user_data.pop("pending_link_msg_id", None)
-                return ConversationHandler.END
-        
-        # Если инструкции нет, спрашиваем пользователя
-        await update.message.reply_text(
-            "🔍 Я обнаружил ссылку в вашем сообщении. Что с ней нужно сделать?",
-            reply_to_message_id=update.message.message_id
-        )
+            await update.message.reply_text(
+                f"🔍 Я обнаружил ссылку и ваше описание: <i>\"{instruction}\"</i>.\n\n"
+                "Что именно с ней нужно сделать? Вы можете дополнить инструкции или отправить голосовое сообщение.",
+                reply_to_message_id=update.message.message_id,
+                parse_mode="HTML"
+            )
+        else:
+            await update.message.reply_text(
+                "🔍 Я обнаружил ссылку в вашем сообщении. Что с ней нужно сделать? Вы можете написать текстом или прислать голосовое сообщение с инструкциями.",
+                reply_to_message_id=update.message.message_id
+            )
         return WAIT_LINK_ACTION
     
     # Перехватываем все кнопки устаревшей сессии (например, после перезапуска бота)
@@ -3384,6 +3349,53 @@ async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
     )
     return WAIT_TRANSCRIPT_ACTION
 
+async def analyze_instruction_with_llm(instruction_text):
+    try:
+        from google import genai
+        api_key = os.getenv("GEMINI_KEY") or os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            # Fallback to checking dotenv in sister directories
+            load_dotenv(Path(__file__).parent.parent.parent / "video-shorts-factory" / ".env")
+            api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINI_KEY")
+            
+        if not api_key:
+            log.warning("No Gemini API key found for instruction analysis")
+            return {"comments_count": 7, "skip_original": False, "is_non_standard": False}
+            
+        client = genai.Client(api_key=api_key)
+        prompt = (
+            "Проанализируй инструкцию пользователя для обработки видеоролика (Shorts/Reels) и выдели параметры в формате JSON.\n"
+            f"Инструкция пользователя:\n\"{instruction_text}\"\n\n"
+            "Выдели следующие ключи:\n"
+            "1. 'comments_count': количество комментариев, которое просит пользователь (целое число, по умолчанию 7, если не указано явно).\n"
+            "2. 'skip_original': логическое значение (true/false). Установи в true, если пользователь просит НЕ искать оригинал, делать прямо с присланного видео, не искать первоисточник, делать с этого видео и т.д. По умолчанию false.\n"
+            "3. 'is_non_standard': логическое значение (true/false). Установи в true, если задача является нестандартной, сложной, требует ручной нарезки (например, вырезать спикера в очках, склеить определенные таймкоды, применить сложные правила, которые не поддерживаются простым автоматическим наложением комментариев на стоп-кадр в конце). По умолчанию false.\n\n"
+            "Верни строго JSON объект с этими тремя ключами. Не добавляй разметку markdown ```json."
+        )
+        response = client.models.generate_content(
+            model='gemini-flash-lite-latest',
+            contents=[prompt]
+        )
+        text = response.text.strip()
+        if text.startswith("```json"):
+            text = text[7:]
+        if text.endswith("```"):
+            text = text[:-3]
+        text = text.strip()
+        data = json.loads(text)
+        log.info("LLM instruction analysis results: %s", data)
+        return {
+            "comments_count": int(data.get("comments_count", 7)),
+            "skip_original": bool(data.get("skip_original", False)),
+            "is_non_standard": bool(data.get("is_non_standard", False))
+        }
+    except Exception as e:
+        log.error("Failed to analyze instruction with LLM: %s", e)
+        prompt_lower = instruction_text.lower()
+        skip_orig = any(w in prompt_lower for w in ["не ищи оригинал", "сразу с этого", "без поиска оригинала", "не искать оригинал", "делать с этого"])
+        is_non = any(w in prompt_lower for w in ["вырезать", "склеить", "таймкод", "нестандарт", "сложн", "оставь только", "вырежи"])
+        return {"comments_count": 7, "skip_original": skip_orig, "is_non_standard": is_non}
+
 async def handle_link_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     text = ""
     if update.message.text:
@@ -3405,25 +3417,79 @@ async def handle_link_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> 
         await update.message.reply_text("Ссылка не найдена в текущей сессии. Пожалуйста, отправьте ссылку заново.")
         return ConversationHandler.END
 
-    # Check if instruction is about video shorts cropping
-    keywords = ["шорт", "short", "коммент", "нарезка", "видео", "монтаж", "перевести", "сделать", "нарезать"]
-    is_shorts_process = any(kw in text.lower() for kw in keywords)
+    pending_instruction = ctx.user_data.get("pending_instruction", "")
+    full_instruction = text
+    if pending_instruction:
+        full_instruction = f"{pending_instruction}\n{text}".strip()
 
-    if is_shorts_process:
-        status_msg = await update.message.reply_text("⏳ <b>[0%]</b> ИИ-Агент: Запуск автоматической обработки видео...")
+    status_msg = await update.message.reply_text("🧠 Анализирую инструкции ИИ-помощником...")
+    params = await analyze_instruction_with_llm(full_instruction)
+    
+    if params["is_non_standard"]:
+        try:
+            await status_msg.edit_text("⚙️ Обнаружена нестандартная задача. Создаю тикет для ИИ-разработчика в VSCode...")
+        except Exception:
+            pass
+            
         task_id = ""
         try:
+            git_pull()
             tasks = gh_read_tasks()
-            for t in tasks:
-                if t.get("message_id") == update.message.message_id or t.get("message_id") == ctx.user_data.get("pending_link_msg_id"):
-                    task_id = str(t.get("id"))
-                    t["status"] = "in_progress"
-                    t["status_message_id"] = status_msg.message_id
-                    gh_write_tasks(tasks, message=f"task: start task #{task_id} via bot link action")
-                    break
+            new_id = max([t.get("id", 0) for t in tasks] + [0]) + 1
+            task_id = str(new_id)
+            new_task = {
+                "id": new_id,
+                "message_id": update.message.message_id,
+                "status_message_id": status_msg.message_id,
+                "reply_to_message_id": ctx.user_data.get("pending_link_msg_id"),
+                "text": f"Ссылка: {url}\nИнструкция: {full_instruction}",
+                "status": "pending_vscode",
+                "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+            tasks.append(new_task)
+            gh_write_tasks(tasks, message=f"task: create non-standard task #{task_id} via Telegram link action")
+            
+            await update.message.reply_text(
+                f"⚙️ <b>Нестандартный запрос обнаружен!</b>\n\n"
+                f"Я создал задачу <b>#{task_id}</b> в Git и передал её нашему ИИ-разработчику в VSCode. "
+                f"Он выполнит нарезку/сборку по вашим точным инструкциям вручную.",
+                parse_mode="HTML"
+            )
+        except Exception as ge:
+            log.error("Failed to create non-standard task: %s", ge)
+            await update.message.reply_text(f"❌ Ошибка при создании тикета: {ge}")
+            
+        ctx.user_data.pop("pending_link", None)
+        ctx.user_data.pop("pending_link_msg_id", None)
+        ctx.user_data.pop("pending_instruction", None)
+        return ConversationHandler.END
+        
+    else:
+        try:
+            await status_msg.edit_text("⏳ <b>[0%]</b> ИИ-Агент: Запуск автоматической обработки видео...")
+        except Exception:
+            pass
+            
+        task_id = ""
+        try:
+            git_pull()
+            tasks = gh_read_tasks()
+            new_id = max([t.get("id", 0) for t in tasks] + [0]) + 1
+            task_id = str(new_id)
+            new_task = {
+                "id": new_id,
+                "message_id": update.message.message_id,
+                "status_message_id": status_msg.message_id,
+                "reply_to_message_id": ctx.user_data.get("pending_link_msg_id"),
+                "text": f"Ссылка: {url}\nИнструкция: {full_instruction}",
+                "status": "in_progress",
+                "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+            tasks.append(new_task)
+            gh_write_tasks(tasks, message=f"task: start standard task #{task_id} via link action")
         except Exception as ge:
             log.error("Failed to read/write tasks: %s", ge)
-
+            
         cmd = [
             sys.executable,
             "scripts/process_shorts_telegram.py",
@@ -3434,7 +3500,11 @@ async def handle_link_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> 
         ]
         if task_id:
             cmd.extend(["--task-id", task_id])
-
+        if params["skip_original"]:
+            cmd.append("--skip-original")
+        if params["comments_count"]:
+            cmd.extend(["--comments-count", str(params["comments_count"])])
+            
         log.info("Starting process_shorts_telegram.py in background: %s", cmd)
         try:
             project_root = Path(__file__).parent.parent
@@ -3444,18 +3514,11 @@ async def handle_link_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> 
         except Exception as e:
             log.error("Failed to start shorts processor: %s", e)
             await update.message.reply_text(f"❌ Ошибка запуска процессора: {e}")
-
+            
         ctx.user_data.pop("pending_link", None)
         ctx.user_data.pop("pending_link_msg_id", None)
+        ctx.user_data.pop("pending_instruction", None)
         return ConversationHandler.END
-    else:
-        await update.message.reply_text(
-            f"Я понял ваш запрос: \"{text}\".\n"
-            f"К сожалению, сейчас я умею автоматически только нарезать Shorts и добавлять к ним комментарии. "
-            f"Если хотите запустить этот процесс, ответьте: <b>\"переведи в шорт с комментариями\"</b>.",
-            parse_mode="HTML"
-        )
-        return WAIT_LINK_ACTION
 
 async def _direct_log(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     # Ищем лог-файл в корневой директории

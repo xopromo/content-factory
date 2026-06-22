@@ -108,6 +108,8 @@ def main():
     parser.add_argument("--reply-to", type=int, help="Message ID to reply to")
     parser.add_argument("--status-msg-id", type=int, help="Telegram Status Message ID")
     parser.add_argument("--task-id", type=int, help="Git Task ID")
+    parser.add_argument("--comments-count", type=int, default=7, help="Number of comments")
+    parser.add_argument("--skip-original", action="store_true", help="Skip clean original search")
     args = parser.parse_args()
 
     token = os.environ.get("TG_BOT_TOKEN")
@@ -133,8 +135,14 @@ def main():
         "run_cli.py",
         args.url,
         "--output", str(output_path),
-        "--find-original"
     ]
+    if args.skip_original:
+        cmd.append("--skip-original")
+    else:
+        cmd.append("--find-original")
+        
+    if args.comments_count:
+        cmd.extend(["--comments-count", str(args.comments_count)])
 
     print(f"Running CLI command: {' '.join(cmd)}")
     
