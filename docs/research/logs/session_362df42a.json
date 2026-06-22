@@ -1,0 +1,307 @@
+{
+  "session_id": "362df42a",
+  "started_at": "2026-06-22T11:06:42.748962",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-06-22T11:06:42.748983",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "362df42a",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-06-22T11:06:42.749030",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T11:06:42.749046",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T11:15:15.103895",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T11:23:44.087162",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T11:29:29.736725",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T11:35:12.298650",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T11:40:52.494364",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-06-22T11:40:52.494410",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T11:40:52.494428",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T11:46:36.512062",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T11:46:38.855086",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T11:52:22.423408",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Эфир активности в приложении Threads*: что это и как...",
+        "category": "monetization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T11:52:22.423444",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T12:00:51.258999",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-06-22T12:00:51.259045",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T12:00:51.259064",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T12:09:32.843020",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T12:15:18.633832",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Яндекс Директ В 2026: Как Настроить Рекламу С Roi > 200 %",
+        "category": "bidding",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T12:15:18.633868",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T12:23:49.403390",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T12:32:19.840312",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-06-22T12:40:51.999772",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-06-22T12:40:51.999813",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-06-22T12:40:51.999831",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 2,
+        "insights_by_platform": {
+          "Threads": 1,
+          "Yandex Direct": 1
+        },
+        "insights_by_category": {
+          "monetization": 1,
+          "bidding": 1
+        },
+        "top_categories": [
+          [
+            "monetization",
+            [
+              {
+                "id": 1,
+                "platform": "Threads",
+                "title": "Эфир активности в приложении Threads*: что это и как...",
+                "content": "**\n\nЭфир активности в Threads показывает пики онлайн-аудитории в реальном времени, помогая оптимизировать время публикаций (например, вечером с 19:00 до 22:00).\nИспользуйте метрику для анализа вовлеченности: посты, опубликованные в часы пика, получают больше лайков, комментариев и репостов.\nПрактические советы: экспериментируйте с разными временными интервалами, отслеживайте сезонные изменения активности и адаптируйте контент-план под динамику аудитории.\nИнструмент полезен для маркетологов при запуске кампаний, акций или новых продуктов, повышая охват и эффективность взаимодействия.",
+                "snippet": "Увеличение охвата публикаций.Повышение вовлеченности аудитории.",
+                "summary": "**\n\nЭфир активности в Threads показывает пики онлайн-аудитории в реальном времени, помогая оптимизировать время публикаций (например, вечером с 19:00 до 22:00).\nИспользуйте метрику для анализа вовлеченности: посты, опубликованные в часы пика, получают больше лайков, комментариев и репостов.\nПрактические советы: экспериментируйте с разными временными интервалами, отслеживайте сезонные изменения активности и адаптируйте контент-план под динамику аудитории.\nИнструмент полезен для маркетологов при запуске кампаний, акций или новых продуктов, повышая охват и эффективность взаимодействия.",
+                "source_published_at": "2025-09-22T05:12",
+                "category": "monetization",
+                "confidence": 7,
+                "discovered_at": "2026-06-22T11:52:22.423380",
+                "tags": [],
+                "source_url": "https://ubtspace.com/reels/jefir-aktivnosti-v-prilozhenii-threads-chto-jeto-i-kak-ispolzovat-dlja-rosta-auditorii/"
+              }
+            ]
+          ],
+          [
+            "bidding",
+            [
+              {
+                "id": 2,
+                "platform": "Yandex Direct",
+                "title": "Яндекс Директ В 2026: Как Настроить Рекламу С Roi > 200 %",
+                "content": "Яндекс Директ остаётся главным каналом привлечения клиентов для малого бизнеса в РФ. В 2026 году появились новые инструменты — разберём, как их использовать для роста продаж с измеримым ROI. Что нового в Яндекс Директе ...",
+                "snippet": "Яндекс Директ остаётся главным каналом привлечения клиентов для малого бизнеса в РФ. В 2026 году появились новые инструменты — разберём, как их использовать для роста продаж с измеримым ROI. Что нового в Яндекс Директе ...",
+                "summary": "",
+                "source_published_at": "",
+                "category": "bidding",
+                "confidence": 8,
+                "discovered_at": "2026-06-22T12:15:18.633576",
+                "tags": [
+                  "roi"
+                ],
+                "source_url": "https://promaxmedia.ru/blog/yandeks-direkt-2026-strategii-roi"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Threads",
+      "title": "Эфир активности в приложении Threads*: что это и как...",
+      "content": "**\n\nЭфир активности в Threads показывает пики онлайн-аудитории в реальном времени, помогая оптимизировать время публикаций (например, вечером с 19:00 до 22:00).\nИспользуйте метрику для анализа вовлеченности: посты, опубликованные в часы пика, получают больше лайков, комментариев и репостов.\nПрактические советы: экспериментируйте с разными временными интервалами, отслеживайте сезонные изменения активности и адаптируйте контент-план под динамику аудитории.\nИнструмент полезен для маркетологов при запуске кампаний, акций или новых продуктов, повышая охват и эффективность взаимодействия.",
+      "snippet": "Увеличение охвата публикаций.Повышение вовлеченности аудитории.",
+      "summary": "**\n\nЭфир активности в Threads показывает пики онлайн-аудитории в реальном времени, помогая оптимизировать время публикаций (например, вечером с 19:00 до 22:00).\nИспользуйте метрику для анализа вовлеченности: посты, опубликованные в часы пика, получают больше лайков, комментариев и репостов.\nПрактические советы: экспериментируйте с разными временными интервалами, отслеживайте сезонные изменения активности и адаптируйте контент-план под динамику аудитории.\nИнструмент полезен для маркетологов при запуске кампаний, акций или новых продуктов, повышая охват и эффективность взаимодействия.",
+      "source_published_at": "2025-09-22T05:12",
+      "category": "monetization",
+      "confidence": 7,
+      "discovered_at": "2026-06-22T11:52:22.423380",
+      "tags": [],
+      "source_url": "https://ubtspace.com/reels/jefir-aktivnosti-v-prilozhenii-threads-chto-jeto-i-kak-ispolzovat-dlja-rosta-auditorii/"
+    },
+    {
+      "id": 2,
+      "platform": "Yandex Direct",
+      "title": "Яндекс Директ В 2026: Как Настроить Рекламу С Roi > 200 %",
+      "content": "Яндекс Директ остаётся главным каналом привлечения клиентов для малого бизнеса в РФ. В 2026 году появились новые инструменты — разберём, как их использовать для роста продаж с измеримым ROI. Что нового в Яндекс Директе ...",
+      "snippet": "Яндекс Директ остаётся главным каналом привлечения клиентов для малого бизнеса в РФ. В 2026 году появились новые инструменты — разберём, как их использовать для роста продаж с измеримым ROI. Что нового в Яндекс Директе ...",
+      "summary": "",
+      "source_published_at": "",
+      "category": "bidding",
+      "confidence": 8,
+      "discovered_at": "2026-06-22T12:15:18.633576",
+      "tags": [
+        "roi"
+      ],
+      "source_url": "https://promaxmedia.ru/blog/yandeks-direkt-2026-strategii-roi"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 2
+  },
+  "ended_at": "2026-06-22T12:40:51.999951"
+}
