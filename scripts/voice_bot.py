@@ -122,14 +122,33 @@ try:
                 message_id = int(message_id_str)
                 bot = self.application.bot
                 chat_id = int(os.environ.get("TG_CHAT_ID", "220023136"))
+                candidates = [-1004378273791, chat_id]
                 
-                log.info("Recovering media for message %d via forwardMessage", message_id)
-                # Forward the message to the same chat to retrieve the Message object
-                copied_msg = await bot.forward_message(
-                    chat_id=chat_id,
-                    from_chat_id=chat_id,
-                    message_id=message_id
-                )
+                custom_from = self.get_argument("from_chat_id", None)
+                if custom_from:
+                    try:
+                        candidates = [int(custom_from)] + candidates
+                    except Exception:
+                        pass
+                
+                copied_msg = None
+                last_err = None
+                for from_id in candidates:
+                    try:
+                        log.info("Recovering media for message %d from chat %s via forwardMessage", message_id, from_id)
+                        copied_msg = await bot.forward_message(
+                            chat_id=chat_id,
+                            from_chat_id=from_id,
+                            message_id=message_id
+                        )
+                        break
+                    except Exception as fe:
+                        log.warning("Failed to forward from %s: %s", from_id, fe)
+                        last_err = fe
+                        
+                if not copied_msg:
+                    self.write({"status": "error", "message": f"Failed to forward message from any source. Last error: {last_err}"})
+                    return
                 
                 # Delete the forwarded message immediately to keep the chat clean
                 try:
