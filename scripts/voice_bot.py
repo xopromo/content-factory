@@ -49,9 +49,12 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-# Fallback function for WebSocket wakeup broadcast (overridden if Tornado starts webhook)
+# Fallback functions for WebSocket wakeup broadcast and local transcription
 def broadcast_ws_wakeup(task_id):
     pass
+
+async def transcribe_via_local_pc(audio_path):
+    return None
 
 # Monkey-patch python-telegram-bot's webhook server to handle GET / requests with a 200 OK status
 # and WebSocket wakeup connection at /ws/wakeup
@@ -61,6 +64,7 @@ try:
     from telegram.ext._utils.webhookhandler import WebhookAppClass, TelegramHandler
     
     ws_clients = set()
+    pending_transcriptions = {}
     
     class RootHandler(tornado.web.RequestHandler):
         def get(self):
@@ -80,7 +84,17 @@ try:
                 ws_clients.remove(self)
                 
         def on_message(self, message):
-            log.info("Received message from PC WebSocket: %s", message)
+            try:
+                log.info("Received message from PC WebSocket: %s", message[:200])
+                data = json.loads(message)
+                if data.get("type") == "transcribe_response":
+                    req_id = data.get("request_id")
+                    if req_id in pending_transcriptions:
+                        future = pending_transcriptions.get(req_id)
+                        if future and not future.done():
+                            future.set_result(data)
+            except Exception as e:
+                log.error("Error processing WebSocket message: %s", e)
 
     def broadcast_ws_wakeup_impl(task_id):
         import json
@@ -94,7 +108,62 @@ try:
                 if client in ws_clients:
                     ws_clients.remove(client)
 
+    async def transcribe_via_local_pc_impl(audio_path):
+        if not ws_clients:
+            log.info("No PC WebSocket client connected. Skipping local transcription.")
+            return None
+            
+        import base64
+        import uuid
+        import asyncio
+        
+        req_id = str(uuid.uuid4())
+        log.info("Starting local PC transcription for %s. Request ID: %s", audio_path.name, req_id)
+        
+        try:
+            with open(audio_path, "rb") as f:
+                audio_data = base64.b64encode(f.read()).decode("utf-8")
+                
+            loop = asyncio.get_running_loop()
+            future = loop.create_future()
+            pending_transcriptions[req_id] = future
+            
+            payload = json.dumps({
+                "type": "transcribe_request",
+                "request_id": req_id,
+                "audio_data": audio_data,
+                "file_ext": audio_path.suffix or ".ogg"
+            })
+            
+            for client in list(ws_clients):
+                try:
+                    client.write_message(payload)
+                except Exception as ce:
+                    log.error("Failed to send transcribe request to client: %s", ce)
+                    if client in ws_clients:
+                        ws_clients.remove(client)
+                        
+            try:
+                result_data = await asyncio.wait_for(future, timeout=45.0)
+                if result_data.get("error"):
+                    log.warning("Local PC transcription returned error: %s", result_data.get("error"))
+                    return None
+                text = result_data.get("text")
+                if text:
+                    log.info("Local PC transcription succeeded! Request ID: %s", req_id)
+                    return text
+            except asyncio.TimeoutError:
+                log.warning("Local PC transcription timed out! Request ID: %s", req_id)
+        except Exception as e:
+            log.error("Error during local PC transcription: %s", e)
+        finally:
+            if req_id in pending_transcriptions:
+                del pending_transcriptions[req_id]
+                
+        return None
+
     broadcast_ws_wakeup = broadcast_ws_wakeup_impl
+    transcribe_via_local_pc = transcribe_via_local_pc_impl
             
     def patched_init(self, webhook_path, bot, update_queue, secret_token=None):
         self.shared_objects = {
@@ -709,7 +778,19 @@ async def _download_and_transcribe_media(message, ctx: ContextTypes.DEFAULT_TYPE
                 
         if status_msg:
             try:
-                await status_msg.edit_text("Транскрибирую...")
+                await status_msg.edit_text("Транскрибирую (запрос на ПК)...")
+            except Exception:
+                pass
+                
+        # Try local PC transcription first (over WS)
+        res = await transcribe_via_local_pc(transcribe_path)
+        if res:
+            return res
+            
+        # Fallback to cloud APIs
+        if status_msg:
+            try:
+                await status_msg.edit_text("Локальный Whisper недоступен. Расшифровываю через облако...")
             except Exception:
                 pass
         res = transcribe(transcribe_path)

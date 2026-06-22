@@ -52,15 +52,112 @@ def run_task_processor():
     except Exception as e:
         log.error("Failed to run task processor: %s", e)
 
-def on_message(ws, message):
-    log.info("Received message: %s", message)
+_whisper_model = None
+
+def get_whisper_model():
+    global _whisper_model
+    if _whisper_model is None:
+        log.info("Initializing faster-whisper model ('base', CPU)...")
+        try:
+            from faster_whisper import WhisperModel
+            # Load the 'base' model on CPU, compute_type="int8" for fast CPU execution
+            _whisper_model = WhisperModel("base", device="cpu", compute_type="int8")
+            log.info("faster-whisper model loaded successfully!")
+        except Exception as e:
+            log.error("Failed to load faster-whisper model: %s", e)
+            raise e
+    return _whisper_model
+
+def transcribe_audio_locally(file_path):
     try:
+        model = get_whisper_model()
+        log.info("Starting local transcription for: %s", file_path)
+        t0 = time.time()
+        
+        segments, info = model.transcribe(str(file_path), beam_size=5, language="ru")
+        segments = list(segments)  # Trigger actual transcription execution
+        
+        text = "".join(segment.text for segment in segments).strip()
+        duration = info.duration
+        elapsed = time.time() - t0
+        
+        log.info("Transcription completed in %.2fs (audio duration: %.2fs)", elapsed, duration)
+        return text, None
+    except Exception as e:
+        log.error("Local transcription error: %s", e)
+        return None, str(e)
+
+def handle_transcribe_request(ws, request_id, audio_b64, file_ext):
+    import base64
+    import tempfile
+    
+    tmp_path = None
+    try:
+        # Decode base64
+        audio_bytes = base64.b64decode(audio_b64)
+        
+        # Write to temp file
+        with tempfile.NamedTemporaryFile(suffix=file_ext, delete=False) as tmp:
+            tmp.write(audio_bytes)
+            tmp_path = Path(tmp.name)
+            
+        # Transcribe
+        text, err = transcribe_audio_locally(tmp_path)
+        
+        # Send response
+        response = {
+            "type": "transcribe_response",
+            "request_id": request_id,
+            "text": text,
+            "error": err
+        }
+        ws.send(json.dumps(response))
+        log.info("Sent transcribe_response #%s back to server", request_id)
+    except Exception as e:
+        log.error("Error in handle_transcribe_request: %s", e)
+        try:
+            ws.send(json.dumps({
+                "type": "transcribe_response",
+                "request_id": request_id,
+                "text": None,
+                "error": str(e)
+            }))
+        except Exception:
+            pass
+    finally:
+        if tmp_path and tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except Exception:
+                pass
+
+def on_message(ws, message):
+    try:
+        # Don't print the huge base64 audio data to console/log
+        if '"type": "transcribe_request"' in message:
+            log.info("Received message: transcribe_request (large audio data omitted)")
+        else:
+            log.info("Received message: %s", message)
+            
         data = json.loads(message)
-        if data.get("type") == "wakeup":
+        msg_type = data.get("type")
+        
+        if msg_type == "wakeup":
             log.info("Wakeup signal received for task #%s", data.get("task_id"))
             run_task_processor()
+        elif msg_type == "transcribe_request":
+            request_id = data.get("request_id")
+            audio_b64 = data.get("audio_data")
+            file_ext = data.get("file_ext", ".ogg")
+            
+            import threading
+            threading.Thread(
+                target=handle_transcribe_request,
+                args=(ws, request_id, audio_b64, file_ext),
+                daemon=True
+            ).start()
     except Exception as e:
-        log.error("Failed to parse message: %s", e)
+        log.error("Failed to process message: %s", e)
 
 def on_error(ws, error):
     log.error("WebSocket error: %s", error)
