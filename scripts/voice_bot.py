@@ -218,6 +218,7 @@ WAIT_VOICE_NOTE = 23
 WAIT_TRANSCRIPT_ACTION = 24
 WAIT_SUMMARY_ACTION = 25
 WAIT_POST_COMMENT = 26
+WAIT_LINK_ACTION = 27
 
 # ── Глобальные переменные статуса сборщика ────────────────────────────────────
 LAST_HARVESTER_RUN = None
@@ -2480,6 +2481,51 @@ async def handle_reply_entry(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> 
         await update.message.reply_text("Не удалось распознать текст вашего ответа.")
         return ConversationHandler.END
 
+    # Проверяем, был ли ответ на сообщение со ссылкой
+    import re
+    original_urls = re.findall(r'(https?://[^\s]+)', original_text)
+    if original_urls:
+        url = original_urls[0]
+        keywords = ["шорт", "short", "коммент", "нарезка", "видео", "монтаж", "перевести", "сделать", "нарезать"]
+        is_shorts_process = any(kw in reply_text.lower() for kw in keywords)
+        if is_shorts_process:
+            status_msg = await update.message.reply_text("⏳ <b>[0%]</b> ИИ-Агент: Запуск автоматической обработки видео по ссылке...")
+            task_id = ""
+            try:
+                tasks = gh_read_tasks()
+                for t in tasks:
+                    if t.get("message_id") == original_msg.message_id:
+                        task_id = str(t.get("id"))
+                        t["status"] = "in_progress"
+                        t["status_message_id"] = status_msg.message_id
+                        gh_write_tasks(tasks, message=f"task: start task #{task_id} via reply link trigger")
+                        break
+            except Exception as ge:
+                log.error("Failed to read/write tasks: %s", ge)
+                
+            cmd = [
+                sys.executable,
+                "scripts/process_shorts_telegram.py",
+                "--url", url,
+                "--chat-id", str(update.effective_chat.id),
+                "--reply-to", str(update.message.message_id),
+                "--status-msg-id", str(status_msg.message_id)
+            ]
+            if task_id:
+                cmd.extend(["--task-id", task_id])
+                
+            log.info("Starting process_shorts_telegram.py in background via reply: %s", cmd)
+            try:
+                project_root = Path(__file__).parent.parent
+                log_file_path = project_root / "shorts_processor.log"
+                log_file = open(log_file_path, "a", encoding="utf-8")
+                subprocess.Popen(cmd, cwd=project_root, stdout=log_file, stderr=log_file)
+            except Exception as e:
+                log.error("Failed to start shorts processor: %s", e)
+                await update.message.reply_text(f"❌ Ошибка запуска процессора: {e}")
+                
+            return ConversationHandler.END
+
     FORMAT_ACTIONS = [
         "✨ Восстановить речь",
         "📖 Разбить на абзацы",
@@ -3050,6 +3096,67 @@ async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         ctx.user_data["reply_to_message_id"] = reply_to.message_id if reply_to else None
     text = update.message.text.strip()
     
+    # Проверяем, содержит ли текст ссылку (например, YouTube / Shorts)
+    import re
+    urls = re.findall(r'(https?://[^\s]+)', text)
+    if urls:
+        url = urls[0]
+        ctx.user_data["pending_link"] = url
+        ctx.user_data["pending_link_msg_id"] = update.message.message_id
+        ctx.user_data["pending_link_time"] = time.time()
+        
+        # Проверяем, есть ли инструкция прямо в этом же сообщении
+        instruction = text.replace(url, "").strip()
+        if instruction:
+            keywords = ["шорт", "short", "коммент", "нарезка", "видео", "монтаж", "перевести", "сделать", "нарезать"]
+            is_shorts_process = any(kw in instruction.lower() for kw in keywords)
+            if is_shorts_process:
+                status_msg = await update.message.reply_text("⏳ <b>[0%]</b> ИИ-Агент: Запуск автоматической обработки видео...")
+                task_id = ""
+                try:
+                    tasks = gh_read_tasks()
+                    for t in tasks:
+                        if t.get("message_id") == update.message.message_id:
+                            task_id = str(t.get("id"))
+                            t["status"] = "in_progress"
+                            t["status_message_id"] = status_msg.message_id
+                            gh_write_tasks(tasks, message=f"task: start task #{task_id} via direct link trigger")
+                            break
+                except Exception as ge:
+                    log.error("Failed to read/write tasks: %s", ge)
+                
+                cmd = [
+                    sys.executable,
+                    "scripts/process_shorts_telegram.py",
+                    "--url", url,
+                    "--chat-id", str(update.effective_chat.id),
+                    "--reply-to", str(update.message.message_id),
+                    "--status-msg-id", str(status_msg.message_id)
+                ]
+                if task_id:
+                    cmd.extend(["--task-id", task_id])
+                
+                log.info("Starting process_shorts_telegram.py in background directly: %s", cmd)
+                try:
+                    project_root = Path(__file__).parent.parent
+                    log_file_path = project_root / "shorts_processor.log"
+                    log_file = open(log_file_path, "a", encoding="utf-8")
+                    subprocess.Popen(cmd, cwd=project_root, stdout=log_file, stderr=log_file)
+                except Exception as e:
+                    log.error("Failed to start shorts processor: %s", e)
+                    await update.message.reply_text(f"❌ Ошибка запуска процессора: {e}")
+                
+                ctx.user_data.pop("pending_link", None)
+                ctx.user_data.pop("pending_link_msg_id", None)
+                return ConversationHandler.END
+        
+        # Если инструкции нет, спрашиваем пользователя
+        await update.message.reply_text(
+            "🔍 Я обнаружил ссылку в вашем сообщении. Что с ней нужно сделать?",
+            reply_to_message_id=update.message.message_id
+        )
+        return WAIT_LINK_ACTION
+    
     # Перехватываем все кнопки устаревшей сессии (например, после перезапуска бота)
     news_buttons = [
         "🔄 Новые новости", "1️⃣", "2️⃣", "3️⃣",
@@ -3146,6 +3253,79 @@ async def handle_text_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         reply_markup=TRANSCRIPT_ACTION_KEYBOARD,
     )
     return WAIT_TRANSCRIPT_ACTION
+
+async def handle_link_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    text = ""
+    if update.message.text:
+        text = update.message.text.strip()
+    elif update.message.voice or update.message.audio or update.message.video or update.message.video_note:
+        status_msg = await update.message.reply_text("🎙️ Распознаю ваш голос...")
+        text = await _download_and_transcribe_media(update.message, ctx, status_msg=status_msg)
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
+
+    if not text:
+        await update.message.reply_text("Не удалось распознать ваше сообщение. Пожалуйста, напишите текстом или отправьте голосовое.")
+        return WAIT_LINK_ACTION
+
+    url = ctx.user_data.get("pending_link")
+    if not url:
+        await update.message.reply_text("Ссылка не найдена в текущей сессии. Пожалуйста, отправьте ссылку заново.")
+        return ConversationHandler.END
+
+    # Check if instruction is about video shorts cropping
+    keywords = ["шорт", "short", "коммент", "нарезка", "видео", "монтаж", "перевести", "сделать", "нарезать"]
+    is_shorts_process = any(kw in text.lower() for kw in keywords)
+
+    if is_shorts_process:
+        status_msg = await update.message.reply_text("⏳ <b>[0%]</b> ИИ-Агент: Запуск автоматической обработки видео...")
+        task_id = ""
+        try:
+            tasks = gh_read_tasks()
+            for t in tasks:
+                if t.get("message_id") == update.message.message_id or t.get("message_id") == ctx.user_data.get("pending_link_msg_id"):
+                    task_id = str(t.get("id"))
+                    t["status"] = "in_progress"
+                    t["status_message_id"] = status_msg.message_id
+                    gh_write_tasks(tasks, message=f"task: start task #{task_id} via bot link action")
+                    break
+        except Exception as ge:
+            log.error("Failed to read/write tasks: %s", ge)
+
+        cmd = [
+            sys.executable,
+            "scripts/process_shorts_telegram.py",
+            "--url", url,
+            "--chat-id", str(update.effective_chat.id),
+            "--reply-to", str(update.message.message_id),
+            "--status-msg-id", str(status_msg.message_id)
+        ]
+        if task_id:
+            cmd.extend(["--task-id", task_id])
+
+        log.info("Starting process_shorts_telegram.py in background: %s", cmd)
+        try:
+            project_root = Path(__file__).parent.parent
+            log_file_path = project_root / "shorts_processor.log"
+            log_file = open(log_file_path, "a", encoding="utf-8")
+            subprocess.Popen(cmd, cwd=project_root, stdout=log_file, stderr=log_file)
+        except Exception as e:
+            log.error("Failed to start shorts processor: %s", e)
+            await update.message.reply_text(f"❌ Ошибка запуска процессора: {e}")
+
+        ctx.user_data.pop("pending_link", None)
+        ctx.user_data.pop("pending_link_msg_id", None)
+        return ConversationHandler.END
+    else:
+        await update.message.reply_text(
+            f"Я понял ваш запрос: \"{text}\".\n"
+            f"К сожалению, сейчас я умею автоматически только нарезать Shorts и добавлять к ним комментарии. "
+            f"Если хотите запустить этот процесс, ответьте: <b>\"переведи в шорт с комментариями\"</b>.",
+            parse_mode="HTML"
+        )
+        return WAIT_LINK_ACTION
 
 async def _direct_log(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     # Ищем лог-файл в корневой директории
@@ -4047,6 +4227,10 @@ def main() -> None:
             WAIT_POST_COMMENT: [
                 MessageHandler(home_filter, go_home),
                 MessageHandler(filters.TEXT | filters.VOICE | filters.AUDIO | filters.VIDEO | filters.VIDEO_NOTE, handle_post_comment),
+            ],
+            WAIT_LINK_ACTION: [
+                MessageHandler(home_filter, go_home),
+                MessageHandler(filters.TEXT | media_filter, handle_link_action),
             ],
         },
         fallbacks=[CommandHandler("cancel", cmd_cancel)],

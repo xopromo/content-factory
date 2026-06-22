@@ -919,6 +919,75 @@ def send_telegram_reply(message_id, reply_text):
             
     return None
 
+def edit_telegram_status(status_message_id, text):
+    if not status_message_id:
+        return False
+    token = os.environ.get("TG_BOT_TOKEN")
+    channel_id = -1004378273791
+    if not token:
+        return False
+    url = f"https://api.telegram.org/bot{token}/editMessageText"
+    payload = {
+        "chat_id": channel_id,
+        "message_id": int(status_message_id),
+        "text": text,
+        "parse_mode": "HTML"
+    }
+    
+    # Try direct edit first
+    try:
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=10) as r:
+            res_data = json.loads(r.read())
+            return res_data.get("ok", False)
+    except Exception as direct_err:
+        print(f"Direct Telegram edit failed: {direct_err}. Attempting via proxy...")
+        
+    # Proxy fallback
+    import random
+    proxy_file = Path("c:/Users/асус/Desktop/клод/антигравити, всякое/content-factory") / "proxies.txt"
+    if proxy_file.exists():
+        try:
+            from scripts.check_proxies import parse_proxy_line
+            lines = proxy_file.read_text(encoding="utf-8", errors="ignore").splitlines()
+            valid_proxies = []
+            for line in lines:
+                parsed = parse_proxy_line(line)
+                if parsed and parsed.get("type") in ("socks5", "http"):
+                    valid_proxies.append(parsed)
+            
+            random.shuffle(valid_proxies)
+            for p in valid_proxies[:5]:
+                try:
+                    proxy_url = ""
+                    if p["username"] and p["password"]:
+                        proxy_url = f"{p['type']}://{p['username']}:{p['password']}@{p['server']}:{p['port']}"
+                    else:
+                        proxy_url = f"{p['type']}://{p['server']}:{p['port']}"
+                        
+                    proxy_handler = urllib.request.ProxyHandler({'http': proxy_url, 'https': proxy_url})
+                    opener = urllib.request.build_opener(proxy_handler)
+                    
+                    req = urllib.request.Request(
+                        url,
+                        data=json.dumps(payload).encode("utf-8"),
+                        headers={"Content-Type": "application/json"}
+                    )
+                    with opener.open(req, timeout=8) as r:
+                        res_data = json.loads(r.read())
+                        print(f"Successfully edited Telegram status via proxy: {proxy_url[:40]}")
+                        return res_data.get("ok", False)
+                except Exception as proxy_err:
+                    print(f"Proxy edit failed: {proxy_err}")
+        except Exception as e:
+            print(f"Failed to run proxy fallback for edit: {e}")
+            
+    return False
+
 def delete_telegram_message(message_id):
     if not message_id:
         return False
