@@ -123,19 +123,19 @@ try:
                 bot = self.application.bot
                 chat_id = int(os.environ.get("TG_CHAT_ID", "220023136"))
                 
-                log.info("Recovering media for message %d via copyMessage", message_id)
-                # Copy the message to the same chat to retrieve the Message object
-                copied_msg = await bot.copy_message(
+                log.info("Recovering media for message %d via forwardMessage", message_id)
+                # Forward the message to the same chat to retrieve the Message object
+                copied_msg = await bot.forward_message(
                     chat_id=chat_id,
                     from_chat_id=chat_id,
                     message_id=message_id
                 )
                 
-                # Delete the copied message immediately to keep the chat clean
+                # Delete the forwarded message immediately to keep the chat clean
                 try:
                     await bot.delete_message(chat_id=chat_id, message_id=copied_msg.message_id)
                 except Exception as del_err:
-                    log.warning("Failed to delete copied message: %s", del_err)
+                    log.warning("Failed to delete forwarded message: %s", del_err)
                 
                 media_obj = None
                 suffix = ".mp4"
