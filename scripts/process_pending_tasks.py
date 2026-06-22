@@ -132,26 +132,74 @@ def process_tasks():
             notified = task.get("vscode_notified", False)
             
             if not conv_id and ls_path.exists():
-                print(f"Creating new conversation for task #{task_id}...")
-                title = f"Задача #{task_id}: {prompt[:50]}...".replace('"', "'")
-                try:
-                    res = subprocess.run(
-                        [str(ls_path), "agentapi", "new-conversation", "--model=pro", title],
-                        capture_output=True,
-                        text=True,
-                        encoding="utf-8",
-                        errors="ignore",
-                        timeout=30
-                    )
-                    data = json.loads(res.stdout)
-                    conv_id = data["response"]["newConversation"]["conversationId"]
+                # Read pools configuration
+                pools_path = Path(__file__).parent / "chat_pools.json"
+                pools = {}
+                if pools_path.exists():
+                    try:
+                        pools = json.loads(pools_path.read_text(encoding="utf-8"))
+                    except Exception as pe:
+                        print("Failed to read chat_pools.json:", pe)
+                
+                target_pool_key = None
+                prompt_lower = prompt.lower()
+                is_shorts = any(w in prompt_lower for w in ["шортс", "видео", "нарезка", "youtube", "comments", "плашка", "плашкой"])
+                is_code = any(w in prompt_lower for w in ["код", "скрипт", "напиши", "исправь", "ошибка", "баг", "sqlite", "git"])
+                
+                if is_shorts:
+                    target_pool_key = "shorts_pool"
+                elif is_code:
+                    target_pool_key = "code_pool"
+                
+                if target_pool_key and target_pool_key in pools and pools[target_pool_key]:
+                    pool = pools[target_pool_key]
+                    
+                    # Count active tasks for each chat in the pool
+                    active_counts = {cid: 0 for cid in pool}
+                    for t in tasks:
+                        if t.get("status") in ("pending", "pending_vscode") and t.get("id") != task_id:
+                            cid = t.get("vscode_conversation_id")
+                            if cid in active_counts:
+                                active_counts[cid] += 1
+                                
+                    # Select the chat with minimum active tasks
+                    best_cid = min(pool, key=lambda c: active_counts[c])
+                    conv_id = best_cid
                     task["vscode_conversation_id"] = conv_id
                     task["vscode_notified"] = False
                     notified = False
                     updated = True
-                    print(f"Created conversation {conv_id} for task #{task_id}")
-                except Exception as e:
-                    print(f"Failed to create conversation for task #{task_id}: {e}")
+                    print(f"Routed task #{task_id} to pooled conversation {conv_id} (pool: {target_pool_key}, load: {active_counts[best_cid]} active tasks)")
+                else:
+                    # Default: simple questions go to general chat
+                    conv_id = pools.get("general", "53b913fe-94c5-41ad-ad76-72fde5331225")
+                    task["vscode_conversation_id"] = conv_id
+                    task["vscode_notified"] = False
+                    notified = False
+                    updated = True
+                    print(f"Routed task #{task_id} to general conversation {conv_id}")
+                    
+                if not conv_id:
+                    print(f"Creating new conversation for task #{task_id}...")
+                    title = f"Задача #{task_id}: {prompt[:50]}...".replace('"', "'")
+                    try:
+                        res = subprocess.run(
+                            [str(ls_path), "agentapi", "new-conversation", "--model=pro", title],
+                            capture_output=True,
+                            text=True,
+                            encoding="utf-8",
+                            errors="ignore",
+                            timeout=30
+                        )
+                        data = json.loads(res.stdout)
+                        conv_id = data["response"]["newConversation"]["conversationId"]
+                        task["vscode_conversation_id"] = conv_id
+                        task["vscode_notified"] = False
+                        notified = False
+                        updated = True
+                        print(f"Created conversation {conv_id} for task #{task_id}")
+                    except Exception as e:
+                        print(f"Failed to create conversation for task #{task_id}: {e}")
             
             if was_pending:
                 task["status"] = "pending_vscode"

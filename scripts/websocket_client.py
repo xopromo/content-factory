@@ -34,7 +34,7 @@ except ImportError:
 
 def run_task_processor():
     log.info("Triggering process_pending_tasks.py...")
-    script_path = Path("C:/Users/асус/.gemini/antigravity/brain/53b913fe-94c5-41ad-ad76-72fde5331225/scratch/process_pending_tasks.py")
+    script_path = ROOT / "scripts" / "process_pending_tasks.py"
     try:
         # Run process_pending_tasks.py in a subprocess
         res = subprocess.run(
