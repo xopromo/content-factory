@@ -136,6 +136,13 @@ def git_pull():
 def git_push(message):
     import subprocess
     import time
+    import random
+    
+    # Introduce random jitter to prevent collisions between parallel agents pushing at the same time
+    jitter = random.uniform(0.5, 3.0)
+    print(f"Jitter: sleeping for {jitter:.2f}s before starting git transaction...")
+    time.sleep(jitter)
+    
     env = os.environ.copy()
     env["GIT_TERMINAL_PROMPT"] = "0"
     
