@@ -65,6 +65,7 @@ try:
     
     ws_clients = set()
     pending_transcriptions = {}
+    pending_chatops = {}
     
     class RootHandler(tornado.web.RequestHandler):
         def get(self):
@@ -87,10 +88,17 @@ try:
             try:
                 log.info("Received message from PC WebSocket: %s", message[:200])
                 data = json.loads(message)
-                if data.get("type") == "transcribe_response":
+                msg_type = data.get("type")
+                if msg_type == "transcribe_response":
                     req_id = data.get("request_id")
                     if req_id in pending_transcriptions:
                         future = pending_transcriptions.get(req_id)
+                        if future and not future.done():
+                            future.set_result(data)
+                elif msg_type == "chatops_response":
+                    req_id = data.get("request_id")
+                    if req_id in pending_chatops:
+                        future = pending_chatops.get(req_id)
                         if future and not future.done():
                             future.set_result(data)
             except Exception as e:
@@ -176,7 +184,7 @@ try:
             (r"/ws/wakeup/?", PCWakeupWebSocketHandler),
             (rf"{webhook_path}/?", TelegramHandler, self.shared_objects)
         ]
-        tornado.web.Application.__init__(self, handlers)
+        tornado.web.Application.__init__(self, handlers, websocket_max_message_size=67108864)
         
     WebhookAppClass.__init__ = patched_init
     log.info("Successfully monkey-patched WebhookAppClass to handle GET / and WS /ws/wakeup")
@@ -3284,6 +3292,141 @@ async def telegram_error_handler(update: object, context: ContextTypes.DEFAULT_T
         except Exception:
             pass
 
+async def cmd_chatops(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    admin_id_str = os.getenv("TG_CHAT_ID")
+    sender_id = update.effective_user.id
+    
+    if not admin_id_str or str(sender_id) != admin_id_str.strip():
+        log.warning("Unauthorized /chatops attempt from user ID %d", sender_id)
+        await update.effective_message.reply_text("⛔️ <b>Доступ запрещен.</b> Эта команда доступна только администратору.")
+        return
+        
+    if not ws_clients:
+        await update.effective_message.reply_text("❌ <b>Ошибка:</b> Нет подключенных WebSocket-клиентов. Домашний ПК оффлайн.")
+        return
+        
+    if not ctx.args:
+        help_text = (
+            "🔌 <b>Панель управления ChatOps:</b>\n\n"
+            "Доступные команды:\n"
+            "• <code>/chatops status</code> — Статус ресурсов ПК\n"
+            "• <code>/chatops screenshot</code> — Сделать скриншот экрана\n"
+            "• <code>/chatops cmd &lt;команда&gt;</code> — Выполнить shell-команду на ПК\n"
+            "• <code>/chatops ls [путь]</code> — Список файлов на ПК\n"
+            "• <code>/chatops cat &lt;путь&gt;</code> — Посмотреть содержимое файла\n"
+            "• <code>/chatops log</code> — Лог сокет-клиента на ПК\n"
+            "• <code>/chatops download &lt;путь&gt;</code> — Скачать файл с ПК"
+        )
+        await update.effective_message.reply_text(help_text, parse_mode="HTML")
+        return
+        
+    subcommand = ctx.args[0].lower()
+    command_args = ctx.args[1:]
+    
+    status_msg = await update.effective_message.reply_text("⏳ Выполняю команду на ПК...")
+    
+    import uuid
+    import asyncio
+    import base64
+    import tempfile
+    
+    req_id = str(uuid.uuid4())
+    loop = asyncio.get_running_loop()
+    future = loop.create_future()
+    pending_chatops[req_id] = future
+    
+    try:
+        payload = json.dumps({
+            "type": "chatops_request",
+            "request_id": req_id,
+            "command": subcommand,
+            "args": command_args
+        })
+        
+        for client in list(ws_clients):
+            try:
+                client.write_message(payload)
+            except Exception as ce:
+                log.error("Failed to send ChatOps request to client: %s", ce)
+                if client in ws_clients:
+                    ws_clients.remove(client)
+                    
+        timeout = 60.0 if subcommand in ("download", "screenshot") else 30.0
+        result_data = await asyncio.wait_for(future, timeout=timeout)
+        
+        if result_data.get("status") == "error":
+            await status_msg.edit_text(f"❌ <b>Ошибка выполнения:</b>\n{result_data.get('output')}")
+            return
+            
+        output = result_data.get("output", "")
+        extra = result_data.get("extra_data", {})
+        
+        if subcommand == "screenshot" and "image_b64" in extra:
+            img_bytes = base64.b64decode(extra["image_b64"])
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                tmp.write(img_bytes)
+                tmp_path = Path(tmp.name)
+            try:
+                await update.effective_message.reply_photo(
+                    photo=open(tmp_path, "rb"),
+                    caption="📸 Скриншот экрана ПК"
+                )
+                await status_msg.delete()
+            finally:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+                    
+        elif subcommand == "download" and "file_b64" in extra:
+            file_bytes = base64.b64decode(extra["file_b64"])
+            filename = extra.get("filename", "file.dat")
+            
+            with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                tmp.write(file_bytes)
+                tmp_path = Path(tmp.name)
+            try:
+                renamed_path = tmp_path.parent / filename
+                if renamed_path.exists():
+                    renamed_path.unlink()
+                tmp_path.rename(renamed_path)
+                
+                await update.effective_message.reply_document(
+                    document=open(renamed_path, "rb"),
+                    filename=filename,
+                    caption=f"📁 Файл с ПК: <code>{filename}</code>",
+                    parse_mode="HTML"
+                )
+                await status_msg.delete()
+            finally:
+                if renamed_path.exists():
+                    try:
+                        renamed_path.unlink()
+                    except Exception:
+                        pass
+                    
+        else:
+            if len(output) > 4000:
+                output = output[:4000] + "\n... (вывод обрезан из-за лимита длины)"
+            
+            if subcommand in ("cmd", "log", "cat"):
+                import html
+                escaped = html.escape(output)
+                formatted = f"💻 <b>Вывод команды ({subcommand}):</b>\n\n<code>{escaped}</code>"
+            else:
+                formatted = output
+                
+            try:
+                await status_msg.edit_text(formatted, parse_mode="HTML")
+            except Exception:
+                await status_msg.edit_text(output, parse_mode=None)
+                
+    except asyncio.TimeoutError:
+        await status_msg.edit_text("❌ <b>Таймаут:</b> ПК не ответил в установленное время.")
+    except Exception as ex:
+        await status_msg.edit_text(f"❌ <b>Внутренняя ошибка бота:</b> {ex}")
+    finally:
+        if req_id in pending_chatops:
+            del pending_chatops[req_id]
+
 async def cmd_log(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if update.message:
         try:
@@ -3922,6 +4065,7 @@ def main() -> None:
     app.add_handler(CommandHandler("check_proxies", cmd_proxies))
     app.add_handler(CommandHandler("harvester", cmd_harvester))
     app.add_handler(CommandHandler("status", cmd_status))
+    app.add_handler(CommandHandler("chatops", cmd_chatops))
     app.add_handler(MessageHandler(filters.Chat(chat_id=TASK_CHANNEL_ID) & filters.VOICE, handle_channel_voice))
     app.add_handler(MessageHandler(filters.Chat(chat_id=TASK_CHANNEL_ID) & filters.TEXT & ~filters.COMMAND, handle_channel_text))
     app.add_handler(conv)
