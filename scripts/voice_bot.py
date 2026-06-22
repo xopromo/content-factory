@@ -91,6 +91,30 @@ try:
             except Exception as e:
                 self.write({"status": "error", "message": str(e)})
             
+    class GetTasksHandler(tornado.web.RequestHandler):
+        def get(self):
+            try:
+                content = gh_read("docs/articles/tasks.json")
+                self.set_header("Content-Type", "application/json; charset=UTF-8")
+                self.write(content)
+            except Exception as e:
+                self.write({"status": "error", "message": str(e)})
+
+    class DownloadTelegramMediaHandler(tornado.web.RequestHandler):
+        async def get(self):
+            file_id = self.get_argument("file_id")
+            filename = self.get_argument("filename")
+            try:
+                bot = self.application.bot
+                file = await bot.get_file(file_id)
+                media_dir = Path(__file__).parent.parent / "docs" / "articles" / "media"
+                media_dir.mkdir(parents=True, exist_ok=True)
+                local_path = media_dir / filename
+                await file.download_to_drive(local_path)
+                self.write({"status": "ok", "message": f"Downloaded to {filename}"})
+            except Exception as e:
+                self.write({"status": "error", "message": str(e)})
+            
     class PCWakeupWebSocketHandler(tornado.websocket.WebSocketHandler):
         def check_origin(self, origin):
             return True
@@ -192,6 +216,7 @@ try:
     transcribe_via_local_pc = transcribe_via_local_pc_impl
             
     def patched_init(self, webhook_path, bot, update_queue, secret_token=None):
+        self.bot = bot
         self.shared_objects = {
             "bot": bot,
             "update_queue": update_queue,
@@ -201,6 +226,8 @@ try:
             (r"/?", RootHandler),
             (r"/ws/wakeup/?", PCWakeupWebSocketHandler),
             (r"/list-media/?", ListMediaHandler),
+            (r"/get-tasks/?", GetTasksHandler),
+            (r"/download-telegram/?", DownloadTelegramMediaHandler),
             (r"/media/(.*)", tornado.web.StaticFileHandler, {"path": str(Path(__file__).parent.parent / "docs" / "articles" / "media")}),
             (rf"{webhook_path}/?", TelegramHandler, self.shared_objects)
         ]
