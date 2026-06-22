@@ -6,6 +6,7 @@ import time
 import subprocess
 import argparse
 import urllib.request
+import requests
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -22,46 +23,83 @@ SHORTS_FACTORY_DIR = ROOT.parent / "video-shorts-factory"
 
 def send_telegram_video(token, chat_id, video_path, caption=None, reply_to_message_id=None):
     url = f"https://api.telegram.org/bot{token}/sendVideo"
-    boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
-    headers = {
-        "Content-Type": f"multipart/form-data; boundary={boundary}",
-        "User-Agent": "Mozilla/5.0"
-    }
-    parts = []
-    # Chat ID
-    parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n{chat_id}\r\n".encode("utf-8"))
-    
-    # Reply to message ID
-    if reply_to_message_id:
-        parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"reply_to_message_id\"\r\n\r\n{reply_to_message_id}\r\n".encode("utf-8"))
-        
-    # Caption
-    if caption:
-        parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"caption\"\r\n\r\n{caption}\r\n".encode("utf-8"))
-        parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"parse_mode\"\r\n\r\nHTML\r\n".encode("utf-8"))
-        
-    # Video file
     v_path = Path(video_path)
-    filename = v_path.name
-    parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"video\"; filename=\"{filename}\"\r\nContent-Type: video/mp4\r\n\r\n".encode("utf-8"))
-    
-    # Read video data
-    with open(v_path, "rb") as f:
-        video_data = f.read()
-        
-    parts.append(video_data)
-    parts.append(f"\r\n--{boundary}--\r\n".encode("utf-8"))
-    
-    body = b"".join(parts)
-    req = urllib.request.Request(url, data=body, headers=headers, method="POST")
-    try:
-        # Disable proxy for direct telegram API upload
-        urllib.request.getproxies = lambda: {}
-        with urllib.request.urlopen(req, timeout=180) as resp:
-            return json.loads(resp.read().decode("utf-8"))
-    except Exception as e:
-        print(f"Failed to send video: {e}")
+    if not v_path.exists():
+        print(f"Error: Video file {v_path} not found.")
         return None
+
+    # We open the file and keep it open during requests
+    video_file = open(v_path, "rb")
+    files = {"video": (v_path.name, video_file, "video/mp4")}
+    data = {"chat_id": str(chat_id)}
+    if reply_to_message_id:
+        data["reply_to_message_id"] = str(reply_to_message_id)
+    if caption:
+        data["caption"] = caption
+        data["parse_mode"] = "HTML"
+
+    # 1. Try direct send first
+    try:
+        print("Trying direct send to Telegram...")
+        resp = requests.post(url, data=data, files=files, timeout=90)
+        if resp.status_code == 200:
+            res_data = resp.json()
+            if res_data.get("ok"):
+                print("Direct send succeeded!")
+                video_file.close()
+                return res_data
+            else:
+                print(f"Direct send returned non-ok: {res_data}")
+        else:
+            print(f"Direct send returned status code: {resp.status_code}")
+    except Exception as direct_err:
+        print(f"Direct Telegram video send failed: {direct_err}. Attempting via proxy...")
+
+    # 2. Try proxy fallback
+    proxy_file = ROOT / "proxies.txt"
+    if proxy_file.exists():
+        try:
+            lines = proxy_file.read_text(encoding="utf-8", errors="ignore").splitlines()
+            valid_proxies = []
+            for line in lines:
+                line = line.strip()
+                if line.startswith("socks5://") or line.startswith("http://"):
+                    valid_proxies.append(line)
+
+            print(f"Found {len(valid_proxies)} proxies. Rotating through them...")
+            import random
+            random.shuffle(valid_proxies)
+
+            for proxy in valid_proxies[:15]:
+                print(f"Trying proxy: {proxy}")
+                try:
+                    video_file.seek(0)
+                    resp = requests.post(
+                        url,
+                        data=data,
+                        files={"video": (v_path.name, video_file, "video/mp4")},
+                        proxies={"http": proxy, "https": proxy},
+                        timeout=90
+                    )
+                    if resp.status_code == 200:
+                        res_data = resp.json()
+                        if res_data.get("ok"):
+                            print(f"Send succeeded via proxy: {proxy}!")
+                            video_file.close()
+                            return res_data
+                        else:
+                            print(f"Proxy send returned non-ok: {res_data}")
+                    else:
+                        print(f"Proxy send returned status code: {resp.status_code}")
+                except Exception as p_err:
+                    print(f"Proxy {proxy} failed: {p_err}")
+        except Exception as ex:
+            print(f"Failed to read/use proxies: {ex}")
+
+    video_file.close()
+    print("All upload attempts failed.")
+    return None
+
 
 def main():
     parser = argparse.ArgumentParser()

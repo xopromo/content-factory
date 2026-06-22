@@ -3947,8 +3947,25 @@ async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
     text = msg.text.strip()
     
     try:
-        # Reply with 'Ок' to the channel task
-        status_msg = await msg.reply_text("Ок")
+        # Check if the message is a pure URL
+        import re
+        urls = re.findall(r'(https?://[^\s]+)', text)
+        is_pure_url = False
+        if urls:
+            url = urls[0]
+            remaining = text.replace(url, "").strip()
+            # Remove punctuation and check if remaining is empty
+            remaining_clean = re.sub(r'[^\w\s]', '', remaining).strip()
+            is_pure_url = not remaining_clean
+
+        status_text = "Ок"
+        task_status = "pending"
+        if is_pure_url:
+            status_text = "🔍 Получена ссылка. Ожидаю голосовой комментарий или текстовую инструкцию..."
+            task_status = "waiting_for_instruction"
+
+        # Reply to the channel task
+        status_msg = await msg.reply_text(status_text)
         
         tasks_content = gh_read("docs/articles/tasks.json")
         tasks = []
@@ -3968,7 +3985,7 @@ async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
             "status_message_id": status_msg.message_id,
             "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None,
             "text": text,
-            "status": "pending",
+            "status": task_status,
             "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
         }
         tasks.append(new_task)
