@@ -651,7 +651,7 @@ def send_telegram_photo(file_path, caption=""):
             
     return None
 
-def send_telegram_document(file_path, caption=""):
+def send_telegram_document(file_path, caption="", reply_to_message_id=None):
     token = os.environ.get("TG_BOT_TOKEN")
     channel_id = -1004378273791
     if not token or not file_path.exists():
@@ -668,6 +668,12 @@ def send_telegram_document(file_path, caption=""):
     parts.append("")
     parts.append(str(channel_id))
     
+    if reply_to_message_id:
+        parts.append(f"--{boundary}")
+        parts.append(f'Content-Disposition: form-data; name="reply_to_message_id"')
+        parts.append("")
+        parts.append(str(reply_to_message_id))
+        
     if caption:
         parts.append(f"--{boundary}")
         parts.append(f'Content-Disposition: form-data; name="caption"')
@@ -922,6 +928,16 @@ def send_telegram_reply(message_id, reply_text):
 def edit_telegram_status(status_message_id, text):
     if not status_message_id:
         return False
+        
+    import re
+    match = re.search(r"\[(\d+)%\]", text)
+    if match:
+        pct = int(match.group(1))
+        width = 10
+        filled = int(round(width * pct / 100))
+        bar = "█" * filled + "░" * (width - filled)
+        text = re.sub(r"(<b>)?\[\d+%\](</b>)?", f"<b>[{bar}] {pct}%</b>", text)
+
     token = os.environ.get("TG_BOT_TOKEN")
     channel_id = -1004378273791
     if not token:
@@ -1165,66 +1181,9 @@ def run_loop():
     
     while True:
         try:
-            print("DEBUG: Loop iteration started")
-            # Sync via git pull at the start of the loop
-            git_pull()
-            
-            print("DEBUG: Reading tasks...")
-            tasks = gh_read_tasks()
-            print(f"DEBUG: Read {len(tasks)} tasks")
-            updated = False
-            
-            for task in tasks:
-                if task.get("status") == "pending":
-                    print(f"Found new pending task #{task['id']}")
-                    
-                    # Always delegate tasks to VSCode Agent as requested by user
-                    print(f"Task #{task['id']} delegated to VSCode...")
-                    task["status"] = "pending_vscode"
-                    updated = True
-                    continue
-                    
-                    # Update status to running locally
-                    task["status"] = "running"
-                    
-                    # Get thread history context
-                    history = build_history_context(task, tasks)
-                    if history:
-                        print(f"Loaded context history with {len(history)} messages")
-                    
-                    # Execute task
-                    result = execute_ai_task(task["text"], history)
-                    
-                    # Send response back to Telegram channel
-                    escaped_result = clean_markdown_for_telegram(result)
-                    reply_msg_id = send_telegram_reply(task["message_id"], escaped_result)
-                    if reply_msg_id:
-                        task["reply_message_id"] = reply_msg_id
-                    
-                    # Delete the status message 'Ок' if present
-                    status_msg_id = task.get("status_message_id")
-                    if status_msg_id:
-                        print(f"Deleting status message {status_msg_id}...")
-                        delete_telegram_message(status_msg_id)
-                    
-                    # Save completed task to semantic memory
-                    try:
-                        from scripts.jarvis_memory import add_memory
-                        memory_text = f"Пользователь спросил: {task['text']}\nОтвет ИИ-агента (ты): {result}"
-                        add_memory(memory_text, {"task_id": task["id"], "type": "task_completed"})
-                        print(f"Task #{task['id']} successfully recorded to semantic memory.")
-                    except Exception as me:
-                        print(f"Failed to save task to semantic memory: {me}")
-                    
-                    # Update task state to completed
-                    task["status"] = "completed"
-                    task["result"] = result
-                    task["completed_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
-                    updated = True
-            
-            if updated:
-                gh_write_tasks(tasks, message="task: completed execution")
-                
+            print("DEBUG: Loop iteration started (10m backup)...")
+            from scripts.process_pending_tasks import process_tasks
+            process_tasks()
         except Exception as e:
             print(f"Error in task listener loop: {e}")
             
