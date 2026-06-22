@@ -71,6 +71,26 @@ try:
         def get(self):
             self.write("OK")
             
+    class ListMediaHandler(tornado.web.RequestHandler):
+        def get(self):
+            try:
+                media_dir = Path(__file__).parent.parent / "docs" / "articles" / "media"
+                if not media_dir.exists():
+                    self.write({"status": "error", "message": f"{media_dir} does not exist"})
+                    return
+                files = []
+                for f in media_dir.iterdir():
+                    if f.is_file():
+                        files.append({
+                            "name": f.name,
+                            "size": f.stat().st_size,
+                            "mtime": f.stat().st_mtime
+                        })
+                files.sort(key=lambda x: x["mtime"], reverse=True)
+                self.write({"status": "ok", "files": files})
+            except Exception as e:
+                self.write({"status": "error", "message": str(e)})
+            
     class PCWakeupWebSocketHandler(tornado.websocket.WebSocketHandler):
         def check_origin(self, origin):
             return True
@@ -118,31 +138,29 @@ try:
 
     async def transcribe_via_local_pc_impl(audio_path):
         if not ws_clients:
-            log.info("No PC WebSocket client connected. Skipping local transcription.")
+            log.warning("No PC Task Listener WebSocket clients connected! Cannot transcribe locally.")
             return None
             
-        import base64
         import uuid
-        import asyncio
-        
+        import base64
         req_id = str(uuid.uuid4())
-        log.info("Starting local PC transcription for %s. Request ID: %s", audio_path.name, req_id)
         
         try:
-            with open(audio_path, "rb") as f:
-                audio_data = base64.b64encode(f.read()).decode("utf-8")
-                
-            loop = asyncio.get_running_loop()
-            future = loop.create_future()
-            pending_transcriptions[req_id] = future
+            audio_bytes = Path(audio_path).read_bytes()
+            audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
+            file_ext = Path(audio_path).suffix
             
             payload = json.dumps({
                 "type": "transcribe_request",
                 "request_id": req_id,
-                "audio_data": audio_data,
-                "file_ext": audio_path.suffix or ".ogg"
+                "audio_b64": audio_b64,
+                "file_ext": file_ext
             })
             
+            future = asyncio.get_running_loop().create_future()
+            pending_transcriptions[req_id] = future
+            
+            log.info("Sending transcribe request #%s to client (size: %d bytes)", req_id, len(audio_bytes))
             for client in list(ws_clients):
                 try:
                     client.write_message(payload)
@@ -182,6 +200,8 @@ try:
         handlers = [
             (r"/?", RootHandler),
             (r"/ws/wakeup/?", PCWakeupWebSocketHandler),
+            (r"/list-media/?", ListMediaHandler),
+            (r"/media/(.*)", tornado.web.StaticFileHandler, {"path": str(Path(__file__).parent.parent / "docs" / "articles" / "media")}),
             (rf"{webhook_path}/?", TelegramHandler, self.shared_objects)
         ]
         tornado.web.Application.__init__(self, handlers, websocket_max_message_size=67108864)
