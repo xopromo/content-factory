@@ -582,17 +582,6 @@ def execute_ai_task(task_text, history=None):
         return f"Ошибка при выполнении задачи: {e}"
 
 def resolve_chat_id(message_id=None):
-    if not message_id:
-        return -1004378273791
-    try:
-        tasks = gh_read_tasks()
-        for t in tasks:
-            if t.get("message_id") == message_id or t.get("status_message_id") == message_id:
-                if t.get("chat_id"):
-                    print(f"Auto-routed chat_id={t['chat_id']} from tasks.json for message_id={message_id}")
-                    return t["chat_id"]
-    except Exception as e:
-        print(f"Error auto-routing chat_id: {e}")
     return -1004378273791
 
 def send_telegram_photo(file_path, caption="", chat_id=None, reply_to_message_id=None):
