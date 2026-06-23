@@ -42,6 +42,8 @@ def run_task_processor():
             cwd=str(ROOT),
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=180
         )
         log.info("Task processor finished with exit code %d", res.returncode)
@@ -213,7 +215,7 @@ def handle_chatops_request(ws, request_id, command, args):
                     
         elif command == "cmd":
             cmd_str = " ".join(args)
-            res = subprocess.run(cmd_str, capture_output=True, text=True, shell=True, timeout=45)
+            res = subprocess.run(cmd_str, capture_output=True, text=True, encoding="utf-8", errors="replace", shell=True, timeout=45)
             output = ""
             if res.stdout:
                 output += res.stdout
