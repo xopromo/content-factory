@@ -93,6 +93,7 @@ def git_pull():
     env = os.environ.copy()
     env["GIT_TERMINAL_PROMPT"] = "0"
     
+    fetch_success = False
     # Try git fetch with retries
     for attempt in range(3):
         try:
@@ -107,6 +108,7 @@ def git_pull():
             )
             print(f"DEBUG: git fetch attempt {attempt + 1} finished, code={res_fetch.returncode}")
             if res_fetch.returncode == 0:
+                fetch_success = True
                 break
             print(f"git fetch failed (attempt {attempt + 1}/3): {res_fetch.stderr.decode('utf-8', errors='ignore').strip()}")
         except subprocess.TimeoutExpired:
@@ -114,6 +116,9 @@ def git_pull():
         except Exception as e:
             print(f"git fetch exception: {e}")
         time.sleep(2)
+        
+    if not fetch_success:
+        raise RuntimeError("git fetch failed after 3 attempts")
         
     try:
         # Force reset to origin to ensure we are exactly matched and have no merge/rebase issues
@@ -129,9 +134,10 @@ def git_pull():
         )
         print(f"DEBUG: git reset finished, code={res.returncode}")
         if res.returncode != 0:
-            print(f"git reset failed: {res.stderr.strip()}")
+            raise RuntimeError(f"git reset failed: {res.stderr.strip()}")
     except Exception as e:
         print(f"git pull exception during reset: {e}")
+        raise e
 
 def git_push(message):
     import subprocess
@@ -575,9 +581,24 @@ def execute_ai_task(task_text, history=None):
     except Exception as e:
         return f"Ошибка при выполнении задачи: {e}"
 
-def send_telegram_photo(file_path, caption=""):
+def resolve_chat_id(message_id=None):
+    if not message_id:
+        return -1004378273791
+    try:
+        tasks = gh_read_tasks()
+        for t in tasks:
+            if t.get("message_id") == message_id or t.get("status_message_id") == message_id:
+                if t.get("chat_id"):
+                    print(f"Auto-routed chat_id={t['chat_id']} from tasks.json for message_id={message_id}")
+                    return t["chat_id"]
+    except Exception as e:
+        print(f"Error auto-routing chat_id: {e}")
+    return -1004378273791
+
+def send_telegram_photo(file_path, caption="", chat_id=None, reply_to_message_id=None):
     token = os.environ.get("TG_BOT_TOKEN")
-    channel_id = -1004378273791
+    if not chat_id:
+        chat_id = resolve_chat_id(reply_to_message_id)
     if not token or not file_path.exists():
         return None
     url = f"https://api.telegram.org/bot{token}/sendPhoto"
@@ -590,8 +611,14 @@ def send_telegram_photo(file_path, caption=""):
     parts.append(f"--{boundary}")
     parts.append(f'Content-Disposition: form-data; name="chat_id"')
     parts.append("")
-    parts.append(str(channel_id))
+    parts.append(str(chat_id))
     
+    if reply_to_message_id:
+        parts.append(f"--{boundary}")
+        parts.append(f'Content-Disposition: form-data; name="reply_to_message_id"')
+        parts.append("")
+        parts.append(str(reply_to_message_id))
+        
     if caption:
         parts.append(f"--{boundary}")
         parts.append(f'Content-Disposition: form-data; name="caption"')
@@ -658,9 +685,10 @@ def send_telegram_photo(file_path, caption=""):
             
     return None
 
-def send_telegram_document(file_path, caption="", reply_to_message_id=None):
+def send_telegram_document(file_path, caption="", reply_to_message_id=None, chat_id=None):
     token = os.environ.get("TG_BOT_TOKEN")
-    channel_id = -1004378273791
+    if not chat_id:
+        chat_id = resolve_chat_id(reply_to_message_id)
     if not token or not file_path.exists():
         return None
     url = f"https://api.telegram.org/bot{token}/sendDocument"
@@ -673,7 +701,7 @@ def send_telegram_document(file_path, caption="", reply_to_message_id=None):
     parts.append(f"--{boundary}")
     parts.append(f'Content-Disposition: form-data; name="chat_id"')
     parts.append("")
-    parts.append(str(channel_id))
+    parts.append(str(chat_id))
     
     if reply_to_message_id:
         parts.append(f"--{boundary}")
@@ -861,14 +889,15 @@ def clean_markdown_for_telegram(text):
         
     return "\n".join(cleaned_lines)
 
-def send_telegram_reply(message_id, reply_text):
+def send_telegram_reply(message_id, reply_text, chat_id=None):
     token = os.environ.get("TG_BOT_TOKEN")
-    channel_id = -1004378273791
+    if not chat_id:
+        chat_id = resolve_chat_id(message_id)
     if not token:
         return None
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     payload = {
-        "chat_id": channel_id,
+        "chat_id": chat_id,
         "text": reply_text,
         "parse_mode": "HTML"
     }
@@ -932,7 +961,7 @@ def send_telegram_reply(message_id, reply_text):
             
     return None
 
-def edit_telegram_status(status_message_id, text):
+def edit_telegram_status(status_message_id, text, chat_id=None):
     if not status_message_id:
         return False
         
@@ -946,12 +975,13 @@ def edit_telegram_status(status_message_id, text):
         text = re.sub(r"(<b>)?\[\d+%\](</b>)?", f"<b>[{bar}] {pct}%</b>", text)
 
     token = os.environ.get("TG_BOT_TOKEN")
-    channel_id = -1004378273791
+    if not chat_id:
+        chat_id = resolve_chat_id(status_message_id)
     if not token:
         return False
     url = f"https://api.telegram.org/bot{token}/editMessageText"
     payload = {
-        "chat_id": channel_id,
+        "chat_id": chat_id,
         "message_id": int(status_message_id),
         "text": text,
         "parse_mode": "HTML"
@@ -1011,16 +1041,17 @@ def edit_telegram_status(status_message_id, text):
             
     return False
 
-def delete_telegram_message(message_id):
+def delete_telegram_message(message_id, chat_id=None):
     if not message_id:
         return False
     token = os.environ.get("TG_BOT_TOKEN")
-    channel_id = -1004378273791
+    if not chat_id:
+        chat_id = resolve_chat_id(message_id)
     if not token:
         return False
     url = f"https://api.telegram.org/bot{token}/deleteMessage"
     payload = {
-        "chat_id": channel_id,
+        "chat_id": chat_id,
         "message_id": message_id
     }
     

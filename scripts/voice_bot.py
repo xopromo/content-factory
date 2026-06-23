@@ -1324,6 +1324,7 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                     
                     new_task = {
                         "id": next_id,
+                        "chat_id": update.effective_chat.id,
                         "message_id": task_msg.message_id,
                         "reply_to_message_id": ctx.user_data.get("reply_to_message_id"),
                         "text": text,
@@ -3439,6 +3440,7 @@ async def handle_link_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> 
             task_id = str(new_id)
             new_task = {
                 "id": new_id,
+                "chat_id": update.effective_chat.id,
                 "message_id": update.message.message_id,
                 "status_message_id": status_msg.message_id,
                 "reply_to_message_id": ctx.user_data.get("pending_link_msg_id"),
@@ -3478,6 +3480,7 @@ async def handle_link_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> 
             task_id = str(new_id)
             new_task = {
                 "id": new_id,
+                "chat_id": update.effective_chat.id,
                 "message_id": update.message.message_id,
                 "status_message_id": status_msg.message_id,
                 "reply_to_message_id": ctx.user_data.get("pending_link_msg_id"),
@@ -4174,6 +4177,7 @@ async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         
         new_task = {
             "id": next_id,
+            "chat_id": update.effective_chat.id,
             "message_id": msg.message_id,
             "status_message_id": status_msg.message_id,
             "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None,
@@ -4225,6 +4229,7 @@ async def handle_channel_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -
         
         new_task = {
             "id": next_id,
+            "chat_id": update.effective_chat.id,
             "message_id": msg.message_id,
             "status_message_id": status_msg.message_id,
             "reply_to_message_id": msg.reply_to_message.message_id if msg.reply_to_message else None,

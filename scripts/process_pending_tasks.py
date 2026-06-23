@@ -64,11 +64,74 @@ def notify_vscode_agent(task_id, prompt, conv_id, task_details):
         print(f"Error notifying VSCode agent: {e}")
         return False
 
+def is_pid_running(pid):
+    if pid <= 0:
+        return False
+    if sys.platform == "win32":
+        import ctypes
+        handle = ctypes.windll.kernel32.OpenProcess(0x1000, False, pid)
+        if handle:
+            ctypes.windll.kernel32.CloseHandle(handle)
+            return True
+        else:
+            err = ctypes.windll.kernel32.GetLastError()
+            if err == 5:  # ERROR_ACCESS_DENIED
+                return True
+            return False
+    else:
+        try:
+            os.kill(pid, 0)
+            return True
+        except OSError:
+            return False
+
+def acquire_lock():
+    lock_file = ROOT / "scratch" / "process_tasks.lock"
+    lock_file.parent.mkdir(parents=True, exist_ok=True)
+    if lock_file.exists():
+        try:
+            content = lock_file.read_text(encoding="utf-8").strip()
+            if content:
+                pid = int(content)
+                if is_pid_running(pid):
+                    print(f"Another task processor (PID {pid}) is already running. Exiting.")
+                    return False
+                else:
+                    print(f"Stale lock file found (PID {pid} is not running). Removing it.")
+        except Exception as e:
+            print(f"Error checking lock file: {e}. Overwriting.")
+            
+    try:
+        lock_file.write_text(str(os.getpid()), encoding="utf-8")
+        return True
+    except Exception as e:
+        print(f"Failed to write lock file: {e}")
+        return False
+
+def release_lock():
+    lock_file = ROOT / "scratch" / "process_tasks.lock"
+    if lock_file.exists():
+        try:
+            lock_file.unlink()
+        except Exception as e:
+            print(f"Failed to release lock file: {e}")
+
 def process_tasks():
+    if not acquire_lock():
+        return
+    try:
+        _process_tasks_inner()
+    finally:
+        release_lock()
+
+def _process_tasks_inner():
     print("Performing git pull...")
     git_pull()
     
     tasks = gh_read_tasks()
+    if not tasks:
+        print("No tasks found or failed to read tasks.json. Aborting to prevent truncation.")
+        return
     updated = False
     had_tasks = False
     

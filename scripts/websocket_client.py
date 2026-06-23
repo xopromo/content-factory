@@ -396,8 +396,11 @@ def start_client():
                 on_error=on_error,
                 on_close=on_close
             )
+            t_start = time.time()
             # This blocks until connection is closed
             ws.run_forever(ping_interval=30, ping_timeout=10)
+            if time.time() - t_start > 10:
+                backoff = 2
         except Exception as e:
             log.error("WebSocket run_forever crashed: %s", e)
             

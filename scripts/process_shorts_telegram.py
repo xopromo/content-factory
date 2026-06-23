@@ -110,6 +110,7 @@ def main():
     parser.add_argument("--task-id", type=int, help="Git Task ID")
     parser.add_argument("--comments-count", type=int, default=7, help="Number of comments")
     parser.add_argument("--skip-original", action="store_true", help="Skip clean original search")
+    parser.add_argument("--banner-type", default="base", choices=["base", "emoji"], help="Comments banner type")
     args = parser.parse_args()
 
     token = os.environ.get("TG_BOT_TOKEN")
@@ -143,6 +144,9 @@ def main():
         
     if args.comments_count:
         cmd.extend(["--comments-count", str(args.comments_count)])
+        
+    if args.banner_type:
+        cmd.extend(["--banner-type", args.banner_type])
 
     print(f"Running CLI command: {' '.join(cmd)}")
     
