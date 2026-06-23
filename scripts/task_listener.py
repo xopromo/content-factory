@@ -23,6 +23,7 @@ import time
 import urllib.request
 import urllib.parse
 import traceback
+import requests
 from pathlib import Path
 
 # Add project root to path
@@ -592,85 +593,59 @@ def send_telegram_photo(file_path, caption="", chat_id=None, reply_to_message_id
         return None
     url = f"https://api.telegram.org/bot{token}/sendPhoto"
     
-    file_bytes = file_path.read_bytes()
-    file_name = file_path.name
-    boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
-    
-    parts = []
-    parts.append(f"--{boundary}")
-    parts.append(f'Content-Disposition: form-data; name="chat_id"')
-    parts.append("")
-    parts.append(str(chat_id))
-    
+    data = {"chat_id": str(chat_id)}
     if reply_to_message_id:
-        parts.append(f"--{boundary}")
-        parts.append(f'Content-Disposition: form-data; name="reply_to_message_id"')
-        parts.append("")
-        parts.append(str(reply_to_message_id))
-        
+        data["reply_to_message_id"] = str(reply_to_message_id)
     if caption:
-        parts.append(f"--{boundary}")
-        parts.append(f'Content-Disposition: form-data; name="caption"')
-        parts.append("")
-        parts.append(caption)
+        data["caption"] = caption
+        data["parse_mode"] = "HTML"
         
-    parts.append(f"--{boundary}")
-    parts.append(f'Content-Disposition: form-data; name="photo"; filename="{file_name}"')
-    parts.append("Content-Type: image/png")
-    parts.append("")
-    
-    header_data = "\r\n".join(parts).encode("utf-8") + b"\r\n"
-    footer_data = f"\r\n--{boundary}--\r\n".encode("utf-8")
-    
-    body = header_data + file_bytes + footer_data
-    
-    headers = {
-        "Content-Type": f"multipart/form-data; boundary={boundary}",
-        "Content-Length": str(len(body))
-    }
-    
-    # Try direct send first
     try:
-        req = urllib.request.Request(url, data=body, headers=headers)
-        with urllib.request.urlopen(req, timeout=20) as r:
-            res_data = json.loads(r.read())
-            return res_data.get("result", {}).get("message_id")
-    except Exception as direct_err:
-        print(f"Direct Telegram photo send failed: {direct_err}. Attempting via proxy...")
-        
-    # Proxy fallback
-    proxy_file = ROOT / "proxies.txt"
-    if proxy_file.exists():
-        try:
-            from scripts.check_proxies import parse_proxy_line
-            lines = proxy_file.read_text(encoding="utf-8", errors="ignore").splitlines()
-            valid_proxies = []
-            for line in lines:
-                parsed = parse_proxy_line(line)
-                if parsed and parsed.get("type") in ("socks5", "http"):
-                    valid_proxies.append(parsed)
-            
-            print(f"Found {len(valid_proxies)} proxies in proxies.txt for retry")
-            for p in valid_proxies[:5]:
-                try:
-                    proxy_url = ""
-                    if p["username"] and p["password"]:
-                        proxy_url = f"{p['type']}://{p['username']}:{p['password']}@{p['server']}:{p['port']}"
-                    else:
-                        proxy_url = f"{p['type']}://{p['server']}:{p['port']}"
-                        
-                    proxy_handler = urllib.request.ProxyHandler({'http': proxy_url, 'https': proxy_url})
-                    opener = urllib.request.build_opener(proxy_handler)
-                    
-                    req = urllib.request.Request(url, data=body, headers=headers)
-                    with opener.open(req, timeout=20) as r:
-                        res_data = json.loads(r.read())
-                        print(f"Successfully sent Telegram photo via proxy: {proxy_url[:40]}")
+        with open(file_path, "rb") as f:
+            files = {"photo": (file_path.name, f, "image/png")}
+            try:
+                resp = requests.post(url, data=data, files=files, timeout=20)
+                if resp.status_code == 200:
+                    res_data = resp.json()
+                    if res_data.get("ok"):
                         return res_data.get("result", {}).get("message_id")
-                except Exception as proxy_err:
-                    print(f"Proxy photo send failed: {proxy_err}")
-        except Exception as e:
-            print(f"Failed to run proxy photo fallback: {e}")
+            except Exception as direct_err:
+                print(f"Direct Telegram photo send failed: {direct_err}. Attempting via proxy...")
+                
+            proxy_file = ROOT / "proxies.txt"
+            if proxy_file.exists():
+                try:
+                    from scripts.check_proxies import parse_proxy_line
+                    lines = proxy_file.read_text(encoding="utf-8", errors="ignore").splitlines()
+                    valid_proxies = []
+                    for line in lines:
+                        parsed = parse_proxy_line(line)
+                        if parsed and parsed.get("type") in ("socks5", "http"):
+                            valid_proxies.append(parsed)
+                    
+                    print(f"Found {len(valid_proxies)} proxies in proxies.txt for retry")
+                    for p in valid_proxies[:5]:
+                        try:
+                            proxy_url = f"{p['type']}://{p['username']}:{p['password']}@{p['server']}:{p['port']}" if p["username"] and p["password"] else f"{p['type']}://{p['server']}:{p['port']}"
+                            f.seek(0)
+                            resp = requests.post(
+                                url,
+                                data=data,
+                                files={"photo": (file_path.name, f, "image/png")},
+                                proxies={"http": proxy_url, "https": proxy_url},
+                                timeout=20
+                            )
+                            if resp.status_code == 200:
+                                res_data = resp.json()
+                                if res_data.get("ok"):
+                                    print(f"Successfully sent Telegram photo via proxy: {proxy_url[:40]}")
+                                    return res_data.get("result", {}).get("message_id")
+                        except Exception as proxy_err:
+                            print(f"Proxy photo send failed: {proxy_err}")
+                except Exception as e:
+                    print(f"Failed to run proxy photo fallback: {e}")
+    except Exception as e:
+        print(f"Failed to open photo file: {e}")
             
     return None
 
@@ -682,85 +657,61 @@ def send_telegram_document(file_path, caption="", reply_to_message_id=None, chat
         return None
     url = f"https://api.telegram.org/bot{token}/sendDocument"
     
-    file_bytes = file_path.read_bytes()
-    file_name = file_path.name
-    boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
-    
-    parts = []
-    parts.append(f"--{boundary}")
-    parts.append(f'Content-Disposition: form-data; name="chat_id"')
-    parts.append("")
-    parts.append(str(chat_id))
-    
+    data = {"chat_id": str(chat_id)}
     if reply_to_message_id:
-        parts.append(f"--{boundary}")
-        parts.append(f'Content-Disposition: form-data; name="reply_to_message_id"')
-        parts.append("")
-        parts.append(str(reply_to_message_id))
-        
+        data["reply_to_message_id"] = str(reply_to_message_id)
     if caption:
-        parts.append(f"--{boundary}")
-        parts.append(f'Content-Disposition: form-data; name="caption"')
-        parts.append("")
-        parts.append(caption)
+        data["caption"] = caption
+        data["parse_mode"] = "HTML"
         
-    parts.append(f"--{boundary}")
-    parts.append(f'Content-Disposition: form-data; name="document"; filename="{file_name}"')
-    parts.append("Content-Type: application/octet-stream")
-    parts.append("")
-    
-    header_data = "\r\n".join(parts).encode("utf-8") + b"\r\n"
-    footer_data = f"\r\n--{boundary}--\r\n".encode("utf-8")
-    
-    body = header_data + file_bytes + footer_data
-    
-    headers = {
-        "Content-Type": f"multipart/form-data; boundary={boundary}",
-        "Content-Length": str(len(body))
-    }
-    
-    # Try direct send first
     try:
-        req = urllib.request.Request(url, data=body, headers=headers)
-        with urllib.request.urlopen(req, timeout=20) as r:
-            res_data = json.loads(r.read())
-            return res_data.get("result", {}).get("message_id")
-    except Exception as direct_err:
-        print(f"Direct Telegram document send failed: {direct_err}. Attempting via proxy...")
-        
-    # Proxy fallback
-    proxy_file = ROOT / "proxies.txt"
-    if proxy_file.exists():
-        try:
-            from scripts.check_proxies import parse_proxy_line
-            lines = proxy_file.read_text(encoding="utf-8", errors="ignore").splitlines()
-            valid_proxies = []
-            for line in lines:
-                parsed = parse_proxy_line(line)
-                if parsed and parsed.get("type") in ("socks5", "http"):
-                    valid_proxies.append(parsed)
-            
-            print(f"Found {len(valid_proxies)} proxies in proxies.txt for retry")
-            for p in valid_proxies[:5]:
-                try:
-                    proxy_url = ""
-                    if p["username"] and p["password"]:
-                        proxy_url = f"{p['type']}://{p['username']}:{p['password']}@{p['server']}:{p['port']}"
-                    else:
-                        proxy_url = f"{p['type']}://{p['server']}:{p['port']}"
-                        
-                    proxy_handler = urllib.request.ProxyHandler({'http': proxy_url, 'https': proxy_url})
-                    opener = urllib.request.build_opener(proxy_handler)
-                    
-                    req = urllib.request.Request(url, data=body, headers=headers)
-                    with opener.open(req, timeout=20) as r:
-                        res_data = json.loads(r.read())
-                        print(f"Successfully sent Telegram document via proxy: {proxy_url[:40]}")
+        with open(file_path, "rb") as f:
+            files = {"document": (file_path.name, f, "application/octet-stream")}
+            try:
+                resp = requests.post(url, data=data, files=files, timeout=20)
+                if resp.status_code == 200:
+                    res_data = resp.json()
+                    if res_data.get("ok"):
                         return res_data.get("result", {}).get("message_id")
-                except Exception as proxy_err:
-                    print(f"Proxy document send failed: {proxy_err}")
-        except Exception as e:
-            print(f"Failed to run proxy document fallback: {e}")
+            except Exception as direct_err:
+                print(f"Direct Telegram document send failed: {direct_err}. Attempting via proxy...")
+                
+            proxy_file = ROOT / "proxies.txt"
+            if proxy_file.exists():
+                try:
+                    from scripts.check_proxies import parse_proxy_line
+                    lines = proxy_file.read_text(encoding="utf-8", errors="ignore").splitlines()
+                    valid_proxies = []
+                    for line in lines:
+                        parsed = parse_proxy_line(line)
+                        if parsed and parsed.get("type") in ("socks5", "http"):
+                            valid_proxies.append(parsed)
+                    
+                    print(f"Found {len(valid_proxies)} proxies in proxies.txt for retry")
+                    for p in valid_proxies[:5]:
+                        try:
+                            proxy_url = f"{p['type']}://{p['username']}:{p['password']}@{p['server']}:{p['port']}" if p["username"] and p["password"] else f"{p['type']}://{p['server']}:{p['port']}"
+                            f.seek(0)
+                            resp = requests.post(
+                                url,
+                                data=data,
+                                files={"document": (file_path.name, f, "application/octet-stream")},
+                                proxies={"http": proxy_url, "https": proxy_url},
+                                timeout=20
+                            )
+                            if resp.status_code == 200:
+                                res_data = resp.json()
+                                if res_data.get("ok"):
+                                    print(f"Successfully sent Telegram document via proxy: {proxy_url[:40]}")
+                                    return res_data.get("result", {}).get("message_id")
+                        except Exception as proxy_err:
+                            print(f"Proxy document send failed: {proxy_err}")
+                except Exception as e:
+                    print(f"Failed to run proxy document fallback: {e}")
+    except Exception as e:
+        print(f"Failed to open document file: {e}")
+            
+    return None
             
 def convert_markdown_tables(text):
     if not text:
@@ -892,21 +843,18 @@ def send_telegram_reply(message_id, reply_text, chat_id=None):
     }
     if message_id:
         payload["reply_to_message_id"] = message_id
-    
+        
     # Try direct send first
     try:
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"}
-        )
-        with urllib.request.urlopen(req, timeout=10) as r:
-            res_data = json.loads(r.read())
-            return res_data.get("result", {}).get("message_id")
+        resp = requests.post(url, json=payload, timeout=10)
+        if resp.status_code == 200:
+            res_data = resp.json()
+            if res_data.get("ok"):
+                return res_data.get("result", {}).get("message_id")
     except Exception as direct_err:
         print(f"Direct Telegram send failed: {direct_err}. Attempting via proxy...")
         
-    # Proxy fallback: parse proxies.txt and try them
+    # Proxy fallback
     proxy_file = ROOT / "proxies.txt"
     if proxy_file.exists():
         try:
@@ -919,30 +867,20 @@ def send_telegram_reply(message_id, reply_text, chat_id=None):
                     valid_proxies.append(parsed)
             
             print(f"Found {len(valid_proxies)} proxies in proxies.txt for retry")
-            
-            # Try first 5 proxies
             for p in valid_proxies[:5]:
                 try:
-                    # urllib imported globally
-                    # Create opener with proxy
-                    proxy_url = ""
-                    if p["username"] and p["password"]:
-                        proxy_url = f"{p['type']}://{p['username']}:{p['password']}@{p['server']}:{p['port']}"
-                    else:
-                        proxy_url = f"{p['type']}://{p['server']}:{p['port']}"
-                        
-                    proxy_handler = urllib.request.ProxyHandler({'http': proxy_url, 'https': proxy_url})
-                    opener = urllib.request.build_opener(proxy_handler)
-                    
-                    req = urllib.request.Request(
+                    proxy_url = f"{p['type']}://{p['username']}:{p['password']}@{p['server']}:{p['port']}" if p["username"] and p["password"] else f"{p['type']}://{p['server']}:{p['port']}"
+                    resp = requests.post(
                         url,
-                        data=json.dumps(payload).encode("utf-8"),
-                        headers={"Content-Type": "application/json"}
+                        json=payload,
+                        proxies={"http": proxy_url, "https": proxy_url},
+                        timeout=10
                     )
-                    with opener.open(req, timeout=8) as r:
-                        res_data = json.loads(r.read())
-                        print(f"Successfully sent Telegram reply via proxy: {proxy_url[:40]}")
-                        return res_data.get("result", {}).get("message_id")
+                    if resp.status_code == 200:
+                        res_data = resp.json()
+                        if res_data.get("ok"):
+                            print(f"Successfully sent Telegram reply via proxy: {proxy_url[:40]}")
+                            return res_data.get("result", {}).get("message_id")
                 except Exception as proxy_err:
                     print(f"Proxy send failed: {proxy_err}")
         except Exception as e:
@@ -1046,12 +984,8 @@ def delete_telegram_message(message_id, chat_id=None):
     
     # Try direct first
     try:
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"}
-        )
-        with urllib.request.urlopen(req, timeout=10) as r:
+        resp = requests.post(url, json=payload, timeout=10)
+        if resp.status_code == 200 and resp.json().get("ok"):
             return True
     except Exception as direct_err:
         print(f"Direct Telegram delete failed: {direct_err}. Attempting via proxy...")
@@ -1070,27 +1004,21 @@ def delete_telegram_message(message_id, chat_id=None):
             
             for p in valid_proxies[:5]:
                 try:
-                    proxy_url = ""
-                    if p["username"] and p["password"]:
-                        proxy_url = f"{p['type']}://{p['username']}:{p['password']}@{p['server']}:{p['port']}"
-                    else:
-                        proxy_url = f"{p['type']}://{p['server']}:{p['port']}"
-                        
-                    proxy_handler = urllib.request.ProxyHandler({'http': proxy_url, 'https': proxy_url})
-                    opener = urllib.request.build_opener(proxy_handler)
-                    
-                    req = urllib.request.Request(
+                    proxy_url = f"{p['type']}://{p['username']}:{p['password']}@{p['server']}:{p['port']}" if p["username"] and p["password"] else f"{p['type']}://{p['server']}:{p['port']}"
+                    resp = requests.post(
                         url,
-                        data=json.dumps(payload).encode("utf-8"),
-                        headers={"Content-Type": "application/json"}
+                        json=payload,
+                        proxies={"http": proxy_url, "https": proxy_url},
+                        timeout=8
                     )
-                    with opener.open(req, timeout=8) as r:
+                    if resp.status_code == 200 and resp.json().get("ok"):
                         print(f"Successfully deleted Telegram message via proxy: {proxy_url[:40]}")
                         return True
                 except Exception as proxy_err:
                     pass
         except Exception:
             pass
+            
     return False
 
 def run_proactive_checks_loop():

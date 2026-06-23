@@ -2986,15 +2986,30 @@ async def handle_forwarded_message(update: Update, ctx: ContextTypes.DEFAULT_TYP
     count = len(ctx.user_data["forward_buffer"])
     msg = await update.message.reply_text(
         f"📥 Сообщение добавлено в буфер (всего собранных сообщений: {count}).\n\n"
-        f"Вы можете переслать ещё сообщения или выбрать действие на клавиатуре:",
+        f"Вы можете переслать ещё сообщения, выбрать действие на клавиатуре, "
+        f"или просто прислать текстом / наговорить голосом инструкцию, что нужно сделать с этими материалами:",
         reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     )
     ctx.user_data["forward_status_msg_id"] = msg.message_id
     return WAIT_FORWARD_ACTION
 
 async def handle_forward_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
-    action = update.message.text.strip()
+    instruction = ""
+    is_media_instruction = False
+    
+    if update.message.text:
+        instruction = update.message.text.strip()
+    elif update.message.voice or update.message.audio or update.message.video or update.message.video_note:
+        is_media_instruction = True
+        status_msg = await update.message.reply_text("🎙️ Распознаю ваш голос...")
+        instruction = await _download_and_transcribe_media(update.message, ctx, status_msg=status_msg)
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
+
     buffer = ctx.user_data.get("forward_buffer", [])
+    media_files = ctx.user_data.get("forward_media", [])
 
     if "forward_status_msg_id" in ctx.user_data:
         try:
@@ -3003,90 +3018,149 @@ async def handle_forward_action(update: Update, ctx: ContextTypes.DEFAULT_TYPE) 
             pass
         ctx.user_data.pop("forward_status_msg_id", None)
 
-    if not buffer and action != "🧹 Очистить буфер":
-        await update.message.reply_text("Буфер пересланных сообщений пуст.", reply_markup=MAIN_KEYBOARD)
-        return ConversationHandler.END
+    # Predefined buttons
+    action_buttons = ["🧹 Очистить буфер", "📝 Пост+Коммент", "📚 Добавить в базу знаний", "🚀 Создать статью", "📰 Создать новость", "🏠"]
+    
+    if not is_media_instruction and instruction in action_buttons:
+        action = instruction
+        if not buffer and action != "🧹 Очистить буфер":
+            await update.message.reply_text("Буфер пересланных сообщений пуст.", reply_markup=MAIN_KEYBOARD)
+            return ConversationHandler.END
 
-    combined_text = "\n\n---\n\n".join(buffer)
+        combined_text = "\n\n---\n\n".join(buffer)
 
-    if action == "🧹 Очистить буфер":
+        if action == "🧹 Очистить буфер":
+            ctx.user_data.pop("forward_buffer", None)
+            ctx.user_data.pop("forward_media", None)
+            ctx.user_data.pop("forward_media_ids", None)
+            await update.message.reply_text("🧹 Буфер пересланных сообщений очищен.", reply_markup=MAIN_KEYBOARD)
+            return ConversationHandler.END
+
+        elif action == "📝 Пост+Коммент":
+            ctx.user_data["text"] = combined_text
+            ctx.user_data["waiting_comment"] = True
+            # Keep forward_media_ids in user_data to append them to the comment post later
+            ctx.user_data.pop("forward_buffer", None)
+            ctx.user_data.pop("forward_media", None)
+            await update.message.reply_text(
+                "🎙 <b>Режим «Пост+Коммент»</b>\n\n"
+                "Запишите ваш голосовой комментарий или пришлите его текстом. "
+                "Я оформлю исходный пост в виде цитаты и прикреплю ваш комментарий.",
+                parse_mode="HTML",
+                reply_markup=NAV_KEYBOARD
+            )
+            return WAIT_POST_COMMENT
+
+        elif action == "📚 Добавить в базу знаний":
+            ctx.user_data["text"] = combined_text
+            ctx.user_data["duration"] = 0
+            
+            ctx.user_data.pop("forward_buffer", None)
+            ctx.user_data.pop("forward_media", None)
+
+            keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
+            await update.message.reply_text(
+                "Выбери категорию для базы знаний:",
+                reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
+            )
+            return WAIT_CATEGORY
+
+        elif action == "🚀 Создать статью":
+            ctx.user_data["article_topic"] = combined_text
+            
+            ctx.user_data.pop("forward_buffer", None)
+            ctx.user_data.pop("forward_media", None)
+
+            keyboard = [
+                ["🎯 Статья для SEO и GEO"],
+                ["🔬 Статья-исследование"],
+                ["📰 Новостной обзор"],
+                ["🏠"]
+            ]
+            await update.message.reply_text(
+                f"🚀 <b>Создание задачи из репостов</b>\n\n"
+                f"Тема сформирована из пересланных сообщений.\n"
+                f"Выберите формат статьи:",
+                parse_mode="HTML",
+                reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+            )
+            return WAIT_ARTICLE_MODE
+
+        elif action == "📰 Создать новость":
+            ctx.user_data["news_item"] = {
+                "title": "Материалы из репоста",
+                "body": combined_text,
+                "url": ""
+            }
+            
+            ctx.user_data.pop("forward_buffer", None)
+            ctx.user_data.pop("forward_media", None)
+
+            await update.message.reply_text(
+                f"🎙 <b>Материалы из репоста</b>\n\n"
+                f"Запишите ваш экспертный комментарий к этим материалам: что думаете, согласны или нет, как это работает на практике?",
+                parse_mode="HTML",
+                reply_markup=NAV_KEYBOARD,
+            )
+            return WAIT_NEWS_VOICE
+            
+    else:
+        # Free-form user instruction for the buffered items
+        if not buffer and not media_files:
+            await update.message.reply_text("Буфер пересланных сообщений пуст.", reply_markup=MAIN_KEYBOARD)
+            return ConversationHandler.END
+
+        if not instruction:
+            await update.message.reply_text("Не удалось получить инструкцию. Пожалуйста, напишите текстом или отправьте голосовое.")
+            return WAIT_FORWARD_ACTION
+
+        status_msg = await update.message.reply_text("⚙️ Создаю задачу для ИИ-разработчика в VSCode...")
+
+        # Build task prompt
+        materials_desc = []
+        if buffer:
+            materials_desc.append("Текстовые материалы:\n" + "\n---\n".join(buffer))
+        if media_files:
+            materials_desc.append("Медиафайлы:\n" + "\n".join([f"- {m}" for m in media_files]))
+            
+        materials_text = "\n\n".join(materials_desc)
+        task_prompt = f"Пересланные материалы:\n{materials_text}\n\nИнструкция пользователя:\n{instruction}"
+
+        task_id = ""
+        try:
+            git_pull()
+            tasks = gh_read_tasks()
+            new_id = max([t.get("id", 0) for t in tasks] + [0]) + 1
+            task_id = str(new_id)
+            new_task = {
+                "id": new_id,
+                "chat_id": update.effective_chat.id,
+                "message_id": update.message.message_id,
+                "status_message_id": status_msg.message_id,
+                "reply_to_message_id": update.message.message_id,
+                "text": task_prompt,
+                "status": "pending_vscode",
+                "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+            tasks.append(new_task)
+            gh_write_tasks(tasks, message=f"task: create forwarded materials task #{task_id} via Telegram")
+            
+            await update.message.reply_text(
+                f"⚙️ <b>Задача #{task_id} создана!</b>\n\n"
+                f"Материалы и ваша инструкция переданы ИИ-разработчику в VSCode. "
+                f"Я оповещу вас, когда задача будет выполнена.",
+                parse_mode="HTML",
+                reply_markup=MAIN_KEYBOARD
+            )
+        except Exception as ge:
+            log.error("Failed to create forwarded task: %s", ge)
+            await update.message.reply_text(f"❌ Ошибка при создании задачи: {ge}", reply_markup=MAIN_KEYBOARD)
+
+        # Clean up buffer
         ctx.user_data.pop("forward_buffer", None)
         ctx.user_data.pop("forward_media", None)
         ctx.user_data.pop("forward_media_ids", None)
-        await update.message.reply_text("🧹 Буфер пересланных сообщений очищен.", reply_markup=MAIN_KEYBOARD)
         return ConversationHandler.END
-
-    elif action == "📝 Пост+Коммент":
-        ctx.user_data["text"] = combined_text
-        ctx.user_data["waiting_comment"] = True
-        # Keep forward_media_ids in user_data to append them to the comment post later
-        ctx.user_data.pop("forward_buffer", None)
-        ctx.user_data.pop("forward_media", None)
-        await update.message.reply_text(
-            "🎙 <b>Режим «Пост+Коммент»</b>\n\n"
-            "Запишите ваш голосовой комментарий или пришлите его текстом. "
-            "Я оформлю исходный пост в виде цитаты и прикреплю ваш комментарий.",
-            parse_mode="HTML",
-            reply_markup=NAV_KEYBOARD
-        )
-        return WAIT_POST_COMMENT
-
-    elif action == "📚 Добавить в базу знаний":
-        ctx.user_data["text"] = combined_text
-        ctx.user_data["duration"] = 0
-        
-        ctx.user_data.pop("forward_buffer", None)
-        ctx.user_data.pop("forward_media", None)
-
-        keyboard = [[cat] for cat in CATEGORIES] + [["➕ Своя категория"], ["🏠"]]
-        await update.message.reply_text(
-            "Выбери категорию для базы знаний:",
-            reply_markup=ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True),
-        )
-        return WAIT_CATEGORY
-
-    elif action == "🚀 Создать статью":
-        ctx.user_data["article_topic"] = combined_text
-        
-        ctx.user_data.pop("forward_buffer", None)
-        ctx.user_data.pop("forward_media", None)
-
-        keyboard = [
-            ["🎯 Статья для SEO и GEO"],
-            ["🔬 Статья-исследование"],
-            ["📰 Новостной обзор"],
-            ["🏠"]
-        ]
-        await update.message.reply_text(
-            f"🚀 <b>Создание задачи из репостов</b>\n\n"
-            f"Тема сформирована из пересланных сообщений.\n"
-            f"Выберите формат статьи:",
-            parse_mode="HTML",
-            reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-        )
-        return WAIT_ARTICLE_MODE
-
-    elif action == "📰 Создать новость":
-        ctx.user_data["news_item"] = {
-            "title": "Материалы из репоста",
-            "body": combined_text,
-            "url": ""
-        }
-        
-        ctx.user_data.pop("forward_buffer", None)
-        ctx.user_data.pop("forward_media", None)
-
-        await update.message.reply_text(
-            f"🎙 <b>Материалы из репоста</b>\n\n"
-            f"Запишите ваш экспертный комментарий к этим материалам: что думаете, согласны или нет, как это работает на практике?",
-            parse_mode="HTML",
-            reply_markup=NAV_KEYBOARD,
-        )
-        return WAIT_NEWS_VOICE
-
-    else:
-        await update.message.reply_text("Неверный выбор. Пожалуйста, используйте кнопки на клавиатуре.")
-        return WAIT_FORWARD_ACTION
 
 
 async def handle_post_comment(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
@@ -4639,7 +4713,7 @@ def main() -> None:
             ],
             WAIT_FORWARD_ACTION: [
                 MessageHandler(home_filter, go_home),
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_forward_action),
+                MessageHandler((filters.TEXT | media_filter) & ~filters.COMMAND, handle_forward_action),
             ],
             WAIT_VOICE_NOTE: [
                 MessageHandler(home_filter, go_home),
