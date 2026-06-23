@@ -4301,6 +4301,79 @@ async def proxy_harvester_loop() -> None:
         # Засыпаем на 20 минут (1200 секунд)
         await asyncio.sleep(1200)
 
+async def telegram_delivery_watchdog_loop(application: Application) -> None:
+    log.info("Starting Telegram delivery watchdog loop...")
+    while True:
+        try:
+            await asyncio.sleep(30)
+            
+            # Read docs/articles/tasks.json from GitHub
+            tasks_content = gh_read("docs/articles/tasks.json")
+            if not tasks_content:
+                continue
+                
+            try:
+                tasks = json.loads(tasks_content)
+            except Exception as je:
+                log.error("Watchdog: Failed to parse tasks.json: %s", je)
+                continue
+                
+            updated = False
+            for t in tasks:
+                if t.get("status") == "completed" and not t.get("telegram_notified", False):
+                    task_id = t.get("id")
+                    chat_id = t.get("chat_id") or TASK_CHANNEL_ID
+                    message_id = t.get("message_id")
+                    result_text = t.get("result")
+                    
+                    if not result_text:
+                        continue
+                        
+                    reply_text = t.get("telegram_reply_text")
+                    if not reply_text:
+                        reply_text = f"✅ <b>Задача #{task_id} выполнена!</b>\n\n{result_text}"
+                        
+                    log.info("Watchdog: Sending notification for task #%s to chat %s", task_id, chat_id)
+                    
+                    try:
+                        # Send reply using application.bot
+                        sent_msg = await application.bot.send_message(
+                            chat_id=chat_id,
+                            text=reply_text,
+                            parse_mode="HTML",
+                            reply_to_message_id=message_id if message_id else None
+                        )
+                        
+                        t["telegram_notified"] = True
+                        t["telegram_reply_message_id"] = sent_msg.message_id
+                        updated = True
+                        log.info("Watchdog: Successfully notified task #%s, msg ID: %s", task_id, sent_msg.message_id)
+                        
+                        # Delete status message if present
+                        status_msg_id = t.get("status_message_id")
+                        if status_msg_id and not t.get("status_message_deleted", False):
+                            try:
+                                await application.bot.delete_message(chat_id=chat_id, message_id=int(status_msg_id))
+                                t["status_message_deleted"] = True
+                                log.info("Watchdog: Deleted status message %s for task #%s", status_msg_id, task_id)
+                            except Exception as del_err:
+                                log.warning("Watchdog: Failed to delete status message %s: %s", status_msg_id, del_err)
+                                t["status_message_deleted"] = True
+                                
+                    except Exception as send_err:
+                        log.error("Watchdog: Failed to send Telegram message for task #%s: %s", task_id, send_err)
+                        
+            if updated:
+                try:
+                    tasks_content_updated = json.dumps(tasks, indent=2, ensure_ascii=False)
+                    gh_write("docs/articles/tasks.json", tasks_content_updated, "chore: watchdog updated completed tasks delivery state")
+                    log.info("Watchdog: Successfully updated tasks.json on GitHub")
+                except Exception as write_err:
+                    log.error("Watchdog: Failed to write tasks.json to GitHub: %s", write_err)
+                    
+        except Exception as e:
+            log.error("Watchdog: Exception in watchdog loop: %s", e)
+
 async def post_init(application: Application) -> None:
     from telegram import BotCommand
     await application.bot.set_my_commands([
@@ -4315,6 +4388,9 @@ async def post_init(application: Application) -> None:
     ])
     # Запускаем фоновую задачу сборщика прокси
     asyncio.create_task(proxy_harvester_loop())
+    # Запускаем фоновую задачу проверки доставки задач в Telegram
+    asyncio.create_task(telegram_delivery_watchdog_loop(application))
+
 
 def is_coding_task(text: str) -> bool:
     text_lower = text.lower()

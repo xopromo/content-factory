@@ -230,6 +230,72 @@ def gh_write_tasks(tasks, message="chore: update tasks list"):
     # Sync via git push
     git_push(message)
 
+def complete_task(task_id, result, telegram_reply_text=None, reply_to_message_id=None, chat_id=None):
+    """
+    Marks a task as completed in tasks.json, handles Telegram reply delivery (with fallback to watchdog if local fails),
+    and pushes to Git.
+    """
+    from datetime import datetime
+    
+    tasks = gh_read_tasks()
+    updated = False
+    task_obj = None
+    for t in tasks:
+        if t.get('id') == task_id:
+            t['status'] = 'completed'
+            t['completed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            t['result'] = result
+            if telegram_reply_text:
+                t['telegram_reply_text'] = telegram_reply_text
+            task_obj = t
+            updated = True
+            break
+            
+    if not updated:
+        print(f"Error: Task #{task_id} not found in tasks.json")
+        return False
+        
+    # Attempt local delivery first
+    telegram_reply_message_id = None
+    telegram_notified = False
+    
+    text_to_send = telegram_reply_text or f"✅ <b>Задача #{task_id} выполнена!</b>\n\n{result}"
+    msg_id_to_reply = reply_to_message_id or task_obj.get("message_id")
+    target_chat = chat_id or task_obj.get("chat_id")
+    
+    print(f"Attempting local Telegram reply for task #{task_id}...")
+    try:
+        res_id = send_telegram_reply(msg_id_to_reply, text_to_send, chat_id=target_chat)
+        if res_id:
+            print(f"Successfully delivered reply locally. Message ID: {res_id}")
+            telegram_reply_message_id = res_id
+            telegram_notified = True
+        else:
+            print("Local Telegram reply delivery returned None. Watchdog will handle asynchronous delivery.")
+    except Exception as e:
+        print(f"Local Telegram reply delivery failed: {e}. Watchdog will handle asynchronous delivery.")
+        
+    task_obj['telegram_notified'] = telegram_notified
+    if telegram_reply_message_id:
+        task_obj['telegram_reply_message_id'] = telegram_reply_message_id
+        
+    # If there is a status message to delete, try to delete it locally
+    status_msg_id = task_obj.get("status_message_id")
+    if status_msg_id:
+        try:
+            deleted = delete_telegram_message(status_msg_id, chat_id=target_chat)
+            task_obj['status_message_deleted'] = deleted
+            print(f"Local status message #{status_msg_id} delete: {deleted}")
+        except Exception as e:
+            print(f"Local status message delete failed: {e}")
+            task_obj['status_message_deleted'] = False
+            
+    # Write and push to Git
+    gh_write_tasks(tasks, f"task: completed task #{task_id}")
+    print(f"Successfully updated and pushed task #{task_id} to GitHub.")
+    return True
+
+
 def find_task_by_any_msg_id(msg_id, all_tasks):
     for t in all_tasks:
         if t.get("message_id") == msg_id or t.get("reply_message_id") == msg_id:
