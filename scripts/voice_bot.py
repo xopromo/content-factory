@@ -14,7 +14,7 @@ Voice Bot — голосовые заметки + распаковка эксп�
   GITHUB_TOKEN, GITHUB_REPO, GITHUB_BRANCH  (опционально, для облачного режима)
 """
 
-import os, re, sys, base64, logging, tempfile, urllib.request, urllib.parse, json, asyncio, time, subprocess
+import os, re, sys, base64, logging, tempfile, urllib.request, urllib.parse, json, asyncio, time, subprocess, sqlite3, threading
 from pathlib import Path
 ROOT = Path(__file__).parent.parent
 sys.path.append(str(ROOT))
@@ -1021,6 +1021,171 @@ def _clear_user_data_except_menu(ctx: ContextTypes.DEFAULT_TYPE):
         ctx.user_data["last_menu_msg_id"] = menu_id
     if forward_id is not None:
         ctx.user_data["forward_status_msg_id"] = forward_id
+
+
+# ── Помощник брейншторма: База данных и синхронизация ──────────────────────────
+
+def get_brainstorm_db():
+    db_path = Path(__file__).parent.parent / "chatbot.db"
+    conn = sqlite3.connect(str(db_path))
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS brainstorm_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chat_id INTEGER,
+            message_id INTEGER,
+            reply_to_message_id INTEGER,
+            role TEXT,
+            text TEXT,
+            timestamp REAL
+        )
+    """)
+    conn.commit()
+    load_brainstorm_backup_if_needed(conn)
+    return conn
+
+def load_brainstorm_backup_if_needed(conn):
+    cursor = conn.execute("SELECT COUNT(*) FROM brainstorm_messages")
+    if cursor.fetchone()[0] == 0:
+        backup_path = Path(__file__).parent.parent / "docs" / "articles" / "brainstorm_history.json"
+        if backup_path.exists():
+            try:
+                data = json.loads(backup_path.read_text(encoding="utf-8"))
+                for item in data:
+                    conn.execute(
+                        "INSERT INTO brainstorm_messages (chat_id, message_id, reply_to_message_id, role, text, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
+                        (item["chat_id"], item["message_id"], item["reply_to_message_id"], item["role"], item["text"], item["timestamp"])
+                    )
+                conn.commit()
+                log.info(f"Восстановлено {len(data)} записей брейншторма из Git-бэкапа")
+            except Exception as e:
+                log.error(f"Не удалось восстановить бэкап брейншторма: {e}")
+
+def save_brainstorm_message(chat_id, message_id, reply_to_message_id, role, text):
+    try:
+        conn = get_brainstorm_db()
+        conn.execute(
+            "INSERT INTO brainstorm_messages (chat_id, message_id, reply_to_message_id, role, text, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
+            (chat_id, message_id, reply_to_message_id, role, text, time.time())
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        log.error(f"Ошибка сохранения сообщения брейншторма в БД: {e}")
+
+def get_brainstorm_history(message_id):
+    try:
+        conn = get_brainstorm_db()
+        history = []
+        curr_id = message_id
+        visited = set()
+        
+        while curr_id and curr_id not in visited:
+            visited.add(curr_id)
+            cursor = conn.execute(
+                "SELECT reply_to_message_id, role, text FROM brainstorm_messages WHERE message_id = ?",
+                (curr_id,)
+            )
+            row = cursor.fetchone()
+            if not row:
+                break
+            reply_to, role, text = row
+            history.append({"role": role, "text": text})
+            curr_id = reply_to
+            
+        conn.close()
+        history.reverse()
+        return history
+    except Exception as e:
+        log.error(f"Ошибка загрузки истории брейншторма из БД: {e}")
+        return []
+
+def format_history_for_llm(history):
+    lines = []
+    for msg in history:
+        role_label = "User" if msg['role'] == 'user' else "Assistant"
+        lines.append(f"{role_label}: {msg['text']}")
+    return "\n".join(lines)
+
+def sync_brainstorm_to_git():
+    def run_sync():
+        try:
+            db_path = Path(__file__).parent.parent / "chatbot.db"
+            if not db_path.exists():
+                return
+            conn = sqlite3.connect(str(db_path))
+            cursor = conn.execute("SELECT chat_id, message_id, reply_to_message_id, role, text, timestamp FROM brainstorm_messages")
+            rows = cursor.fetchall()
+            conn.close()
+            
+            data = []
+            for r in rows:
+                data.append({
+                    "chat_id": r[0],
+                    "message_id": r[1],
+                    "reply_to_message_id": r[2],
+                    "role": r[3],
+                    "text": r[4],
+                    "timestamp": r[5]
+                })
+                
+            git_file_path = Path(__file__).parent.parent / "docs" / "articles" / "brainstorm_history.json"
+            git_file_path.parent.mkdir(parents=True, exist_ok=True)
+            git_file_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+            
+            from scripts.task_listener import git_push
+            git_push("sync: brainstorm history backup")
+            log.info("Бэкап истории брейншторма успешно синхронизирован с Git")
+        except Exception as e:
+            log.error(f"Ошибка фоновой синхронизации брейншторма с Git: {e}")
+            
+    threading.Thread(target=run_sync, daemon=True).start()
+
+async def cmd_brainstorm(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if not update.message:
+        return
+    text = update.message.text or ""
+    topic = text.replace("/brainstorm", "").strip()
+    chat_id = update.effective_chat.id
+    msg_id = update.message.message_id
+    
+    if not topic:
+        reply_msg = await update.message.reply_text(
+            "🧠 <b>Режим брейншторма</b>\n\n"
+            "Пожалуйста, введите тему или вопрос, который вы хотите обсудить в этом сеансе:\n"
+            "<i>(Например: /brainstorm идеи для блога про AI)</i>",
+            parse_mode="HTML"
+        )
+        save_brainstorm_message(chat_id, reply_msg.message_id, msg_id, "assistant", "Пожалуйста, введите тему или вопрос, который вы хотите обсудить:")
+        return
+        
+    system_prompt = (
+        "Ты — креативный партнер по брейншторму. Твоя цель — помочь раскрыть идею.\n"
+        "Правила:\n"
+        "1. Не пиши длинные тексты и списки.\n"
+        "2. Задавай ровно один глубокий, наводящий вопрос за раз.\n"
+        "3. Будь поддерживающим, креативным и вежливым."
+    )
+    
+    initial_prompt = f"Я хочу провести брейншторм на тему: {topic}. Задай мне первый глубокий наводящий вопрос."
+    
+    status_msg = await update.message.reply_text("🤔 Думаю над первым вопросом...")
+    
+    llm_response = await asyncio.to_thread(llm_chat, initial_prompt, system_prompt)
+    
+    try:
+        await status_msg.delete()
+    except Exception:
+        pass
+        
+    reply_msg = await update.message.reply_text(
+        f"🧠 <b>Режим брейншторма: {topic}</b>\n\n{llm_response}",
+        parse_mode="HTML"
+    )
+    
+    save_brainstorm_message(chat_id, msg_id, None, "user", initial_prompt)
+    save_brainstorm_message(chat_id, reply_msg.message_id, msg_id, "assistant", llm_response)
+    
+    sync_brainstorm_to_git()
 
 # ── Команды ───────────────────────────────────────────────────────────────────
 
@@ -2607,9 +2772,58 @@ async def handle_reply_entry(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> 
         reply_text = update.message.text.strip()
     elif update.message.voice or update.message.audio or update.message.video or update.message.video_note:
         reply_text = await _transcribe_voice(update, ctx)
-
     if not reply_text:
         await update.message.reply_text("Не удалось распознать текст вашего ответа.")
+        return ConversationHandler.END
+
+    # Проверяем, был ли это ответ на сессию брейншторма
+    try:
+        conn = get_brainstorm_db()
+        cursor = conn.execute("SELECT id FROM brainstorm_messages WHERE message_id = ?", (original_msg.message_id,))
+        is_brainstorm = cursor.fetchone() is not None
+        conn.close()
+    except Exception as dberr:
+        log.error(f"Error checking brainstorm db: {dberr}")
+        is_brainstorm = False
+
+    if is_brainstorm:
+        status_msg = await update.message.reply_text("🤔 Анализирую контекст и думаю...")
+        
+        # Load history
+        history = get_brainstorm_history(original_msg.message_id)
+        # Add current user reply to history
+        history.append({"role": "user", "text": reply_text})
+        
+        # Format history for LLM
+        formatted_history = format_history_for_llm(history)
+        
+        system_prompt = (
+            "Ты — креативный партнер по брейншторму. Твоя цель — помочь раскрыть идею.\n"
+            "Правила:\n"
+            "1. Не пиши длинные тексты и списки.\n"
+            "2. Задавай ровно один глубокий, наводящий вопрос за раз.\n"
+            "3. Будь поддерживающим, креативным и вежливым."
+        )
+        
+        llm_response = await asyncio.to_thread(llm_chat, formatted_history, system_prompt)
+        
+        try:
+            await status_msg.delete()
+        except Exception:
+            pass
+            
+        reply_msg = await update.message.reply_text(
+            f"🧠 <b>Брейншторм</b>\n\n{llm_response}",
+            parse_mode="HTML"
+        )
+        
+        # Save messages to database
+        chat_id = update.effective_chat.id
+        save_brainstorm_message(chat_id, update.message.message_id, original_msg.message_id, "user", reply_text)
+        save_brainstorm_message(chat_id, reply_msg.message_id, update.message.message_id, "assistant", llm_response)
+        
+        # Sync to Git in background
+        sync_brainstorm_to_git()
         return ConversationHandler.END
 
     # Проверяем, был ли ответ на сообщение со ссылкой
@@ -4454,6 +4668,7 @@ def main() -> None:
 
     app.add_handler(TypeHandler(Update, global_update_logger), group=-1)
     app.add_handler(CommandHandler("start", cmd_start))
+    app.add_handler(CommandHandler("brainstorm", cmd_brainstorm))
     app.add_handler(CommandHandler("version", cmd_version))
     app.add_handler(CommandHandler("log", cmd_log))
     app.add_handler(CommandHandler("botlog", cmd_botlog))
