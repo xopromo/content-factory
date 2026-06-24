@@ -4504,8 +4504,11 @@ async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
     msg = update.effective_message
     if not msg:
         return
-    text = msg.text or msg.caption or ""
-    text = text.strip()
+    
+    forward_prefix = ""
+    if msg.forward_from_chat:
+        forward_prefix = f"Рерайт и публикация поста из канала '{msg.forward_from_chat.title}':\n\n"
+    text = forward_prefix + (msg.text or msg.caption or "").strip()
     
     try:
         # Check if the message is a pure URL
