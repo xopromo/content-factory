@@ -4502,9 +4502,10 @@ def run_direct_llm(task_text, history):
 
 async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     msg = update.effective_message
-    if not msg or not msg.text:
+    if not msg:
         return
-    text = msg.text.strip()
+    text = msg.text or msg.caption or ""
+    text = text.strip()
     
     try:
         # Check if the message is a pure URL
@@ -4523,6 +4524,47 @@ async def handle_channel_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) ->
         if is_pure_url:
             status_text = "🔍 Получена ссылка. Ожидаю голосовой комментарий или текстовую инструкцию..."
             task_status = "waiting_for_instruction"
+
+        # Check for media (photo, video, document, animation)
+        media_obj = None
+        media_type = None
+        suffix = ".jpg"
+        
+        if msg.photo:
+            media_obj = msg.photo[-1]
+            media_type = "photo"
+            suffix = ".jpg"
+        elif msg.video:
+            media_obj = msg.video
+            media_type = "video"
+            suffix = ".mp4"
+        elif msg.document:
+            media_obj = msg.document
+            media_type = "document"
+            suffix = Path(media_obj.file_name or "file").suffix or ".dat"
+        elif msg.animation:
+            media_obj = msg.animation
+            media_type = "animation"
+            suffix = ".mp4"
+            
+        if media_obj:
+            try:
+                # Save locally on the server (which is served via /media/)
+                file = await ctx.bot.get_file(media_obj.file_id)
+                now = datetime.now(timezone.utc)
+                import random
+                rand_id = random.randint(1000, 9999)
+                filename = f"{now.strftime('%Y%m%d_%H%M%S')}_{rand_id}{suffix}"
+                
+                media_dir = Path(__file__).parent.parent / "docs" / "articles" / "media"
+                media_dir.mkdir(parents=True, exist_ok=True)
+                local_path = media_dir / filename
+                await file.download_to_drive(local_path)
+                
+                markdown_link = f"\n\n[Медиа](media/{filename})\n\n"
+                text = text + markdown_link
+            except Exception as me:
+                log.error("Failed to download media in handle_channel_text: %s", me)
 
         # Reply to the channel task
         status_msg = await msg.reply_text(status_text)
@@ -4831,7 +4873,7 @@ def main() -> None:
     app.add_handler(CommandHandler("status", cmd_status))
     app.add_handler(CommandHandler("chatops", cmd_chatops))
     app.add_handler(MessageHandler(filters.Chat(chat_id=TASK_CHANNEL_ID) & filters.VOICE, handle_channel_voice))
-    app.add_handler(MessageHandler(filters.Chat(chat_id=TASK_CHANNEL_ID) & filters.TEXT & ~filters.COMMAND, handle_channel_text))
+    app.add_handler(MessageHandler(filters.Chat(chat_id=TASK_CHANNEL_ID) & (filters.TEXT | filters.PHOTO | filters.VIDEO | filters.Document | filters.ANIMATION) & ~filters.COMMAND, handle_channel_text))
     app.add_handler(conv)
 
     log_bot_startup()
