@@ -63,7 +63,12 @@ else:
         import subprocess
         GIT_DIR.parent.mkdir(parents=True, exist_ok=True)
         env = os.environ.copy()
+        if env.get("GITHUB_TOKEN") == "github_pat_antigravitydummytoken":
+            env.pop("GITHUB_TOKEN", None)
+            env.pop("GH_TOKEN", None)
         env["GIT_TERMINAL_PROMPT"] = "0"
+        env["GCM_INTERACTIVE"] = "never"
+        env["GIT_ASKPASS"] = "echo"
         
         # Clone with retries
         for attempt in range(3):
@@ -73,7 +78,7 @@ else:
                     cwd=str(ROOT / "scratch"),
                     capture_output=True,
                     text=True,
-                    shell=True,
+                    shell=False,
                     timeout=60,
                     env=env
                 )
@@ -92,7 +97,12 @@ def git_pull():
     import time
     print("DEBUG: git_pull started")
     env = os.environ.copy()
+    if env.get("GITHUB_TOKEN") == "github_pat_antigravitydummytoken":
+        env.pop("GITHUB_TOKEN", None)
+        env.pop("GH_TOKEN", None)
     env["GIT_TERMINAL_PROMPT"] = "0"
+    env["GCM_INTERACTIVE"] = "never"
+    env["GIT_ASKPASS"] = "echo"
     
     fetch_success = False
     # Try git fetch with retries
@@ -103,7 +113,7 @@ def git_pull():
                 ["git", "fetch", "origin", BRANCH],
                 cwd=str(GIT_DIR),
                 capture_output=True,
-                shell=True,
+                shell=False,
                 timeout=30,
                 env=env
             )
@@ -129,7 +139,7 @@ def git_pull():
             cwd=str(GIT_DIR),
             capture_output=True,
             text=True,
-            shell=True,
+            shell=False,
             timeout=30,
             env=env
         )
@@ -151,14 +161,19 @@ def git_push(message):
     time.sleep(jitter)
     
     env = os.environ.copy()
+    if env.get("GITHUB_TOKEN") == "github_pat_antigravitydummytoken":
+        env.pop("GITHUB_TOKEN", None)
+        env.pop("GH_TOKEN", None)
     env["GIT_TERMINAL_PROMPT"] = "0"
+    env["GCM_INTERACTIVE"] = "never"
+    env["GIT_ASKPASS"] = "echo"
     
     try:
         # Commit tasks.json changes
-        subprocess.run(["git", "add", TASKS_PATH], cwd=str(GIT_DIR), check=True, shell=True, timeout=20, env=env)
-        status = subprocess.run(["git", "status", "--porcelain", TASKS_PATH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True, timeout=20, env=env)
+        subprocess.run(["git", "add", TASKS_PATH], cwd=str(GIT_DIR), check=True, shell=False, timeout=20, env=env)
+        status = subprocess.run(["git", "status", "--porcelain", TASKS_PATH], cwd=str(GIT_DIR), capture_output=True, text=True, shell=False, timeout=20, env=env)
         if status.stdout.strip():
-            res_commit = subprocess.run(["git", "commit", "-m", f"{message} [skip render]"], cwd=str(GIT_DIR), capture_output=True, text=True, shell=True, timeout=20, env=env)
+            res_commit = subprocess.run(["git", "commit", "-m", f"{message} [skip render]"], cwd=str(GIT_DIR), capture_output=True, text=True, shell=False, timeout=20, env=env)
             if res_commit.returncode != 0:
                 print(f"git commit failed: {res_commit.stderr.strip()}")
                 return
@@ -171,7 +186,7 @@ def git_push(message):
                     cwd=str(GIT_DIR),
                     capture_output=True,
                     text=True,
-                    shell=True,
+                    shell=False,
                     timeout=30,
                     env=env
                 )
@@ -193,13 +208,13 @@ def git_push(message):
                     cwd=str(GIT_DIR),
                     capture_output=True,
                     text=True,
-                    shell=True,
+                    shell=False,
                     timeout=30,
                     env=env
                 )
                 if res_rebase.returncode != 0:
                     print(f"git pull --rebase failed: {res_rebase.stderr.strip()}. Aborting rebase and resetting to origin.")
-                    subprocess.run(["git", "rebase", "--abort"], cwd=str(GIT_DIR), capture_output=True, shell=True, timeout=20, env=env)
+                    subprocess.run(["git", "rebase", "--abort"], cwd=str(GIT_DIR), capture_output=True, shell=False, timeout=20, env=env)
                     git_pull()
             except Exception as rebase_err:
                 print(f"Error during pull --rebase: {rebase_err}")
@@ -1119,6 +1134,7 @@ def run_proactive_checks_loop():
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
+                errors="ignore",
                 cwd=str(ROOT)
             )
             print("Healer Output:", result.stdout)

@@ -253,7 +253,7 @@ def main():
     # Cleanup temp file
     if output_path.exists():
         try:
-            output_path.unlink()
+            pass  # output_path.unlink()  # Preserve video if upload fails
         except Exception:
             pass
 

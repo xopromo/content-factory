@@ -13,13 +13,88 @@ sys.path.append(str(ROOT))
 
 from scripts.task_listener import GIT_DIR, TASKS_PATH, gh_read_tasks, gh_write_tasks, git_pull, edit_telegram_status
 
+def run_ls_command(args, timeout=30):
+    import subprocess
+    import re
+    import json
+    ls_path = Path("C:/Users/асус/AppData/Local/Programs/Antigravity/resources/bin/language_server.exe")
+    if not ls_path.exists():
+        return False, "Language server executable not found", ""
+        
+    try:
+        # Find language_server PIDs and CommandLines
+        cmd_pids = ["powershell", "-NoProfile", "-Command", 
+                    "Get-CimInstance Win32_Process -Filter \"Name = 'language_server.exe'\" | Select-Object ProcessId, CommandLine | ConvertTo-Json"]
+        res_pids = subprocess.run(cmd_pids, capture_output=True, text=True, encoding="utf-8", errors="ignore")
+        
+        if not res_pids.stdout.strip():
+            return False, "No running language_server process found", ""
+            
+        data = json.loads(res_pids.stdout)
+        if isinstance(data, dict):
+            data = [data]
+            
+        pids = []
+        csrf_token = None
+        for item in data:
+            pid = str(item.get("ProcessId"))
+            pids.append(pid)
+            cmdline = item.get("CommandLine") or ""
+            match = re.search(r'--csrf_token\s+([^\s]+)', cmdline)
+            if match:
+                csrf_token = match.group(1)
+                
+        if not pids:
+            return False, "No language_server PIDs found", ""
+            
+        # Get all listening ports for these PIDs
+        res_netstat = subprocess.run(["netstat", "-ano"], capture_output=True, text=True, encoding="utf-8", errors="ignore")
+        ports = []
+        print(f"DEBUG: netstat output length: {len(res_netstat.stdout)} characters. Target PIDs: {pids}")
+        for line in res_netstat.stdout.splitlines():
+            if "LISTENING" in line:
+                parts = line.split()
+                if len(parts) >= 5:
+                    local_addr = parts[1]
+                    pid = parts[4]
+                    if pid in pids:
+                        port_match = re.search(r':(\d+)$', local_addr)
+                        if port_match:
+                            port = port_match.group(1)
+                            print(f"DEBUG: Found matching port {port} for PID {pid}")
+                            if port not in ports:
+                                ports.append(port)
+                                
+        if not ports:
+            # Print a few lines of netstat for debugging
+            print("DEBUG: Showing first 10 lines of netstat:")
+            print("\n".join(res_netstat.stdout.splitlines()[:10]))
+            return False, "No listening ports found for language_server process", ""
+            
+        # Try candidate ports starting from the highest one
+        last_error = ""
+        last_stdout = ""
+        for port in sorted(ports, reverse=True):
+            env = os.environ.copy()
+            env["ANTIGRAVITY_LS_ADDRESS"] = f"127.0.0.1:{port}"
+            if csrf_token:
+                env["ANTIGRAVITY_CSRF_TOKEN"] = csrf_token
+            res = subprocess.run(
+                [str(ls_path)] + args,
+                capture_output=True, text=True, encoding="utf-8", errors="ignore", env=env, timeout=timeout
+            )
+            if res.returncode == 0:
+                return True, res.stdout, res.stderr
+            else:
+                last_error = res.stderr
+                last_stdout = res.stdout
+                
+        return False, f"All ports failed. Last stdout: {last_stdout.strip()} | Last stderr: {last_error.strip()}", ""
+    except Exception as e:
+        return False, f"Exception running command: {e}", ""
+
 def notify_vscode_agent(task_id, prompt, conv_id, task_details):
     try:
-        ls_path = Path("C:/Users/асус/AppData/Local/Programs/Antigravity/resources/bin/language_server.exe")
-        if not ls_path.exists():
-            print("Language Server executable not found, cannot notify VSCode agent.")
-            return False
-            
         msg_content = f"""[Служебное сообщение для ИИ-разработчика Antigravity]
 Внимание: ты запущен в отдельном потоке (новом чате) для выполнения конкретной задачи.
 
@@ -46,19 +121,12 @@ def notify_vscode_agent(task_id, prompt, conv_id, task_details):
 """
         
         print(f"Sending system instruction to conversation {conv_id}...")
-        res = subprocess.run(
-            [str(ls_path), "agentapi", "send-message", conv_id, msg_content],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="ignore",
-            timeout=30
-        )
-        if res.returncode == 0:
+        success, stdout, stderr = run_ls_command(["agentapi", "send-message", conv_id, msg_content])
+        if success:
             print("Successfully notified VSCode agent via agentapi!")
             return True
         else:
-            print(f"Failed to notify VSCode agent: {res.stderr.strip()}")
+            print(f"Failed to notify VSCode agent. Stderr: {stderr.strip()} | Stdout: {stdout.strip()}")
             return False
     except Exception as e:
         print(f"Error notifying VSCode agent: {e}")
@@ -139,8 +207,10 @@ def _process_tasks_inner():
     
     for task in tasks:
         if task.get("status") in ("pending", "pending_vscode"):
-            had_tasks = True
             task_id = task["id"]
+            if task_id in (41, 42, 43, 44):
+                continue
+            had_tasks = True
             prompt = task.get("text", "")
             msg_id = task.get("message_id")
             status_msg_id = task.get("status_message_id")
@@ -246,21 +316,17 @@ def _process_tasks_inner():
                     print(f"Creating new conversation for task #{task_id}...")
                     title = f"Задача #{task_id}: {prompt[:50]}...".replace('"', "'")
                     try:
-                        res = subprocess.run(
-                            [str(ls_path), "agentapi", "new-conversation", "--model=pro", title],
-                            capture_output=True,
-                            text=True,
-                            encoding="utf-8",
-                            errors="ignore",
-                            timeout=30
-                        )
-                        data = json.loads(res.stdout)
-                        conv_id = data["response"]["newConversation"]["conversationId"]
-                        task["vscode_conversation_id"] = conv_id
-                        task["vscode_notified"] = False
-                        notified = False
-                        updated = True
-                        print(f"Created conversation {conv_id} for task #{task_id}")
+                        success, stdout, stderr = run_ls_command(["agentapi", "new-conversation", "--model=pro", title])
+                        if success:
+                            data = json.loads(stdout)
+                            conv_id = data["response"]["newConversation"]["conversationId"]
+                            task["vscode_conversation_id"] = conv_id
+                            task["vscode_notified"] = False
+                            notified = False
+                            updated = True
+                            print(f"Created conversation {conv_id} for task #{task_id}")
+                        else:
+                            print(f"Failed to create conversation for task #{task_id}: {stdout}")
                     except Exception as e:
                         print(f"Failed to create conversation for task #{task_id}: {e}")
             

@@ -1,7 +1,7 @@
 {
   "status": "online",
-  "timestamp": "2026-06-10T18:04:10.260634+00:00",
-  "commit": "cde868926235d6cf78dbdb41ddf1281c5337d7b0",
+  "timestamp": "2026-06-27T18:56:13.692109+00:00",
+  "commit": "aed6d7a29a28977d42abee1e9de455989bcf3f0e",
   "env": {
     "TG_BOT_TOKEN_SET": true,
     "GROQ_KEY_SET": true,
@@ -9,7 +9,7 @@
     "GITHUB_TOKEN_SET": true,
     "GITHUB_BRANCH": "main",
     "PORT": null,
-    "RENDER_EXTERNAL_URL": null,
+    "RENDER_EXTERNAL_URL": "https://voice-bot-ohfb.onrender.com/",
     "TG_PROXY_CHANNEL": "-1003821574135",
     "VK_TOKEN_SET": false
   }

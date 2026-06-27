@@ -1,6 +1,7 @@
 {
-  "timestamp": "2026-06-27T13:17:15Z",
-  "error_type": "GitHubActionsFailure",
-  "error_message": "Chelyabinsk News Agent workflow failed",
-  "source": "github_actions_chelyabinsk"
+  "timestamp": "2026-06-25 02:32:37",
+  "error_type": "AttributeError",
+  "error_message": "type object 'Document' has no attribute 'data_filter'",
+  "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\асус\\Desktop\\клод\\антигравити, всякое\\content-factory\\scripts\\voice_bot.py\", line 4913, in <module>\n    main()\n  File \"C:\\Users\\асус\\Desktop\\клод\\антигравити, всякое\\content-factory\\scripts\\voice_bot.py\", line 4887, in main\n    app.add_handler(MessageHandler(filters.Chat(chat_id=TASK_CHANNEL_ID) & (filters.TEXT | filters.PHOTO | filters.VIDEO | filters.Document | filters.ANIMATION) & ~filters.COMMAND, handle_channel_text))\n  File \"C:\\Users\\асус\\AppData\\Roaming\\Python\\Python39\\site-packages\\telegram\\ext\\filters.py\", line 216, in __or__\n    return _MergedFilter(self, or_filter=other)\n  File \"C:\\Users\\асус\\AppData\\Roaming\\Python\\Python39\\site-packages\\telegram\\ext\\filters.py\", line 433, in __init__\n    if self.or_filter and not isinstance(self.and_filter, bool) and self.or_filter.data_filter:\nAttributeError: type object 'Document' has no attribute 'data_filter'\n",
+  "source": "telegram_bot_startup"
 }

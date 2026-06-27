@@ -4876,7 +4876,7 @@ def main() -> None:
     app.add_handler(CommandHandler("status", cmd_status))
     app.add_handler(CommandHandler("chatops", cmd_chatops))
     app.add_handler(MessageHandler(filters.Chat(chat_id=TASK_CHANNEL_ID) & filters.VOICE, handle_channel_voice))
-    app.add_handler(MessageHandler(filters.Chat(chat_id=TASK_CHANNEL_ID) & (filters.TEXT | filters.PHOTO | filters.VIDEO | filters.Document | filters.ANIMATION) & ~filters.COMMAND, handle_channel_text))
+    app.add_handler(MessageHandler(filters.Chat(chat_id=TASK_CHANNEL_ID) & (filters.TEXT | filters.PHOTO | filters.VIDEO | filters.Document.ALL | filters.ANIMATION) & ~filters.COMMAND, handle_channel_text))
     app.add_handler(conv)
 
     log_bot_startup()
