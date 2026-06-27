@@ -121,3 +121,11 @@ editor-critic        — финальный аудит с учетом WARNING-�
      git add ai-clone/feedback/learning_rules.md knowledge/feedback_*.md PROJECT_STATE.md
      git commit -m "feedback: add rule lr-XXX (trigger: Devika → Devin)"
      ```
+
+---
+
+## Восстановление после перезапусков сервера (обновлено 2026-06-27)
+- **Сбои Telegram MTProto (Таймауты):** Прямые MTProto-подключения Telethon часто блокируются. Внедрено динамическое переключение на SOCKS5-прокси из `proxies.txt` с автоматической ротацией при таймаутах.
+- **Таймауты GitHub (IPv6):** Для предотвращения зависаний при push/fetch принудительно включено IPv4-разрешение: `git config --global force.ipresolve v4`.
+- **Исправление voice_bot.py:** Исправлен критический сбой инициализации бота (ошибка `AttributeError: type object 'Document' has no attribute 'data_filter'`). Класс `filters.Document` заменен на рабочий экземпляр фильтра `filters.Document.ALL`. Изменения запушены на GitHub, Render автоматически обновил и запустил инстанс.
+- **Daemon Supervisor:** Все службы (клиент вебсокета, обработчик задач, монитор новостей) перезапущены локально в фоне под управлением `supervisor.py`.
