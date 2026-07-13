@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-07-13T14:04:58Z",
+  "timestamp": "2026-07-13T15:37:01Z",
   "error_type": "GitHubActionsFailure",
-  "error_message": "Traffic Research Agent workflow failed",
-  "source": "github_actions_traffic"
+  "error_message": "Chelyabinsk News Agent workflow failed",
+  "source": "github_actions_chelyabinsk"
 }
