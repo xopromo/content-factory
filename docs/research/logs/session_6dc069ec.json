@@ -1,0 +1,307 @@
+{
+  "session_id": "6dc069ec",
+  "started_at": "2026-07-14T10:52:35.880400",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-07-14T10:52:35.880415",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "6dc069ec",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-07-14T10:52:35.880456",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T10:52:35.880474",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T11:01:09.526647",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T11:09:42.375718",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T11:18:17.966051",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T11:24:02.309483",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T11:32:47.545717",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-07-14T11:32:47.545751",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T11:32:47.545766",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T11:38:30.607061",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T11:44:14.496675",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T11:52:46.638267",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T11:58:30.928503",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Threads- ПОЛНЫЙ ОБЗОР ЗА 7 МИНУТ! Плюсы, минусы? Как ...",
+        "category": "viral",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T11:58:30.928536",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-07-14T11:58:30.928552",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T11:58:30.928565",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T12:07:07.202863",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T12:12:50.405993",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Яндекс Директ в 2026 году: стоимость рекламы, отличие РСЯ и ...",
+        "category": "bidding",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T12:12:50.406027",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T12:21:25.542485",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T12:29:59.742539",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-07-14T12:35:59.169465",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-07-14T12:35:59.169494",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-07-14T12:35:59.169508",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 2,
+        "insights_by_platform": {
+          "Threads": 1,
+          "Yandex Direct": 1
+        },
+        "insights_by_category": {
+          "viral": 1,
+          "bidding": 1
+        },
+        "top_categories": [
+          [
+            "viral",
+            [
+              {
+                "id": 1,
+                "platform": "Threads",
+                "title": "Threads- ПОЛНЫЙ ОБЗОР ЗА 7 МИНУТ! Плюсы, минусы? Как ...",
+                "content": "Jul 13, 2023 ... THREADS: ОБЗОР НОВОЙ СОЦСЕТИ ОТ INSTAGRAM. Регистрация, алгоритмы ... Как строить воронки продаж и делать охватный вирусный контент?",
+                "snippet": "Jul 13, 2023 ... THREADS: ОБЗОР НОВОЙ СОЦСЕТИ ОТ INSTAGRAM. Регистрация, алгоритмы ... Как строить воронки продаж и делать охватный вирусный контент?",
+                "summary": "",
+                "source_published_at": "2026-07-10",
+                "category": "viral",
+                "confidence": 7,
+                "discovered_at": "2026-07-14T11:58:30.928255",
+                "tags": [],
+                "source_url": "https://www.youtube.com/watch?v=ySqsvPCbVtA"
+              }
+            ]
+          ],
+          [
+            "bidding",
+            [
+              {
+                "id": 2,
+                "platform": "Yandex Direct",
+                "title": "Яндекс Директ в 2026 году: стоимость рекламы, отличие РСЯ и ...",
+                "content": "О�т чего зависит стоимость рекламы в Яндекс Директе · Конкуренция и тематика · География показа объявлений · Ставка за клик (CPC) · Показатель качества объявлений.",
+                "snippet": "О�т чего зависит стоимость рекламы в Яндекс Директе · Конкуренция и тематика · География показа объявлений · Ставка за клик (CPC) · Показатель качества объявлений.",
+                "summary": "",
+                "source_published_at": "2026-07-14",
+                "category": "bidding",
+                "confidence": 8,
+                "discovered_at": "2026-07-14T12:12:50.405972",
+                "tags": [
+                  "cpc"
+                ],
+                "source_url": "https://webolution.ru/blog/yandeks-direkt-2025-ot-chego-zavisit-stoimost-reklamy/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Threads",
+      "title": "Threads- ПОЛНЫЙ ОБЗОР ЗА 7 МИНУТ! Плюсы, минусы? Как ...",
+      "content": "Jul 13, 2023 ... THREADS: ОБЗОР НОВОЙ СОЦСЕТИ ОТ INSTAGRAM. Регистрация, алгоритмы ... Как строить воронки продаж и делать охватный вирусный контент?",
+      "snippet": "Jul 13, 2023 ... THREADS: ОБЗОР НОВОЙ СОЦСЕТИ ОТ INSTAGRAM. Регистрация, алгоритмы ... Как строить воронки продаж и делать охватный вирусный контент?",
+      "summary": "",
+      "source_published_at": "2026-07-10",
+      "category": "viral",
+      "confidence": 7,
+      "discovered_at": "2026-07-14T11:58:30.928255",
+      "tags": [],
+      "source_url": "https://www.youtube.com/watch?v=ySqsvPCbVtA"
+    },
+    {
+      "id": 2,
+      "platform": "Yandex Direct",
+      "title": "Яндекс Директ в 2026 году: стоимость рекламы, отличие РСЯ и ...",
+      "content": "О�т чего зависит стоимость рекламы в Яндекс Директе · Конкуренция и тематика · География показа объявлений · Ставка за клик (CPC) · Показатель качества объявлений.",
+      "snippet": "О�т чего зависит стоимость рекламы в Яндекс Директе · Конкуренция и тематика · География показа объявлений · Ставка за клик (CPC) · Показатель качества объявлений.",
+      "summary": "",
+      "source_published_at": "2026-07-14",
+      "category": "bidding",
+      "confidence": 8,
+      "discovered_at": "2026-07-14T12:12:50.405972",
+      "tags": [
+        "cpc"
+      ],
+      "source_url": "https://webolution.ru/blog/yandeks-direkt-2025-ot-chego-zavisit-stoimost-reklamy/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 2
+  },
+  "ended_at": "2026-07-14T12:35:59.169591"
+}
