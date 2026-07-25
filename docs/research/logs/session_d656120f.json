@@ -1,0 +1,258 @@
+{
+  "session_id": "d656120f",
+  "started_at": "2026-07-25T10:39:14.340044",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-07-25T10:39:14.340061",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "d656120f",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-07-25T10:39:14.340102",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T10:39:14.340118",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T10:44:58.712838",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T10:53:25.556452",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T10:59:07.806689",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T11:07:44.251783",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T11:13:29.044121",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-07-25T11:13:29.044158",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T11:13:29.044176",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T11:22:00.136888",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T11:30:30.572695",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T11:38:59.063525",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "10 идей для Instagram без лица, которые работают в 2026",
+        "category": "monetization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T11:38:59.063559",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T11:44:40.549851",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-07-25T11:44:40.549889",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T11:44:40.549906",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T11:53:13.336405",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T12:01:48.915406",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T12:10:18.723112",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T12:16:02.215309",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-07-25T12:16:05.170822",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-07-25T12:16:05.170859",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-07-25T12:16:05.170873",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Threads": 1
+        },
+        "insights_by_category": {
+          "monetization": 1
+        },
+        "top_categories": [
+          [
+            "monetization",
+            [
+              {
+                "id": 1,
+                "platform": "Threads",
+                "title": "10 идей для Instagram без лица, которые работают в 2026",
+                "content": "**\n\nВыбор ниши - ключевой фактор успеха: узкие темы (например, \"домашние тренировки для женщин\" вместо \"фитнес\") привлекают более целевую аудиторию и упрощают монетизацию (партнёрки, брендовые сделки).\n\nAI-инструменты ускоряют создание контента: Leonardo.ai и Artbreeder генерируют уникальные визуалы, Eleven Labs озвучивает видео, а Flarecut автоматически превращает текст в Reels без личного участия.\n\nФорматы без лица работают лучше всего: мотивационные цитаты, советы по саморазвитию (пример: @thepositiveminds) и экспертные посты в нишевых темах (недвижимость, финансы) показывают высокую вовлечённость.\n\nВизуальная идентичность важнее личного присутствия: яркие графики, чистые макеты и тематические иллюстрации помогают выделиться и удерживать внимание аудитории.",
+                "snippet": "Аккаунты без лица в Instagram позволяют строить сильное присутствие в сети без раскрытия личности. Автор фокусируется на контенте, сохраняет приватность и при этом доходит до большой аудитории.",
+                "summary": "**\n\nВыбор ниши - ключевой фактор успеха: узкие темы (например, \"домашние тренировки для женщин\" вместо \"фитнес\") привлекают более целевую аудиторию и упрощают монетизацию (партнёрки, брендовые сделки).\n\nAI-инструменты ускоряют создание контента: Leonardo.ai и Artbreeder генерируют уникальные визуалы, Eleven Labs озвучивает видео, а Flarecut автоматически превращает текст в Reels без личного участия.\n\nФорматы без лица работают лучше всего: мотивационные цитаты, советы по саморазвитию (пример: @thepositiveminds) и экспертные посты в нишевых темах (недвижимость, финансы) показывают высокую вовлечённость.\n\nВизуальная идентичность важнее личного присутствия: яркие графики, чистые макеты и тематические иллюстрации помогают выделиться и удерживать внимание аудитории.",
+                "source_published_at": "2024-10-15T00:00",
+                "category": "monetization",
+                "confidence": 7,
+                "discovered_at": "2026-07-25T11:38:59.063494",
+                "tags": [],
+                "source_url": "https://flarecut.com/ru/blog/faceless-instagram-account-ideas/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Threads",
+      "title": "10 идей для Instagram без лица, которые работают в 2026",
+      "content": "**\n\nВыбор ниши - ключевой фактор успеха: узкие темы (например, \"домашние тренировки для женщин\" вместо \"фитнес\") привлекают более целевую аудиторию и упрощают монетизацию (партнёрки, брендовые сделки).\n\nAI-инструменты ускоряют создание контента: Leonardo.ai и Artbreeder генерируют уникальные визуалы, Eleven Labs озвучивает видео, а Flarecut автоматически превращает текст в Reels без личного участия.\n\nФорматы без лица работают лучше всего: мотивационные цитаты, советы по саморазвитию (пример: @thepositiveminds) и экспертные посты в нишевых темах (недвижимость, финансы) показывают высокую вовлечённость.\n\nВизуальная идентичность важнее личного присутствия: яркие графики, чистые макеты и тематические иллюстрации помогают выделиться и удерживать внимание аудитории.",
+      "snippet": "Аккаунты без лица в Instagram позволяют строить сильное присутствие в сети без раскрытия личности. Автор фокусируется на контенте, сохраняет приватность и при этом доходит до большой аудитории.",
+      "summary": "**\n\nВыбор ниши - ключевой фактор успеха: узкие темы (например, \"домашние тренировки для женщин\" вместо \"фитнес\") привлекают более целевую аудиторию и упрощают монетизацию (партнёрки, брендовые сделки).\n\nAI-инструменты ускоряют создание контента: Leonardo.ai и Artbreeder генерируют уникальные визуалы, Eleven Labs озвучивает видео, а Flarecut автоматически превращает текст в Reels без личного участия.\n\nФорматы без лица работают лучше всего: мотивационные цитаты, советы по саморазвитию (пример: @thepositiveminds) и экспертные посты в нишевых темах (недвижимость, финансы) показывают высокую вовлечённость.\n\nВизуальная идентичность важнее личного присутствия: яркие графики, чистые макеты и тематические иллюстрации помогают выделиться и удерживать внимание аудитории.",
+      "source_published_at": "2024-10-15T00:00",
+      "category": "monetization",
+      "confidence": 7,
+      "discovered_at": "2026-07-25T11:38:59.063494",
+      "tags": [],
+      "source_url": "https://flarecut.com/ru/blog/faceless-instagram-account-ideas/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 39,
+    "insights_found": 1
+  },
+  "ended_at": "2026-07-25T12:16:05.170972"
+}
