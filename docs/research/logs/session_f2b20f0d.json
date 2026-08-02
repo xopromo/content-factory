@@ -1,0 +1,302 @@
+{
+  "session_id": "f2b20f0d",
+  "started_at": "2026-08-02T10:45:15.792225",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-08-02T10:45:15.792243",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "f2b20f0d",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-08-02T10:45:15.792285",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T10:45:15.792300",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T10:51:05.310571",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Настройка таргетированной рекламы во ВКонтакте в новом...",
+        "category": "targeting",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T10:51:05.310613",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T10:56:52.520135",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "VK Реклама | VK Реклама — платформа для всех, кто хочет...",
+        "category": "budget_optimization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T10:56:52.520213",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T11:05:27.844567",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T11:14:04.783841",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T11:22:47.180348",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 2
+      }
+    },
+    {
+      "timestamp": "2026-08-02T11:22:47.180390",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T11:22:47.180404",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T11:28:32.021067",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T11:34:16.782182",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T11:42:51.477381",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T11:48:34.250942",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-08-02T11:48:34.250986",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T11:48:34.251001",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T11:57:12.023896",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T12:05:46.539638",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T12:14:22.631883",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T12:22:59.414959",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-02T12:31:34.042032",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-08-02T12:31:34.042075",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-08-02T12:31:34.042090",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 2,
+        "insights_by_platform": {
+          "VK": 2
+        },
+        "insights_by_category": {
+          "targeting": 1,
+          "budget_optimization": 1
+        },
+        "top_categories": [
+          [
+            "targeting",
+            [
+              {
+                "id": 1,
+                "platform": "VK",
+                "title": "Настройка таргетированной рекламы во ВКонтакте в новом...",
+                "content": "Что в итоге? Таргетированная реклама в 2026 году ВКонтакте стала умнее. Новый кабинет требует от рекламодателя корректной цели, чистых данных, понятной воронки, офера и оптимизации. Если вам нужна настройка таргета, действуйте так",
+                "snippet": "Что в итоге? Таргетированная реклама в 2026 году ВКонтакте стала умнее. Новый кабинет требует от рекламодателя корректной цели, чистых данных, понятной воронки, офера и оптимизации. Если вам нужна настройка таргета, действуйте так",
+                "summary": "",
+                "source_published_at": "",
+                "category": "targeting",
+                "confidence": 7,
+                "discovered_at": "2026-08-02T10:51:05.310548",
+                "tags": [],
+                "source_url": "https://workspace.ru/blog/nastroyka-targetirovannoy-reklamy-vo-vkontakte-v-novom-reklamnom-kabinete-poshagovaya-instrukciya-2026/"
+              }
+            ]
+          ],
+          [
+            "budget_optimization",
+            [
+              {
+                "id": 2,
+                "platform": "VK",
+                "title": "VK Реклама | VK Реклама — платформа для всех, кто хочет...",
+                "content": "Попробуйте возможности VK Рекламы: поиск клиентов среди 100 млн пользователей VK автоматическая оптимизация бюджета и ставок автоматический подбор таргетингов, чтобы не пропустить ни одного целевого подписчика смарт-кампании для запуска рекламы...",
+                "snippet": "Попробуйте возможности VK Рекламы: поиск клиентов среди 100 млн пользователей VK автоматическая оптимизация бюджета и ставок автоматический подбор таргетингов, чтобы не пропустить ни одного целевого подписчика смарт-кампании для запуска рекламы...",
+                "summary": "",
+                "source_published_at": "2026-01-01",
+                "category": "budget_optimization",
+                "confidence": 7,
+                "discovered_at": "2026-08-02T10:56:52.520100",
+                "tags": [],
+                "source_url": "https://vk.ru/vk_ads"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "VK",
+      "title": "Настройка таргетированной рекламы во ВКонтакте в новом...",
+      "content": "Что в итоге? Таргетированная реклама в 2026 году ВКонтакте стала умнее. Новый кабинет требует от рекламодателя корректной цели, чистых данных, понятной воронки, офера и оптимизации. Если вам нужна настройка таргета, действуйте так",
+      "snippet": "Что в итоге? Таргетированная реклама в 2026 году ВКонтакте стала умнее. Новый кабинет требует от рекламодателя корректной цели, чистых данных, понятной воронки, офера и оптимизации. Если вам нужна настройка таргета, действуйте так",
+      "summary": "",
+      "source_published_at": "",
+      "category": "targeting",
+      "confidence": 7,
+      "discovered_at": "2026-08-02T10:51:05.310548",
+      "tags": [],
+      "source_url": "https://workspace.ru/blog/nastroyka-targetirovannoy-reklamy-vo-vkontakte-v-novom-reklamnom-kabinete-poshagovaya-instrukciya-2026/"
+    },
+    {
+      "id": 2,
+      "platform": "VK",
+      "title": "VK Реклама | VK Реклама — платформа для всех, кто хочет...",
+      "content": "Попробуйте возможности VK Рекламы: поиск клиентов среди 100 млн пользователей VK автоматическая оптимизация бюджета и ставок автоматический подбор таргетингов, чтобы не пропустить ни одного целевого подписчика смарт-кампании для запуска рекламы...",
+      "snippet": "Попробуйте возможности VK Рекламы: поиск клиентов среди 100 млн пользователей VK автоматическая оптимизация бюджета и ставок автоматический подбор таргетингов, чтобы не пропустить ни одного целевого подписчика смарт-кампании для запуска рекламы...",
+      "summary": "",
+      "source_published_at": "2026-01-01",
+      "category": "budget_optimization",
+      "confidence": 7,
+      "discovered_at": "2026-08-02T10:56:52.520100",
+      "tags": [],
+      "source_url": "https://vk.ru/vk_ads"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 2
+  },
+  "ended_at": "2026-08-02T12:31:34.042192"
+}
