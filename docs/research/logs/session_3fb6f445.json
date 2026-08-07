@@ -1,0 +1,258 @@
+{
+  "session_id": "3fb6f445",
+  "started_at": "2026-08-07T10:05:34.987472",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-08-07T10:05:34.987487",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "3fb6f445",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-08-07T10:05:34.987558",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T10:05:34.987577",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T10:14:07.588649",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T10:22:40.558316",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T10:31:16.114669",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T10:36:58.737421",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T10:42:50.639482",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-08-07T10:42:50.639543",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T10:42:50.639560",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T10:51:21.078731",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T10:59:53.778669",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T11:08:43.845432",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T11:17:13.791468",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-08-07T11:17:13.791504",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T11:17:13.791539",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T11:25:46.038867",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T11:34:21.339764",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T11:42:51.398242",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T11:45:58.162533",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Как увеличить CTR в Яндекс Директе... — Маркетинг на vc.ru",
+        "category": "optimization",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T11:45:58.162569",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-07T11:54:28.852616",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-08-07T11:54:28.852654",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-08-07T11:54:28.852668",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Yandex Direct": 1
+        },
+        "insights_by_category": {
+          "optimization": 1
+        },
+        "top_categories": [
+          [
+            "optimization",
+            [
+              {
+                "id": 1,
+                "platform": "Yandex Direct",
+                "title": "Как увеличить CTR в Яндекс Директе... — Маркетинг на vc.ru",
+                "content": "**\n\nПрогнозный CTR (в \"Прогнозе бюджета\") - ориентир, но не точный показатель; реальный CTR анализируйте в Мастере отчетов (графа \"CTR (%)\") после накопления данных.\nСтандарты CTR: >10% на поиске - отлично, <1% - требует оптимизации (таргетинг, креативы, ставки); используйте индустриальные отчеты (или \"Пульс click.ru\") для сравнения с конкурентами.\nРСЯ обычно имеет CTR ~1% - учитывайте это при оценке эффективности.\nИнструменты: Бесплатный дашборд click.ru помогает сегментировать трафик и быстро корректировать кампании.",
+                "snippet": "Повышение CTR в Яндекс Директе, эффективные рекламные тексты, таргетинг, A/B-тестирование, визуальные эффекты, стратегии, click.ru.",
+                "summary": "**\n\nПрогнозный CTR (в \"Прогнозе бюджета\") - ориентир, но не точный показатель; реальный CTR анализируйте в Мастере отчетов (графа \"CTR (%)\") после накопления данных.\nСтандарты CTR: >10% на поиске - отлично, <1% - требует оптимизации (таргетинг, креативы, ставки); используйте индустриальные отчеты (или \"Пульс click.ru\") для сравнения с конкурентами.\nРСЯ обычно имеет CTR ~1% - учитывайте это при оценке эффективности.\nИнструменты: Бесплатный дашборд click.ru помогает сегментировать трафик и быстро корректировать кампании.",
+                "source_published_at": "2025-03-28T11:19",
+                "category": "optimization",
+                "confidence": 8,
+                "discovered_at": "2026-08-07T11:45:58.162486",
+                "tags": [],
+                "source_url": "https://vc.ru/marketing/1891954-kak-povysit-ctr-v-yandeks-direkte-9-sposobov"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Yandex Direct",
+      "title": "Как увеличить CTR в Яндекс Директе... — Маркетинг на vc.ru",
+      "content": "**\n\nПрогнозный CTR (в \"Прогнозе бюджета\") - ориентир, но не точный показатель; реальный CTR анализируйте в Мастере отчетов (графа \"CTR (%)\") после накопления данных.\nСтандарты CTR: >10% на поиске - отлично, <1% - требует оптимизации (таргетинг, креативы, ставки); используйте индустриальные отчеты (или \"Пульс click.ru\") для сравнения с конкурентами.\nРСЯ обычно имеет CTR ~1% - учитывайте это при оценке эффективности.\nИнструменты: Бесплатный дашборд click.ru помогает сегментировать трафик и быстро корректировать кампании.",
+      "snippet": "Повышение CTR в Яндекс Директе, эффективные рекламные тексты, таргетинг, A/B-тестирование, визуальные эффекты, стратегии, click.ru.",
+      "summary": "**\n\nПрогнозный CTR (в \"Прогнозе бюджета\") - ориентир, но не точный показатель; реальный CTR анализируйте в Мастере отчетов (графа \"CTR (%)\") после накопления данных.\nСтандарты CTR: >10% на поиске - отлично, <1% - требует оптимизации (таргетинг, креативы, ставки); используйте индустриальные отчеты (или \"Пульс click.ru\") для сравнения с конкурентами.\nРСЯ обычно имеет CTR ~1% - учитывайте это при оценке эффективности.\nИнструменты: Бесплатный дашборд click.ru помогает сегментировать трафик и быстро корректировать кампании.",
+      "source_published_at": "2025-03-28T11:19",
+      "category": "optimization",
+      "confidence": 8,
+      "discovered_at": "2026-08-07T11:45:58.162486",
+      "tags": [],
+      "source_url": "https://vc.ru/marketing/1891954-kak-povysit-ctr-v-yandeks-direkte-9-sposobov"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 1
+  },
+  "ended_at": "2026-08-07T11:54:28.852735"
+}
