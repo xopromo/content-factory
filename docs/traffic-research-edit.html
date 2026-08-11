@@ -180,6 +180,129 @@
     .sort-sep { color: var(--border); font-size: 12px; user-select: none; }
     .sort-divider { width: 1px; height: 14px; background: var(--border); margin: 0 6px; }
 
+    /* ── Filter panel ── */
+    .filter-panel {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 14px 20px;
+      background: rgba(38, 51, 72, 0.4);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-grow: 1;
+      min-width: 260px;
+    }
+    .filter-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .filter-val-badge {
+      display: inline-block;
+      min-width: 32px;
+      text-align: center;
+      background: var(--primary);
+      color: #FFF;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 9999px;
+      box-shadow: 0 0 10px rgba(129, 140, 248, 0.3);
+    }
+    .slider-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      flex-grow: 1;
+    }
+    .confidence-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      outline: none;
+      cursor: pointer;
+    }
+    .confidence-slider::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 6px;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+    }
+    .confidence-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: var(--text);
+      border: 3px solid var(--primary);
+      cursor: pointer;
+      margin-top: -6px;
+      box-shadow: 0 0 12px rgba(129, 140, 248, 0.6);
+      transition: transform 100ms, border-color 100ms;
+    }
+    .confidence-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      background: var(--primary);
+      border-color: var(--text);
+    }
+    .confidence-slider::-moz-range-thumb {
+      height: 12px;
+      width: 12px;
+      border-radius: 50%;
+      background: var(--text);
+      border: 3px solid var(--primary);
+      cursor: pointer;
+      box-shadow: 0 0 12px rgba(129, 140, 248, 0.6);
+      transition: transform 100ms, border-color 100ms;
+    }
+    .confidence-slider::-moz-range-thumb:hover {
+      transform: scale(1.15);
+      background: var(--primary);
+      border-color: var(--text);
+    }
+    .preset-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .preset-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+    .preset-btn:hover {
+      color: var(--text);
+      border-color: rgba(129, 140, 248, 0.3);
+      background: var(--surface);
+    }
+    .preset-btn.active {
+      background: var(--primary);
+      color: #FFF;
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(129, 140, 248, 0.3);
+    }
+
     /* ── Platform grid ── */
     .platform-grid {
       display: grid;
@@ -458,6 +581,23 @@
     </div>
   </div>
 
+  <!-- Filter panel -->
+  <div class="filter-panel">
+    <div class="filter-group">
+      <span class="filter-label">
+        Минимальная оценка: <span class="filter-val-badge" id="sliderVal">1+</span>
+      </span>
+      <div class="slider-container">
+        <input type="range" class="confidence-slider" id="confidenceSlider" min="1" max="10" value="1" step="1">
+      </div>
+    </div>
+    <div class="preset-group">
+      <button class="preset-btn active" data-preset="all">Все</button>
+      <button class="preset-btn" data-preset="high">Высокие (7+)</button>
+      <button class="preset-btn" data-preset="top">Топовые (9+)</button>
+    </div>
+  </div>
+
   <!-- Categories view (default) -->
   <div id="view-categories">
     <div class="category-grid" id="categoryGrid">
@@ -533,11 +673,23 @@
     return Number.isNaN(d.getTime()) ? null : d.toLocaleString('ru-RU', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
-  let allInsights    = [];
-  let byPlatform     = {};
-  let byCategory     = {};
-  let activeCategory = null;
-  let sortDirection  = 'desc';
+  let allInsights      = [];
+  let filteredInsights = [];
+  let byPlatform       = {};
+  let byCategory       = {};
+  let activeCategory   = null;
+  let sortDirection    = 'desc';
+  let minConfidence    = 1;
+
+  function updateFilteredData() {
+    filteredInsights = allInsights.filter(i => (i.confidence ?? 0) >= minConfidence);
+    byPlatform = {};
+    byCategory = {};
+    filteredInsights.forEach(i => {
+      (byPlatform[i.platform]  = byPlatform[i.platform]  || []).push(i);
+      (byCategory[i.category]  = byCategory[i.category]  || []).push(i);
+    });
+  }
 
   function getTs(ins) {
     const d = new Date(ins.discovered_at || 0);
@@ -617,7 +769,7 @@
 
     const items = activeCategory
       ? sortInsights(byCategory[activeCategory] || [])
-      : sortInsights(allInsights);
+      : sortInsights(filteredInsights);
 
     title.textContent = activeCategory ? catRu(activeCategory) : 'Все инсайты';
     meta.textContent  = `${items.length} инсайтов`;
@@ -641,7 +793,7 @@
   }
 
   function renderTable() {
-    document.getElementById('tableBody').innerHTML = sortInsights(allInsights).map(ins => `
+    document.getElementById('tableBody').innerHTML = sortInsights(filteredInsights).map(ins => `
       <tr>
         <td><span style="color:${PLATFORM_COLORS[ins.platform]||'#818CF8'}">${PLATFORM_ICONS[ins.platform]||''} ${esc(ins.platform)}</span></td>
         <td style="max-width:320px">${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener">${esc(ins.title)}</a>` : esc(ins.title)}</td>
@@ -652,6 +804,8 @@
   }
 
   function renderAll() {
+    document.getElementById('statTotal').textContent      = filteredInsights.length;
+    document.getElementById('statCategories').textContent = Object.keys(byCategory).length;
     renderCategories();
     renderCategoryResults();
     renderPlatforms();
@@ -664,14 +818,8 @@
       const data = await res.json();
       allInsights = data.insights || [];
 
-      byPlatform = {}; byCategory = {};
-      allInsights.forEach(i => {
-        (byPlatform[i.platform]  = byPlatform[i.platform]  || []).push(i);
-        (byCategory[i.category]  = byCategory[i.category]  || []).push(i);
-      });
+      updateFilteredData();
 
-      document.getElementById('statTotal').textContent      = allInsights.length;
-      document.getElementById('statCategories').textContent = Object.keys(byCategory).length;
       if (data.last_updated) {
         const d = new Date(data.last_updated).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
         document.getElementById('statUpdated').textContent   = '↑ ' + d;
@@ -718,6 +866,47 @@
       btn.classList.add('active');
       sortDirection = btn.dataset.sortDir;
       renderAll();
+    });
+  });
+
+  // Confidence filter event handlers
+  const slider = document.getElementById('confidenceSlider');
+  const sliderVal = document.getElementById('sliderVal');
+  const presetBtns = document.querySelectorAll('.preset-btn');
+
+  function updateSliderUI(val) {
+    slider.value = val;
+    sliderVal.textContent = val + '+';
+    presetBtns.forEach(btn => {
+      const preset = btn.dataset.preset;
+      let isActive = false;
+      if (preset === 'all' && val === 1) isActive = true;
+      if (preset === 'high' && val === 7) isActive = true;
+      if (preset === 'top' && val === 9) isActive = true;
+      btn.classList.toggle('active', isActive);
+    });
+  }
+
+  function handleConfidenceChange(val) {
+    minConfidence = val;
+    updateFilteredData();
+    renderAll();
+  }
+
+  slider.addEventListener('input', (e) => {
+    const val = parseInt(e.target.value, 10);
+    updateSliderUI(val);
+    handleConfidenceChange(val);
+  });
+
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      let val = 1;
+      const preset = btn.dataset.preset;
+      if (preset === 'high') val = 7;
+      if (preset === 'top') val = 9;
+      updateSliderUI(val);
+      handleConfidenceChange(val);
     });
   });
 
