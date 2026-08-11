@@ -692,7 +692,7 @@
     const paragraphs = html.split(/\n\s*\n/);
     return paragraphs.map(p => {
       p = p.trim();
-      if (!p) return '';
+      if (!p || /^[\s*_#\-—~]*$/.test(p)) return '';
       const lines = p.split('\n');
       let inList = false;
       let result = '';

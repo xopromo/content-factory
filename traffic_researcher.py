@@ -70,8 +70,48 @@ def fetch_article_text(url: str, max_chars: int = 3000) -> str:
     return fetch_article(url, max_chars).get("text", "")
 
 
-def summarize_with_llm(title: str, article_text: str, platform: str) -> str:
-    """Summarizes article via free LLMs: Gemini → Groq → Mistral → Cerebras"""
+def parse_llm_response(text: str) -> tuple[str, int]:
+    text = text.strip()
+    # Try to extract JSON from markdown backticks
+    if "```" in text:
+        try:
+            content = text.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+            data = json.loads(content.strip())
+            return data.get("summary", "").strip(), int(data.get("confidence", 7))
+        except Exception:
+            pass
+
+    # Try loading directly
+    try:
+        data = json.loads(text)
+        return data.get("summary", "").strip(), int(data.get("confidence", 7))
+    except Exception:
+        pass
+
+    # Regex fallbacks
+    confidence = 7
+    conf_match = re.search(r'"confidence"\s*:\s*(\d+)', text)
+    if not conf_match:
+        conf_match = re.search(r'confidence.*?(\d+)', text, re.IGNORECASE)
+    if conf_match:
+        try:
+            confidence = int(conf_match.group(1))
+        except Exception:
+            pass
+
+    summary = text
+    summary_match = re.search(r'"summary"\s*:\s*"(.*?)"', text, re.DOTALL)
+    if summary_match:
+        summary = summary_match.group(1)
+        summary = summary.replace('\\n', '\n').replace('\\"', '"').replace('\\\\', '\\')
+    
+    return summary.strip(), confidence
+
+
+def summarize_with_llm(title: str, article_text: str, platform: str) -> tuple[str, int]:
+    """Summarizes article and evaluates confidence score via free LLMs: Gemini → Groq → Mistral → Cerebras"""
     LLM_PROVIDERS = [
         {
             "name": "Gemini",
@@ -100,15 +140,20 @@ def summarize_with_llm(title: str, article_text: str, platform: str) -> str:
     ]
 
     prompt = (
-        f"Ты эксперт по digital-маркетингу. Прочитай статью и напиши саммари на русском языке "
-        f"(3-5 предложений) — только конкретные инсайты и практические советы по теме {platform}. "
-        f"Без воды.\n\nЗаголовок: {title}\n\nТекст:\n{article_text}"
+        f"Ты эксперт по digital-маркетингу. Прочитай статью и напиши структурированный ответ на русском языке по теме {platform}.\n"
+        f"Ответ должен быть строго в формате JSON с двумя полями:\n"
+        f"\"summary\": Саммари на русском языке (3-5 предложений) — только конкретные инсайты и практические советы по теме {platform} без воды.\n"
+        f"\"confidence\": Числовая оценка уверенности/полезности инсайтов от 1 до 10 (где 10 — максимальная полезность, содержащая конкретные цифры и работающие кейсы, а 1 — общие поверхностные фразы).\n\n"
+        f"Пример ответа:\n"
+        f"{{\n  \"summary\": \"Пример структурированного саммари...\",\n  \"confidence\": 8\n}}\n\n"
+        f"Заголовок: {title}\n\n"
+        f"Текст:\n{article_text}"
     )
 
     try:
         import requests as req
     except ImportError:
-        return ""
+        return "", 7
 
     for p in LLM_PROVIDERS:
         api_key = os.getenv(p["key_env"], "")
@@ -127,7 +172,7 @@ def summarize_with_llm(title: str, article_text: str, platform: str) -> str:
                     f"{p['url']}?key={api_key}",
                     headers={"Content-Type": "application/json"},
                     json={"contents": [{"parts": [{"text": prompt}]}],
-                          "generationConfig": {"maxOutputTokens": 400, "temperature": 0.4}},
+                          "generationConfig": {"maxOutputTokens": 500, "temperature": 0.4}},
                     timeout=20,
                 )
             else:
@@ -136,7 +181,7 @@ def summarize_with_llm(title: str, article_text: str, platform: str) -> str:
                     headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
                     json={"model": p["model"],
                           "messages": [{"role": "user", "content": prompt}],
-                          "max_tokens": 400, "temperature": 0.4},
+                          "max_tokens": 500, "temperature": 0.4},
                     timeout=20,
                 )
 
@@ -146,13 +191,17 @@ def summarize_with_llm(title: str, article_text: str, platform: str) -> str:
                 else:
                     result = resp.json()["choices"][0]["message"]["content"].strip()
                 print(f"  [LLM] {p['name']} OK")
-                return clean_summary(result)
+                
+                # Parse JSON summary and confidence
+                summary, confidence = parse_llm_response(result)
+                summary = clean_summary(summary)
+                return summary, confidence
 
             print(f"  [WARN] {p['name']}: HTTP {resp.status_code}, trying next...")
         except Exception as e:
             print(f"  [WARN] {p['name']} failed: {e}, trying next...")
 
-    return ""
+    return "", 7
 
 
 def clean_summary(text: str) -> str:
@@ -169,6 +218,8 @@ def clean_summary(text: str) -> str:
     text = text.replace('—', '-').replace('–', '-')
     # Убираем markdown-заголовки ## ### и т.д.
     text = re.sub(r'(?m)^#{1,6}\s+', '', text)
+    # Убираем строки, состоящие только из символов разметки или пробелов
+    text = re.sub(r'(?m)^[\s*_#\-—~]*$', '', text)
     # Схлопываем множественные пустые строки
     text = re.sub(r'\n{3,}', '\n\n', text)
     return text.strip()
@@ -194,9 +245,9 @@ def is_irrelevant_summary(summary: str) -> bool:
     return any(m in summary_lower for m in markers)
 
 
-def extract_insights_from_search(results: List[Dict[str, str]], platform: str, topic: str) -> List[Dict[str, str]]:
+def extract_insights_from_search(results: List[Dict[str, str]], platform: str, topic: str) -> List[Dict[str, Any]]:
     """Извлекает структурированные инсайты из результатов поиска.
-    Для каждого результата пытается скачать полный текст и сделать LLM-саммари."""
+    Для каждого результата пытается скачать полный текст и сделать LLM-саммари с оценкой."""
     insights = []
     for r in results:
         title = r.get("title", "").strip()
@@ -220,17 +271,21 @@ def extract_insights_from_search(results: List[Dict[str, str]], platform: str, t
         article_text = article.get("text", "")
         source_published_at = article.get("date", "")
 
-        if article_text and is_mostly_russian(article_text):
-            llm_summary = summarize_with_llm(title, article_text, platform)
-            if llm_summary and is_irrelevant_summary(llm_summary):
+        # Всегда вызываем LLM для получения саммари и оценки,
+        # передавая полный текст если есть, иначе сниппет
+        text_to_summarize = article_text if (article_text and is_mostly_russian(article_text)) else body
+        llm_summary, confidence = summarize_with_llm(title, text_to_summarize, platform)
+
+        if llm_summary:
+            if is_irrelevant_summary(llm_summary):
                 print(f"  [SKIP] LLM marked irrelevant: {title[:60]}")
                 continue
-            print(f"  [OK] Full article + LLM summary{' date:'+source_published_at if source_published_at else ''}: {title[:50]}")
+            content = llm_summary
+            print(f"  [OK] LLM summary (conf: {confidence}): {title[:50]}")
         else:
-            llm_summary = ""
-            print(f"  [OK] Snippet fallback: {title[:50]}")
-
-        content = llm_summary if llm_summary else snippet
+            content = snippet
+            confidence = 7
+            print(f"  [OK] Fallback snippet (conf: {confidence}): {title[:50]}")
 
         insights.append({
             "title": title[:80] if title else topic,
@@ -239,6 +294,7 @@ def extract_insights_from_search(results: List[Dict[str, str]], platform: str, t
             "summary": llm_summary,
             "source_published_at": source_published_at,
             "source_url": href,
+            "confidence": confidence,
         })
     return insights
 
@@ -346,7 +402,7 @@ class TrafficResearchAgent:
         text_lower = text.lower()
         return [kw for kw in keywords if kw in text_lower]
 
-    def _search_and_add(self, platform: str, queries: List[Dict], default_confidence: int = 7, region: str = "ru-ru"):
+    def _search_and_add(self, platform: str, queries: List[Dict], region: str = "ru-ru"):
         """Общий метод: поиск по запросам и добавление инсайтов"""
         total = 0
         for item in queries:
@@ -369,7 +425,7 @@ class TrafficResearchAgent:
                     title=ins["title"],
                     content=ins["content"],
                     category=category,
-                    confidence=default_confidence,
+                    confidence=ins.get("confidence", 7),
                     source_url=url,
                     snippet=ins.get("snippet", ""),
                     summary=ins.get("summary", ""),
@@ -392,7 +448,7 @@ class TrafficResearchAgent:
             {"query": "ВК таргет ошибки новичков как избежать", "category": "mistakes"},
         ]
 
-        count = self._search_and_add("VK", queries, default_confidence=7)
+        count = self._search_and_add("VK", queries)
         self.log_action("VK research completed", {"insights_added": count}, status="success")
 
     def research_threads(self):
@@ -405,7 +461,7 @@ class TrafficResearchAgent:
             {"query": "Threads соцсеть вирусный контент что работает -ВК -вконтакте", "category": "viral"},
         ]
 
-        count = self._search_and_add("Threads", queries, default_confidence=7)
+        count = self._search_and_add("Threads", queries)
         self.log_action("Threads research completed", {"insights_added": count}, status="success")
 
     def research_yandex_direct(self):
@@ -419,7 +475,7 @@ class TrafficResearchAgent:
             {"query": "Яндекс Директ новинки обновления 2026", "category": "updates"},
         ]
 
-        count = self._search_and_add("Yandex Direct", queries, default_confidence=8)
+        count = self._search_and_add("Yandex Direct", queries)
         self.log_action("Yandex Direct research completed", {"insights_added": count}, status="success")
 
     def generate_summary(self) -> Dict[str, Any]:
