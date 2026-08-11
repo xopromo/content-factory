@@ -191,6 +191,52 @@
       border-radius: var(--radius-md);
       flex-wrap: wrap;
     }
+    .header-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(38, 51, 72, 0.25);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: var(--radius-md);
+      position: relative;
+    }
+    .header-search .search-icon {
+      color: var(--text-muted);
+      opacity: 0.7;
+    }
+    .header-search input {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+      width: 130px;
+      transition: width 150ms ease;
+    }
+    .header-search input:focus {
+      width: 180px;
+    }
+    .header-search input::placeholder {
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+    .clear-search-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 150ms;
+    }
+    .clear-search-btn:hover {
+      color: var(--text);
+    }
     .filter-label {
       font-size: 12px;
       font-weight: 600;
@@ -603,6 +649,11 @@
             <button class="preset-btn" data-preset="top">9+</button>
           </div>
         </div>
+        <div class="header-search">
+          <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="textSearchInput" placeholder="Поиск по ключевым словам..." autocomplete="off">
+          <button id="clearSearchBtn" class="clear-search-btn hidden">&times;</button>
+        </div>
         <div class="category-results-meta" id="categoryResultsMeta"></div>
       </div>
       <div class="results-list" id="categoryResultsList"></div>
@@ -715,9 +766,24 @@
   let activeCategory   = null;
   let sortDirection    = 'desc';
   let minConfidence    = 1;
+  let searchQuery      = '';
 
   function updateFilteredData() {
-    filteredInsights = allInsights.filter(i => (i.confidence ?? 0) >= minConfidence);
+    filteredInsights = allInsights.filter(i => {
+      // 1. Confidence filter
+      if ((i.confidence ?? 0) < minConfidence) return false;
+      
+      // 2. Text search query filter
+      if (searchQuery) {
+        const titleMatch = (i.title || '').toLowerCase().includes(searchQuery);
+        const contentMatch = (i.content || '').toLowerCase().includes(searchQuery);
+        const summaryMatch = (i.summary || '').toLowerCase().includes(searchQuery);
+        const snippetMatch = (i.snippet || '').toLowerCase().includes(searchQuery);
+        if (!titleMatch && !contentMatch && !summaryMatch && !snippetMatch) return false;
+      }
+      
+      return true;
+    });
     byPlatform = {};
     byCategory = {};
     filteredInsights.forEach(i => {
@@ -943,6 +1009,25 @@
       updateSliderUI(val);
       handleConfidenceChange(val);
     });
+  });
+
+  // Text search event handlers
+  const searchInput = document.getElementById('textSearchInput');
+  const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+  searchInput.addEventListener('input', (e) => {
+    searchQuery = e.target.value.toLowerCase().trim();
+    clearSearchBtn.classList.toggle('hidden', searchQuery.length === 0);
+    updateFilteredData();
+    renderAll();
+  });
+
+  clearSearchBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    searchQuery = '';
+    clearSearchBtn.classList.add('hidden');
+    updateFilteredData();
+    renderAll();
   });
 
   load();
