@@ -379,6 +379,24 @@
       line-height: 1.6;
       margin-bottom: 8px;
     }
+    .insight-body p {
+      margin-bottom: 8px;
+    }
+    .insight-body p:last-child {
+      margin-bottom: 0;
+    }
+    .insight-body ul {
+      margin-left: 18px;
+      margin-bottom: 8px;
+      list-style-type: disc;
+    }
+    .insight-body li {
+      margin-bottom: 4px;
+    }
+    .insight-body strong {
+      color: var(--text);
+      font-weight: 600;
+    }
     .insight-footer {
       display: flex;
       align-items: center;
@@ -667,6 +685,44 @@
     return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[c]));
   }
 
+  function mdToHtml(text) {
+    if (!text) return '';
+    let html = esc(text);
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    const paragraphs = html.split(/\n\s*\n/);
+    return paragraphs.map(p => {
+      p = p.trim();
+      if (!p) return '';
+      const lines = p.split('\n');
+      let inList = false;
+      let result = '';
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('— ')) {
+          if (!inList) {
+            result += '<ul>';
+            inList = true;
+          }
+          const cleanLine = trimmed.replace(/^([-*—]\s+)/, '');
+          result += `<li>${cleanLine}</li>`;
+        } else {
+          if (inList) {
+            result += '</ul>';
+            inList = false;
+          }
+          result += (result ? '<br>' : '') + line;
+        }
+      });
+      if (inList) {
+        result += '</ul>';
+      }
+      if (result.startsWith('<ul>') && result.endsWith('</ul>') && !result.includes('<br>')) {
+        return result;
+      }
+      return `<p>${result}</p>`;
+    }).filter(Boolean).join('');
+  }
+
   function fmtDate(value) {
     if (!value) return null;
     const d = new Date(value);
@@ -732,8 +788,8 @@
       <div class="insight">
         <div class="insight-title">${esc(ins.title)}</div>
         ${tabs}
-        <div class="insight-body" id="ibody-${uid}-summary">${esc(bodyContent)}</div>
-        ${showTabs ? `<div class="insight-body hidden" id="ibody-${uid}-snippet">${esc(snippetContent)}</div>` : ''}
+        <div class="insight-body" id="ibody-${uid}-summary">${mdToHtml(bodyContent)}</div>
+        ${showTabs ? `<div class="insight-body hidden" id="ibody-${uid}-snippet">${mdToHtml(snippetContent)}</div>` : ''}
         <div class="insight-footer">
           <span class="insight-meta-text"><span class="cat">${esc(catRu(ins.category))}</span> · ${ins.confidence}/10${dateAdded ? ' · ' + dateAdded : ''}</span>
           ${ins.source_url ? `<a href="${esc(ins.source_url)}" target="_blank" rel="noopener" class="source-link">↗ источник</a>` : ''}
