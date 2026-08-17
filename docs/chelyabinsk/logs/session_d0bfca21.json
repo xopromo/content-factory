@@ -1,0 +1,266 @@
+{
+  "session_id": "d0bfca21",
+  "started_at": "2026-08-17T18:43:02.522544",
+  "config": "Челябинск — новости и события",
+  "research_targets": [
+    "ЧП и происшествия",
+    "Городские события",
+    "Общество и жизнь"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-08-17T18:43:02.522562",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "d0bfca21",
+        "config": "Челябинск — новости и события",
+        "platforms": [
+          "ЧП и происшествия",
+          "Городские события",
+          "Общество и жизнь"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:43:02.522608",
+      "action": "Starting ЧП и происшествия research",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:43:02.522624",
+      "action": "Searching: Челябинск ЧП происшествия сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:43:23.765514",
+      "action": "Searching: Челябинск ДТП авария сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:43:37.427270",
+      "action": "Searching: Челябинск пожар криминал происшествие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:43:55.398328",
+      "action": "Searching: Челябинская область ЧП экстренные службы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:43:59.584232",
+      "action": "Searching: Челябинск происшествия сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:44:01.573137",
+      "action": "Searching: Челябинск ДТП авария 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:44:03.619192",
+      "action": "ЧП и происшествия research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:44:03.619238",
+      "action": "Starting Городские события research",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:44:03.619252",
+      "action": "Searching: Челябинск новости сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:44:24.208269",
+      "action": "Searching: Челябинск события громкие яркие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:44:26.283436",
+      "action": "Searching: Челябинск мэрия администрация решения site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:44:34.875004",
+      "action": "New insight discovered: Городские события",
+      "status": "success",
+      "details": {
+        "title": "В Челябинской области обновляют городскую среду. Планируют ...",
+        "category": "government",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:44:34.875044",
+      "action": "Searching: Челябинск стройки инфраструктура транспорт site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:44:36.838820",
+      "action": "Searching: Челябинск новости сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:44:49.900419",
+      "action": "Городские события research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:44:49.900457",
+      "action": "Starting Общество и жизнь research",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:44:49.900474",
+      "action": "Searching: Челябинск скандал резонанс общество site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:45:06.861986",
+      "action": "Searching: Южный Урал новости события site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:45:08.673835",
+      "action": "Searching: Челябинск экология промышленность проблемы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:45:16.081569",
+      "action": "Searching: Южный Урал новости события 2026",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:45:24.256602",
+      "action": "Общество и жизнь research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-08-17T18:45:24.256639",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-08-17T18:45:24.256652",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Городские события": 1
+        },
+        "insights_by_category": {
+          "government": 1
+        },
+        "top_categories": [
+          [
+            "government",
+            [
+              {
+                "id": 1,
+                "platform": "Городские события",
+                "title": "В Челябинской области обновляют городскую среду. Планируют ...",
+                "content": "18 hours ago · В Челябинской области обновляют городскую среду. Планируют внести изменения в закон о звании «Ветеран труда» - Город - 17 августа 2026 | 74.ру",
+                "snippet": "18 hours ago · В Челябинской области обновляют городскую среду. Планируют внести изменения в закон о звании «Ветеран труда» - Город - 17 августа 2026 | 74.ру",
+                "summary": "",
+                "source_published_at": "",
+                "category": "government",
+                "confidence": 7,
+                "discovered_at": "2026-08-17T18:44:34.874978",
+                "tags": [],
+                "source_url": "https://74.ru/text/gorod/2026/08/17/76592147/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Городские события",
+      "title": "В Челябинской области обновляют городскую среду. Планируют ...",
+      "content": "18 hours ago · В Челябинской области обновляют городскую среду. Планируют внести изменения в закон о звании «Ветеран труда» - Город - 17 августа 2026 | 74.ру",
+      "snippet": "18 hours ago · В Челябинской области обновляют городскую среду. Планируют внести изменения в закон о звании «Ветеран труда» - Город - 17 августа 2026 | 74.ру",
+      "summary": "",
+      "source_published_at": "",
+      "category": "government",
+      "confidence": 7,
+      "discovered_at": "2026-08-17T18:44:34.874978",
+      "tags": [],
+      "source_url": "https://74.ru/text/gorod/2026/08/17/76592147/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 25,
+    "insights_found": 1
+  },
+  "ended_at": "2026-08-17T18:45:24.256788"
+}
