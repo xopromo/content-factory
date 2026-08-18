@@ -115,14 +115,14 @@ def summarize_with_llm(title: str, article_text: str, platform: str) -> tuple[st
     LLM_PROVIDERS = [
         {
             "name": "Gemini",
-            "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+            "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
             "key_env": "GEMINI_KEY",
             "is_gemini": True,
         },
         {
             "name": "Groq",
             "url": "https://api.groq.com/openai/v1/chat/completions",
-            "model": "llama-3.3-70b-versatile",
+            "model": "openai/gpt-oss-120b",
             "key_env": "GROQ_KEY",
         },
         {

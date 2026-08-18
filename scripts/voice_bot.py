@@ -587,7 +587,7 @@ def transcribe(audio_path: Path) -> str:
     except Exception:
         pass
 
-    # 3. Резервная попытка через Google Gemini 2.0 Flash REST (передача аудио в base64)
+    # 3. Резервная попытка через Google Gemini 2.5 Flash REST (передача аудио в base64)
     gemini_key = os.environ.get("GEMINI_KEY")
     if gemini_key:
         try:
@@ -605,7 +605,7 @@ def transcribe(audio_path: Path) -> str:
             elif suffix == ".m4a":
                 mime_type = "audio/m4a"
                 
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
             payload = {
                 "contents": [{
                     "parts": [
@@ -624,7 +624,7 @@ def transcribe(audio_path: Path) -> str:
             with urllib.request.urlopen(req, timeout=60) as resp:
                 res = json.loads(resp.read().decode("utf-8"))
                 text = res["candidates"][0]["content"]["parts"][0]["text"].strip()
-                log.info("Successfully transcribed voice using Gemini 2.0 Flash REST fallback!")
+                log.info("Successfully transcribed voice using Gemini 2.5 Flash REST fallback!")
                 return text
         except Exception as gemini_err:
             err_msg = f"Gemini fallback transcription failed: {gemini_err}"
@@ -800,7 +800,7 @@ def format_voice_note(text: str, category: str, duration: int = 0) -> tuple[str,
     return filename, content
 
 async def send_transcript(update: Update, text: str) -> None:
-    """Отправляет полный транскрипт, разбивая на части если > 4000 символов."""
+    """Отправляет полный транскрипт, разбивая на части если > 4000 символов, с безопасным fallback при ошибках разметки."""
     LIMIT = 4000
     parse_mode = "HTML" if ("<" in text and ">" in text) else "Markdown"
     
@@ -809,15 +809,15 @@ async def send_transcript(update: Update, text: str) -> None:
     else:
         header_fn = lambda idx, total: f"📝 *Транскрипт ({idx}/{total}):*\n\n" if total > 1 else "📝 *Транскрипт:*\n\n"
 
-    if len(text) <= LIMIT:
-        header = header_fn(1, 1)
-        await update.message.reply_text(header + text, parse_mode=parse_mode)
-        return
-        
-    chunks = [text[i:i + LIMIT] for i in range(0, len(text), LIMIT)]
+    chunks = [text[i:i + LIMIT] for i in range(0, len(text), LIMIT)] if len(text) > LIMIT else [text]
     for idx, chunk in enumerate(chunks, 1):
         header = header_fn(idx, len(chunks))
-        await update.message.reply_text(header + chunk, parse_mode=parse_mode)
+        try:
+            await update.message.reply_text(header + chunk, parse_mode=parse_mode)
+        except Exception as e:
+            log.warning("send_transcript failed with %s parse_mode, falling back to plain text: %s", parse_mode, e)
+            plain_header = f"📝 Транскрипт ({idx}/{len(chunks)}):\n\n" if len(chunks) > 1 else "📝 Транскрипт:\n\n"
+            await update.message.reply_text(plain_header + chunk, parse_mode=None)
 
 def questions_keyboard(questions: list[str]) -> ReplyKeyboardMarkup:
     """Показывает вопросы в сообщении, кнопки — номера + навигация."""

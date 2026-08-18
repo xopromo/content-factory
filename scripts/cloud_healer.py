@@ -82,7 +82,7 @@ def call_groq(prompt: str) -> str:
         
     url = "https://api.groq.com/openai/v1/chat/completions"
     payload = {
-        "model": "llama-3.3-70b-versatile",
+        "model": "openai/gpt-oss-120b",
         "messages": [
             {
                 "role": "user",
@@ -119,7 +119,7 @@ def call_openrouter(prompt: str) -> str:
         raise ValueError("OPENROUTER_KEY не задан в переменных окружения")
         
     errors = []
-    for model in ["meta-llama/llama-3.3-70b-instruct:free", "openrouter/free"]:
+    for model in ["nvidia/nemotron-3-super-120b-a12b:free", "google/gemma-4-31b-it:free", "nvidia/nemotron-3.5-lightning:free"]:
         try:
             url = "https://openrouter.ai/api/v1/chat/completions"
             payload = {

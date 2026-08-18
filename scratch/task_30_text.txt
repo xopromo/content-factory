@@ -1,0 +1,18 @@
+🌀 Президент OpenAI Грег Брокман поделился самой мощной автоматизацией для Codex — loop тестирует каждую фичу и проводит целый аудит вашего приложения.
+
+→ ИИ-агент раскладывает по полочкам каждую фичу: как юзер использует её и как она должна работать.
+→ Тестирует каждый сценарий как пользователь и записывает все ошибки в одну таблицу.
+→ Исправляет не только технические баги, но и логистические / UX-ошибки.
+→ После фиксов тестирует фичи заново и проверяет, что ничего нового не сломалось.
+→ Весь процесс повторяется как цикл и агент тестирует фичи, пока они не закончатся.
+
+Сам промпт:
+
+“/goal go over every single feature in this app create a user story with expected behaviour based on the code keep a single canonical spreadsheet tracking the features status
+• when done switch loop to testing every user story and documenting all errors
+• when done fix every logistical error or ux error
+• test every user behaviour again post fix”
+
+Сохраняйте, чтобы не потерять.
+
+@notboring_tech

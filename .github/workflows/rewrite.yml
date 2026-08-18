@@ -126,7 +126,7 @@ jobs:
               if not gemini_key: return None
               try:
                   resp = requests.post(
-                      f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={gemini_key}',
+                      f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}',
                       json={'contents': [{'parts': [{'text': f'{prompt}\n\nТЕКСТ:\n{text[:12000]}'}]}],
                             'generationConfig': {'maxOutputTokens': 2048, 'temperature': 0.4}},
                       timeout=30)
@@ -165,16 +165,13 @@ jobs:
                   return None
 
           print(f"\nRewriting as [{style}]...")
-          rewritten = _try_compat('Mistral', 'https://api.mistral.ai/v1/chat/completions',
-                                  'mistral-small-latest', mistral_key, source_text, prompt)
+          rewritten = _try_compat('Groq', 'https://api.groq.com/openai/v1/chat/completions',
+                                  'openai/gpt-oss-120b', groq_key, source_text, prompt)
           if not rewritten:
               rewritten = _try_gemini(source_text, prompt)
           if not rewritten:
-              rewritten = _try_compat('Cerebras', 'https://api.cerebras.ai/v1/chat/completions',
-                                      'llama3.1-8b', cerebras_key, source_text, prompt)
-          if not rewritten:
-              rewritten = _try_compat('Groq', 'https://api.groq.com/openai/v1/chat/completions',
-                                      'llama-3.3-70b-versatile', groq_key, source_text, prompt)
+              rewritten = _try_compat('Mistral', 'https://api.mistral.ai/v1/chat/completions',
+                                      'mistral-small-latest', mistral_key, source_text, prompt)
 
           # ── Step 4: Save result ────────────────────────────────────────────
           result = {

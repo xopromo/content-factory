@@ -167,34 +167,48 @@ def get_mock_response(prompt: str, is_fast: bool = False) -> str:
         return "Mock Response: Успешная тестовая генерация."
 
 
-def run_gemini_rest(prompt: str) -> str:
+def run_gemini_rest(prompt: str, model: str = "gemini-2.5-flash") -> str:
     gemini_key = os.getenv("GEMINI_KEY")
     if not gemini_key:
         raise ValueError("GEMINI_KEY is not set")
     import urllib.request
     import urllib.error
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
-    payload = {
-        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.2, "maxOutputTokens": 8192}
-    }
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST"
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            res = json.loads(resp.read().decode("utf-8"))
-        return res["candidates"][0]["content"]["parts"][0]["text"].strip()
-    except urllib.error.HTTPError as e:
-        error_body = ""
+    
+    models_to_try = [model]
+    if model != "gemini-2.5-flash":
+        models_to_try.append("gemini-2.5-flash")
+    if "gemini-3.6-flash" not in models_to_try:
+        models_to_try.append("gemini-3.6-flash")
+    if "gemini-flash-lite-latest" not in models_to_try:
+        models_to_try.append("gemini-flash-lite-latest")
+
+    last_err = None
+    for m in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={gemini_key}"
+        payload = {
+            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.2, "maxOutputTokens": 8192}
+        }
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
         try:
-            error_body = e.read().decode("utf-8")
-        except Exception:
-            pass
-        raise RuntimeError(f"Gemini REST Error {e.code}: {e.reason}. Body: {error_body}") from e
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                res = json.loads(resp.read().decode("utf-8"))
+            return res["candidates"][0]["content"]["parts"][0]["text"].strip()
+        except urllib.error.HTTPError as e:
+            error_body = ""
+            try:
+                error_body = e.read().decode("utf-8")
+            except Exception:
+                pass
+            last_err = RuntimeError(f"Gemini REST Error {e.code} ({m}): {e.reason}. Body: {error_body}")
+        except Exception as e:
+            last_err = e
+    raise last_err or RuntimeError("All Gemini REST attempts failed")
 
 
 def run_cerebras_rest(prompt: str, max_tokens: int = 1024) -> str:
@@ -342,14 +356,14 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
             try:
                 if _gemini_client:
                     resp = _gemini_client.models.generate_content(
-                        model="gemini-2.0-flash",
+                        model="gemini-2.5-flash",
                         contents=full_prompt,
                     )
                     gemini_response = resp.text.strip()
                     gemini_success = True
                     break
                 else:
-                    gemini_response = run_gemini_rest(full_prompt)
+                    gemini_response = run_gemini_rest(full_prompt, model="gemini-2.5-flash")
                     gemini_success = True
                     break
             except Exception as e:
@@ -376,7 +390,7 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
     # 1.5. OpenRouter (используя бесплатные модели)
     openrouter_key = os.getenv("OPENROUTER_KEY")
     if openrouter_key:
-        for model in ["meta-llama/llama-3.3-70b-instruct:free", "openrouter/free"]:
+        for model in ["nvidia/nemotron-3-super-120b-a12b:free", "google/gemma-4-31b-it:free", "nvidia/nemotron-3.5-lightning:free"]:
             try:
                 content = run_openrouter_rest(full_prompt, model=model, max_tokens=3000)
                 if content:
@@ -386,16 +400,16 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
                 print(f"  [LLM CLIENT WARNING] {err_msg}")
                 errors.append(err_msg)
 
-    # 2. Groq (Llama 3.3 70B с ротацией и авто-бэкоффом)
+    # 2. Groq (с ротацией и авто-бэкоффом)
     groq_clients = get_groq_clients()
     if groq_clients:
-        for model in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+        for model in ["openai/gpt-oss-120b", "groq/compound", "qwen/qwen3.6-27b", "openai/gpt-oss-20b"]:
             if time.time() < _groq_cooldown_until:
                 print(f"  [LLM CLIENT SKIP] Пропускаю Groq ({model}): Groq временно на кулдауне")
                 errors.append(f"Groq Skip ({model}): Groq is on cooldown")
                 continue
             # Проверяем, влезает ли промпт в лимит TPM модели
-            model_tpm = 6000 if "8b" in model else 12000
+            model_tpm = 6000 if "20b" in model else 12000
             # Если промпт слишком велик (оставляет меньше 1024 токенов на ответ), пропускаем модель
             if tokens >= model_tpm - 1024:
                 print(f"  [LLM CLIENT SKIP] Пропускаю Groq ({model}): размер промпта {tokens} слишком велик для TPM {model_tpm}")
@@ -407,7 +421,7 @@ def run_claude_common(prompt: str, context: str = "", inject_feedback: bool = Fa
                     # Вычисляем безопасный max_tokens для провайдеров с низким TPM лимитом (Groq)
                     safe_max = max(1024, model_tpm - tokens - 500)
                     # Физический лимит длины генерации для стабильности
-                    limit = 3000 if "70b" in model else 1024
+                    limit = 3000 if ("120b" in model or "compound" in model) else 1024
                     current_max = min(limit, safe_max)
 
                     content = call_groq_with_retry(
@@ -514,7 +528,7 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
                     client=gq,
                     model=model_name,
                     messages=[{"role": "user", "content": prompt}],
-                    max_tokens=1024,
+                    max_tokens=4096,
                     temperature=0.2
                 )
             except Exception as e:
@@ -529,7 +543,7 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
             for attempt in range(10):
                 try:
                     resp = _gemini_client.models.generate_content(
-                        model="gemini-2.0-flash",
+                        model="gemini-2.5-flash",
                         contents=prompt,
                     )
                     return resp.text.strip()
@@ -552,7 +566,7 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
         elif gemini_key:
             for attempt in range(10):
                 try:
-                    return run_gemini_rest(prompt)
+                    return run_gemini_rest(prompt, model="gemini-2.5-flash")
                 except Exception as e:
                     err_str = str(e)
                     err_msg = f"Gemini Fast REST Error (Attempt {attempt+1}/10): {e}"
@@ -582,7 +596,7 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
                 return resp.choices[0].message.content.strip()
             except Exception:
                 pass
-        return run_mistral_rest(prompt, model="mistral-large-latest")
+        return run_mistral_rest(prompt, model="mistral-large-latest", max_tokens=4096)
 
     def try_cerebras() -> str:
         if _cerebras_client:
@@ -596,29 +610,29 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
                 pass
         return run_cerebras_rest(prompt)
 
-    # Задаем порядок опроса (Pollinations AI идет первым, чтобы сберегать лимиты других API)
+    # Приоритетный порядок опроса: Groq (openai/gpt-oss-120b) ➔ Gemini ➔ Groq ➔ Mistral ➔ OpenRouter
     if quality == "strong":
         steps_to_try = [
-            ("pollinations", "qwen-2.5-72b"),
-            ("openrouter", "meta-llama/llama-3.3-70b-instruct:free"),
-            ("openrouter", "openrouter/free"),
-            ("groq", "llama-3.3-70b-versatile"),
-            ("gemini", None),
-            ("groq", "llama-3.1-8b-instant"),
+            ("groq", "openai/gpt-oss-120b"),
+            ("gemini", "gemini-2.5-flash"),
+            ("groq", "groq/compound"),
             ("mistral", None),
+            ("openrouter", "nvidia/nemotron-3-super-120b-a12b:free"),
+            ("openrouter", "google/gemma-4-31b-it:free"),
+            ("groq", "openai/gpt-oss-20b"),
             ("cerebras", None),
+            ("pollinations", "qwen-2.5-72b"),
             ("claude_cli", None)
         ]
     else:
         steps_to_try = [
-            ("pollinations", "qwen-2.5-72b"),
-            ("openrouter", "meta-llama/llama-3.2-3b-instruct:free"),
-            ("openrouter", "openrouter/free"),
-            ("groq", "llama-3.1-8b-instant"),
-            ("gemini", None),
-            ("groq", "llama-3.3-70b-versatile"),
-            ("cerebras", None),
+            ("groq", "openai/gpt-oss-20b"),
+            ("gemini", "gemini-2.5-flash"),
+            ("groq", "openai/gpt-oss-120b"),
             ("mistral", None),
+            ("openrouter", "google/gemma-4-26b-a4b-it:free"),
+            ("cerebras", None),
+            ("pollinations", "qwen-2.5-72b"),
             ("claude_cli", None)
         ]
 
@@ -628,7 +642,7 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
             if time.time() < _groq_cooldown_until:
                 print(f"  [LLM CLIENT SKIP] Пропускаю Groq ({model}) для быстрой задачи: Groq на кулдауне")
                 continue
-            model_tpm = 6000 if "8b" in model else 12000
+            model_tpm = 6000 if "20b" in model else 12000
             if tokens >= model_tpm - 1024:
                 print(f"  [LLM CLIENT SKIP] Пропускаю Groq ({model}) для быстрой задачи: размер промпта {tokens} велик для TPM {model_tpm}")
                 continue
@@ -653,17 +667,17 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
             except Exception as e:
                 errors.append(f"Cerebras Fast Error: {e}")
                 continue
+        elif provider == "openrouter" and os.getenv("OPENROUTER_KEY"):
+            try:
+                return run_openrouter_rest(prompt, model=model, max_tokens=2048), tokens
+            except Exception as e:
+                errors.append(f"OpenRouter Fast Error ({model}): {e}")
+                continue
         elif provider == "pollinations":
             try:
                 return run_pollinations_rest(prompt, model=model), tokens
             except Exception as e:
                 errors.append(f"Pollinations Fast Error: {e}")
-                continue
-        elif provider == "openrouter" and os.getenv("OPENROUTER_KEY"):
-            try:
-                return run_openrouter_rest(prompt, model=model, max_tokens=1024), tokens
-            except Exception as e:
-                errors.append(f"OpenRouter Fast Error ({model}): {e}")
                 continue
         elif provider == "claude_cli":
             try:
@@ -694,7 +708,7 @@ def run_fast_common(prompt: str, quality: str = "strong") -> Tuple[str, int]:
 def summarize_article_common(title: str, article_text: str, platform: str) -> str:
     """
     Специализированная функция саммари статей для researcher.py.
-    Использует цепочку: Gemini (прямой REST) ➔ Groq 70B ➔ Mistral ➔ Cerebras.
+    Использует цепочку: Gemini (прямой REST) ➔ Groq ➔ Mistral ➔ Cerebras.
     """
     if os.getenv("MOCK_LLM") == "1":
         return f"Это тестовое саммари для статьи '{title}' по теме '{platform}', сгенерированное локально."
@@ -712,21 +726,7 @@ def summarize_article_common(title: str, article_text: str, platform: str) -> st
     if gemini_key:
         for attempt in range(10):
             try:
-                import urllib.request
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
-                payload = {
-                    "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-                    "generationConfig": {"temperature": 0.2, "maxOutputTokens": 1024}
-                }
-                req = urllib.request.Request(
-                    url,
-                    data=json.dumps(payload).encode("utf-8"),
-                    headers={"Content-Type": "application/json"},
-                    method="POST"
-                )
-                with urllib.request.urlopen(req, timeout=30) as resp:
-                    res = json.loads(resp.read().decode("utf-8"))
-                return res["candidates"][0]["content"]["parts"][0]["text"].strip()
+                return run_gemini_rest(prompt, model="gemini-2.5-flash")
             except Exception as e:
                 err_str = str(e)
                 err_msg = f"Gemini REST Error (Attempt {attempt+1}/10): {e}"
@@ -753,9 +753,9 @@ def summarize_article_common(title: str, article_text: str, platform: str) -> st
                 try:
                     return call_groq_with_retry(
                         client=client,
-                        model="llama-3.3-70b-versatile",
+                        model="openai/gpt-oss-120b",
                         messages=[{"role": "user", "content": prompt}],
-                        max_tokens=1024,
+                        max_tokens=2048,
                         temperature=0.2
                     )
                 except Exception as e:

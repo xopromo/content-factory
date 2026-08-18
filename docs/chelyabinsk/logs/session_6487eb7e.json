@@ -1,0 +1,355 @@
+{
+  "session_id": "6487eb7e",
+  "started_at": "2026-06-11T23:08:32.402801",
+  "config": "Челябинск — новости и события",
+  "research_targets": [
+    "ЧП и происшествия",
+    "Городские события",
+    "Общество и жизнь"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-06-11T23:08:32.402801",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "6487eb7e",
+        "config": "Челябинск — новости и события",
+        "platforms": [
+          "ЧП и происшествия",
+          "Городские события",
+          "Общество и жизнь"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:08:32.402801",
+      "action": "Starting ЧП и происшествия research",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:08:32.402801",
+      "action": "Searching: Челябинск ЧП происшествия сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:08:42.385278",
+      "action": "Searching: Челябинск ДТП авария сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:08:48.475453",
+      "action": "Searching: Челябинск пожар криминал происшествие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:08:56.824318",
+      "action": "Searching: Челябинская область ЧП экстренные службы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:09:02.872748",
+      "action": "Searching: Челябинск происшествия сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:09:06.430622",
+      "action": "New insight discovered: ЧП и происшествия",
+      "status": "success",
+      "details": {
+        "title": "23 лучшие достопримечательности Челябинска - описание и фото",
+        "category": "incidents",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:09:06.430622",
+      "action": "Searching: Челябинск ДТП авария 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:09:09.869776",
+      "action": "New insight discovered: ЧП и происшествия",
+      "status": "success",
+      "details": {
+        "title": "Видео от BestChinaCars |Челябинск|Авто из Китая Кореи ОАЭ",
+        "category": "accidents",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:09:09.870291",
+      "action": "ЧП и происшествия research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 2
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:09:09.870291",
+      "action": "Starting Городские события research",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:09:09.870291",
+      "action": "Searching: Челябинск новости сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:09:18.729906",
+      "action": "Searching: Челябинск события громкие яркие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:09:29.817372",
+      "action": "Searching: Челябинск мэрия администрация решения site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:09:40.892556",
+      "action": "Searching: Челябинск стройки инфраструктура транспорт site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:09:51.974718",
+      "action": "Searching: Челябинск новости сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:09:52.606095",
+      "action": "Городские события research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:09:52.606095",
+      "action": "Starting Общество и жизнь research",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:09:52.606095",
+      "action": "Searching: Челябинск скандал резонанс общество site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:10:03.052051",
+      "action": "Searching: Южный Урал новости события site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:10:14.131080",
+      "action": "Searching: Челябинск экология промышленность проблемы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:10:25.205411",
+      "action": "Searching: Южный Урал новости события 2026",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:10:26.787017",
+      "action": "New insight discovered: Общество и жизнь",
+      "status": "success",
+      "details": {
+        "title": "На Южном Урале усилен контроль за гидротехническими ...",
+        "category": "regional",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:10:26.787017",
+      "action": "Общество и жизнь research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-06-11T23:10:26.787017",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-06-11T23:10:26.787017",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 3,
+        "insights_by_platform": {
+          "ЧП и происшествия": 2,
+          "Общество и жизнь": 1
+        },
+        "insights_by_category": {
+          "incidents": 1,
+          "accidents": 1,
+          "regional": 1
+        },
+        "top_categories": [
+          [
+            "incidents",
+            [
+              {
+                "id": 1,
+                "platform": "ЧП и происшествия",
+                "title": "23 лучшие достопримечательности Челябинска - описание и фото",
+                "content": "Достопримечательности Челябинска - что посмотреть на экскурсиях и самостоятельно ...",
+                "snippet": "Достопримечательности Челябинска - что посмотреть на экскурсиях и самостоятельно ...",
+                "summary": "",
+                "source_published_at": "",
+                "category": "incidents",
+                "confidence": 8,
+                "discovered_at": "2026-06-11T23:09:06.430622",
+                "tags": [],
+                "source_url": "https://tripplanet.ru/cheljabinsk-dostoprimechatelnosti/"
+              }
+            ]
+          ],
+          [
+            "accidents",
+            [
+              {
+                "id": 2,
+                "platform": "ЧП и происшествия",
+                "title": "Видео от BestChinaCars |Челябинск|Авто из Китая Кореи ОАЭ",
+                "content": "20 hours ago · Смотрите онлайн Видео от BestChinaCars | Челябинск |Авто из Китая.. 56 с. Видео от 11 июня 2026 в хорошем качестве, без регистрации в бесплатном видеокаталоге ВКонтакте! 4 — просмотрели.",
+                "snippet": "20 hours ago · Смотрите онлайн Видео от BestChinaCars | Челябинск |Авто из Китая.. 56 с. Видео от 11 июня 2026 в хорошем качестве, без регистрации в бесплатном видеокаталоге ВКонтакте! 4 — просмотрели.",
+                "summary": "",
+                "source_published_at": "",
+                "category": "accidents",
+                "confidence": 8,
+                "discovered_at": "2026-06-11T23:09:09.869776",
+                "tags": [],
+                "source_url": "https://vk.com/video-14658897_456239297"
+              }
+            ]
+          ],
+          [
+            "regional",
+            [
+              {
+                "id": 3,
+                "platform": "Общество и жизнь",
+                "title": "На Южном Урале усилен контроль за гидротехническими ...",
+                "content": "20 hours ago · На Южном Урале усилен контроль за гидротехническими сооружениями, Урал -пресс-информ Челябинск, новости Челябинская область",
+                "snippet": "20 hours ago · На Южном Урале усилен контроль за гидротехническими сооружениями, Урал -пресс-информ Челябинск, новости Челябинская область",
+                "summary": "",
+                "source_published_at": "",
+                "category": "regional",
+                "confidence": 7,
+                "discovered_at": "2026-06-11T23:10:26.787017",
+                "tags": [],
+                "source_url": "https://uralpress.ru/news/na-yuzhnom-urale-usilen-kontrol-za-gidrotekhnicheskimi-sooruzheniyami-2026-06-11"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "ЧП и происшествия",
+      "title": "23 лучшие достопримечательности Челябинска - описание и фото",
+      "content": "Достопримечательности Челябинска - что посмотреть на экскурсиях и самостоятельно ...",
+      "snippet": "Достопримечательности Челябинска - что посмотреть на экскурсиях и самостоятельно ...",
+      "summary": "",
+      "source_published_at": "",
+      "category": "incidents",
+      "confidence": 8,
+      "discovered_at": "2026-06-11T23:09:06.430622",
+      "tags": [],
+      "source_url": "https://tripplanet.ru/cheljabinsk-dostoprimechatelnosti/"
+    },
+    {
+      "id": 2,
+      "platform": "ЧП и происшествия",
+      "title": "Видео от BestChinaCars |Челябинск|Авто из Китая Кореи ОАЭ",
+      "content": "20 hours ago · Смотрите онлайн Видео от BestChinaCars | Челябинск |Авто из Китая.. 56 с. Видео от 11 июня 2026 в хорошем качестве, без регистрации в бесплатном видеокаталоге ВКонтакте! 4 — просмотрели.",
+      "snippet": "20 hours ago · Смотрите онлайн Видео от BestChinaCars | Челябинск |Авто из Китая.. 56 с. Видео от 11 июня 2026 в хорошем качестве, без регистрации в бесплатном видеокаталоге ВКонтакте! 4 — просмотрели.",
+      "summary": "",
+      "source_published_at": "",
+      "category": "accidents",
+      "confidence": 8,
+      "discovered_at": "2026-06-11T23:09:09.869776",
+      "tags": [],
+      "source_url": "https://vk.com/video-14658897_456239297"
+    },
+    {
+      "id": 3,
+      "platform": "Общество и жизнь",
+      "title": "На Южном Урале усилен контроль за гидротехническими ...",
+      "content": "20 hours ago · На Южном Урале усилен контроль за гидротехническими сооружениями, Урал -пресс-информ Челябинск, новости Челябинская область",
+      "snippet": "20 hours ago · На Южном Урале усилен контроль за гидротехническими сооружениями, Урал -пресс-информ Челябинск, новости Челябинская область",
+      "summary": "",
+      "source_published_at": "",
+      "category": "regional",
+      "confidence": 7,
+      "discovered_at": "2026-06-11T23:10:26.787017",
+      "tags": [],
+      "source_url": "https://uralpress.ru/news/na-yuzhnom-urale-usilen-kontrol-za-gidrotekhnicheskimi-sooruzheniyami-2026-06-11"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 15,
+    "insights_found": 3
+  },
+  "ended_at": "2026-06-11T23:10:26.787017"
+}

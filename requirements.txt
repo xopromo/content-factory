@@ -13,3 +13,6 @@ telethon
 python-socks
 PySocks
 websocket-client
+google-genai
+openai
+mistralai

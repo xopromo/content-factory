@@ -46,7 +46,7 @@ except ImportError:
 from scripts.utils.llm_client import run_fast_common
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
-REPO = os.environ.get("GITHUB_REPO") or "xopromo/vibe-coding-hub"
+REPO = os.environ.get("GITHUB_REPO") or "xopromo/content-factory"
 BRANCH = os.environ.get("GITHUB_BRANCH") or "main"
 TASKS_PATH = "docs/articles/tasks.json"
 
@@ -70,11 +70,12 @@ else:
         env["GCM_INTERACTIVE"] = "never"
         env["GIT_ASKPASS"] = "echo"
         
+        clone_url = f"https://{GITHUB_TOKEN}@github.com/{REPO}.git" if (GITHUB_TOKEN and GITHUB_TOKEN != "github_pat_antigravitydummytoken") else f"https://github.com/{REPO}.git"
         # Clone with retries
         for attempt in range(3):
             try:
                 res = subprocess.run(
-                    ["git", "clone", f"https://github.com/{REPO}.git", repo_name],
+                    ["git", "clone", clone_url, repo_name],
                     cwd=str(ROOT / "scratch"),
                     capture_output=True,
                     text=True,
@@ -104,11 +105,26 @@ def git_pull():
     env["GCM_INTERACTIVE"] = "never"
     env["GIT_ASKPASS"] = "echo"
     
+    remote_target = f"https://{GITHUB_TOKEN}@github.com/{REPO}.git" if (GITHUB_TOKEN and GITHUB_TOKEN != "github_pat_antigravitydummytoken") else "origin"
+    
     fetch_success = False
     # Try git fetch with retries
     for attempt in range(3):
         try:
             print(f"DEBUG: git fetch attempt {attempt + 1}")
+            res_fetch = subprocess.run(
+                ["git", "fetch", remote_target, BRANCH],
+                cwd=str(GIT_DIR),
+                capture_output=True,
+                shell=False,
+                timeout=30,
+                env=env
+            )
+            print(f"DEBUG: git fetch attempt {attempt + 1} finished, code={res_fetch.returncode}")
+            if res_fetch.returncode == 0:
+                fetch_success = True
+                break
+            # Fallback to plain origin
             res_fetch = subprocess.run(
                 ["git", "fetch", "origin", BRANCH],
                 cwd=str(GIT_DIR),
@@ -117,7 +133,6 @@ def git_pull():
                 timeout=30,
                 env=env
             )
-            print(f"DEBUG: git fetch attempt {attempt + 1} finished, code={res_fetch.returncode}")
             if res_fetch.returncode == 0:
                 fetch_success = True
                 break

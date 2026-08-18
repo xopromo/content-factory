@@ -1,0 +1,42 @@
+graph TD
+    User((Пользователь)) -->|Запрос/Обратная связь| Orchestrator[lead-orchestrator]
+    
+    subgraph "Мозг (Оркестрация и Память)"
+        Orchestrator -->|1. Планирование| Plans[plans/]
+        Orchestrator -->|2. Поиск контекста| KnowledgeSearch[scripts/knowledge_search.py]
+        KnowledgeSearch --> KB[(knowledge/ База знаний)]
+        Orchestrator -->|3. Проверка правил| Rules[ai-clone/rules.md]
+    end
+
+    subgraph "Рой Субагентов (Пайплайн 14 шагов)"
+        Orchestrator --> Agent1[knowledge-retriever]
+        Agent1 --> Agent2[web-researcher]
+        Agent2 --> HumanReview{HUMAN REVIEW #1}
+        HumanReview --> Agent3[content-writer]
+        Agent3 --> Agent4[diagram-illustrator]
+        Agent4 --> Agent5[seo-geo-optimizer]
+        Agent5 --> Agent6[fact-checker]
+        Agent6 --> Agent7[entity-validator]
+        Agent7 -->|Блокировка при ошибке| Orchestrator
+        Agent7 --> Agent8[editor-critic]
+        Agent8 --> Agent9[final-publisher]
+    end
+
+    subgraph "Система Самообучения"
+        User -->|'Запомни это'| FeedbackLearner[scripts/feedback_learner.py]
+        FeedbackLearner -->|Обновление| LearningRules[ai-clone/feedback/learning_rules.md]
+        LearningRules -->|Коррекция| Agent3
+        LearningRules -->|Валидация| Agent7
+        LearningRules -->|Стиль| Agent4
+        FeedbackLearner -->|Статус| ProjectState[PROJECT_STATE.md]
+    end
+
+    subgraph "Инструментарий (MCP/Bash)"
+        Orchestrator --> Tools[read_file, write_file, run_command, send_photo, search_memory]
+        Tools --> OS[Локальная ФС / Интернет / Telegram]
+    end
+
+    style Orchestrator fill:#f9f,stroke:#333,stroke-width:4px
+    style Agent7 fill:#ff9,stroke:#f00,stroke-width:2px
+    style FeedbackLearner fill:#bbf,stroke:#333,stroke-width:2px
+    style ProjectState fill:#dfd,stroke:#333

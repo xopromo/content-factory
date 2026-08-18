@@ -28,7 +28,7 @@ GEMINI_API_KEY = os.environ.get("GEMINI_KEY") or os.environ.get("GEMINI_API_KEY"
 
 # Configure Gemini
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-2.0-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 async def rewrite_post(text):
     prompt = f"""Ты — профессиональный ИИ-редактор новостных телеграм-каналов о нейросетях.
@@ -63,14 +63,14 @@ async def rewrite_post(text):
         return None
         
     try:
-        print("[AI] Attempting rewrite with Groq (llama-3.3-70b-versatile)...")
+        print("[AI] Attempting rewrite with Groq (openai/gpt-oss-120b)...")
         url = "https://api.groq.com/openai/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {groq_key}",
             "Content-Type": "application/json"
         }
         payload = {
-            "model": "llama-3.3-70b-versatile",
+            "model": "openai/gpt-oss-120b",
             "messages": [
                 {"role": "user", "content": prompt}
             ]

@@ -29,8 +29,8 @@ LLM_PROVIDERS = {
         'key_env': 'CEREBRAS_API_KEY'
     },
     'gemini': {
-        'api_url': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent',
-        'model': 'gemini-2.0-flash-lite',
+        'api_url': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+        'model': 'gemini-2.5-flash',
         'key_file': '~/.gemini_key',
         'key_env': 'GEMINI_API_KEY',
         'is_gemini': True
