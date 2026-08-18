@@ -53,3 +53,7 @@ knowledge/voice/*
 # Jarvis Local Database
 jarvis_memory.db
 jarvis_memory.db-journal
+
+# Scratch directory
+scratch/
+
