@@ -129,3 +129,14 @@ editor-critic        — финальный аудит с учетом WARNING-�
 - **Таймауты GitHub (IPv6):** Для предотвращения зависаний при push/fetch принудительно включено IPv4-разрешение: `git config --global force.ipresolve v4`.
 - **Исправление voice_bot.py:** Исправлен критический сбой инициализации бота (ошибка `AttributeError: type object 'Document' has no attribute 'data_filter'`). Класс `filters.Document` заменен на рабочий экземпляр фильтра `filters.Document.ALL`. Изменения запушены на GitHub, Render автоматически обновил и запустил инстанс.
 - **Daemon Supervisor:** Все службы (клиент вебсокета, обработчик задач, монитор новостей) перезапущены локально в фоне под управлением `supervisor.py`.
+
+---
+
+## Восстановление обработки наговоренного текста нейросетью (обновлено 2026-08-18)
+- **Причина сбоя:** Деактивация устаревших моделей провайдерами (Google удалил `gemini-2.0-flash`, Groq вывел из эксплуатации `llama-3.3-70b-versatile` и `llama-3.1-8b-instant`, Pollinations заблокировал API).
+- **Стек 2026:**
+  - Быстрые и сильные задачи (`run_fast_common`, `llm_chat`): `openai/gpt-oss-120b` (Groq) ➔ `gemini-2.5-flash` (Google REST) ➔ `groq/compound` ➔ `mistral-large-latest`.
+  - Тяжелые задачи (`run_claude_common`): `gemini-2.5-flash` ➔ `openai/gpt-oss-120b` ➔ `mistral-large-latest`.
+  - Резервная аудио-транскрибация: `whisper-large-v3` / `whisper-large-v3-turbo` (Groq) ➔ `gemini-2.5-flash` REST fallback.
+- **Безопасная доставка в Telegram:** В `send_transcript` добавлен автоматический перехват ошибок парсинга сущностей HTML/Markdown с fallback на plain text.
+- **Исправление Task Listener:** Задан корректный целевой репозиторий `xopromo/content-factory` и настроена токенизированная авторизация в `git_pull()`.
