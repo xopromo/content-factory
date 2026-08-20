@@ -57,3 +57,8 @@ jarvis_memory.db-journal
 # Scratch directory
 scratch/
 
+# Telethon session files
+*.session
+*.session-journal
+
+

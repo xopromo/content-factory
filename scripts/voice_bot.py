@@ -1580,7 +1580,10 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
                 await status_msg.delete()
             except Exception:
                 pass
-            await update.message.reply_text(f"📊 *Саммари записи:*\n\n{summary_text}", parse_mode="Markdown")
+            try:
+                await update.message.reply_text(f"📊 *Саммари записи:*\n\n{summary_text}", parse_mode="Markdown")
+            except Exception:
+                await update.message.reply_text(f"📊 Саммари записи:\n\n{summary_text}", parse_mode=None)
             
             keyboard = [
                 ["💾 Сохранить саммари в базу"],
