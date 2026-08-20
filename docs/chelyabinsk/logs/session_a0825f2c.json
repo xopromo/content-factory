@@ -1,0 +1,217 @@
+{
+  "session_id": "a0825f2c",
+  "started_at": "2026-08-20T12:54:35.607809",
+  "config": "Челябинск — новости и события",
+  "research_targets": [
+    "ЧП и происшествия",
+    "Городские события",
+    "Общество и жизнь"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-08-20T12:54:35.607833",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "a0825f2c",
+        "config": "Челябинск — новости и события",
+        "platforms": [
+          "ЧП и происшествия",
+          "Городские события",
+          "Общество и жизнь"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:54:35.607891",
+      "action": "Starting ЧП и происшествия research",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:54:35.607912",
+      "action": "Searching: Челябинск ЧП происшествия сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:54:41.410386",
+      "action": "Searching: Челябинск ДТП авария сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:54:45.035156",
+      "action": "Searching: Челябинск пожар криминал происшествие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:54:47.400318",
+      "action": "Searching: Челябинская область ЧП экстренные службы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:54:50.229877",
+      "action": "Searching: Челябинск происшествия сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:01.089201",
+      "action": "Searching: Челябинск ДТП авария 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:16.274543",
+      "action": "ЧП и происшествия research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:16.274577",
+      "action": "Starting Городские события research",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:16.274592",
+      "action": "Searching: Челябинск новости сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:19.782532",
+      "action": "Searching: Челябинск события громкие яркие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:20.925081",
+      "action": "Searching: Челябинск мэрия администрация решения site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:23.154652",
+      "action": "Searching: Челябинск стройки инфраструктура транспорт site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:24.467395",
+      "action": "Searching: Челябинск новости сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:25.747475",
+      "action": "Городские события research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:25.747522",
+      "action": "Starting Общество и жизнь research",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:25.747542",
+      "action": "Searching: Челябинск скандал резонанс общество site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:27.030614",
+      "action": "Searching: Южный Урал новости события site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:28.154743",
+      "action": "Searching: Челябинск экология промышленность проблемы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:29.462370",
+      "action": "Searching: Южный Урал новости события 2026",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:30.705799",
+      "action": "Общество и жизнь research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-08-20T12:55:30.705841",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-08-20T12:55:30.705850",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 0,
+        "insights_by_platform": {},
+        "insights_by_category": {},
+        "top_categories": []
+      }
+    }
+  ],
+  "insights": [],
+  "statistics": {
+    "sources_analyzed": 17,
+    "insights_found": 0
+  },
+  "ended_at": "2026-08-20T12:55:30.705872"
+}
