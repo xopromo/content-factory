@@ -1,0 +1,258 @@
+{
+  "session_id": "a2252ba9",
+  "started_at": "2026-08-24T09:55:15.384966",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-08-24T09:55:15.384982",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "a2252ba9",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-08-24T09:55:15.385014",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T09:55:15.385027",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T09:55:34.827319",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T09:55:59.147088",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T09:56:30.984231",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T09:57:07.445780",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T09:57:38.186667",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-08-24T09:57:38.186706",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T09:57:38.186720",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T09:58:09.191598",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T09:59:28.754870",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T10:00:17.079481",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T10:00:36.483907",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-08-24T10:00:36.483944",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T10:00:36.483958",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T10:01:24.849373",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T10:01:25.999351",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T10:01:33.351523",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T10:02:21.205823",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T10:03:17.800884",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Тренды и обновления Яндекс Директ в 2026 году: полный обзор ...",
+        "category": "updates",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-08-24T10:03:17.800915",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-08-24T10:03:17.800929",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-08-24T10:03:17.800940",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Yandex Direct": 1
+        },
+        "insights_by_category": {
+          "updates": 1
+        },
+        "top_categories": [
+          [
+            "updates",
+            [
+              {
+                "id": 1,
+                "platform": "Yandex Direct",
+                "title": "Тренды и обновления Яндекс Директ в 2026 году: полный обзор ...",
+                "content": "Главные тренды и обновления Яндекс Директ. Как нейросети, новые автостратегии и ИИ-креативы меняют контекстную рекламу в 2026 году. Разбираем нововведения и даем инструкции по адаптации кампаний.",
+                "snippet": "Главные тренды и обновления Яндекс Директ. Как нейросети, новые автостратегии и ИИ-креативы меняют контекстную рекламу в 2026 году. Разбираем нововведения и даем инструкции по адаптации кампаний.",
+                "summary": "",
+                "source_published_at": "",
+                "category": "updates",
+                "confidence": 8,
+                "discovered_at": "2026-08-24T10:03:17.800861",
+                "tags": [],
+                "source_url": "https://grechkopv.ru/blog/yandex-direct/trendy-i-obnovleniya-yandeks-direkt/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Yandex Direct",
+      "title": "Тренды и обновления Яндекс Директ в 2026 году: полный обзор ...",
+      "content": "Главные тренды и обновления Яндекс Директ. Как нейросети, новые автостратегии и ИИ-креативы меняют контекстную рекламу в 2026 году. Разбираем нововведения и даем инструкции по адаптации кампаний.",
+      "snippet": "Главные тренды и обновления Яндекс Директ. Как нейросети, новые автостратегии и ИИ-креативы меняют контекстную рекламу в 2026 году. Разбираем нововведения и даем инструкции по адаптации кампаний.",
+      "summary": "",
+      "source_published_at": "",
+      "category": "updates",
+      "confidence": 8,
+      "discovered_at": "2026-08-24T10:03:17.800861",
+      "tags": [],
+      "source_url": "https://grechkopv.ru/blog/yandex-direct/trendy-i-obnovleniya-yandeks-direkt/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 39,
+    "insights_found": 1
+  },
+  "ended_at": "2026-08-24T10:03:17.800983"
+}

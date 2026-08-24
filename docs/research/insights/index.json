@@ -1,6 +1,6 @@
 {
-  "total_insights": 632,
-  "last_updated": "2026-08-23T09:42:40.046250",
+  "total_insights": 633,
+  "last_updated": "2026-08-24T10:03:17.860869",
   "insights": [
     {
       "id": 1,
@@ -6682,6 +6682,20 @@
       "discovered_at": "2026-05-26T10:32:26.415426",
       "tags": [],
       "source_url": "https://vc.ru/marketing/2257663-kak-uvelichit-ctr-v-yandeks-direkte-prakticheskie-sovety"
+    },
+    {
+      "id": 1,
+      "platform": "Yandex Direct",
+      "title": "Тренды и обновления Яндекс Директ в 2026 году: полный обзор ...",
+      "content": "Главные тренды и обновления Яндекс Директ. Как нейросети, новые автостратегии и ИИ-креативы меняют контекстную рекламу в 2026 году. Разбираем нововведения и даем инструкции по адаптации кампаний.",
+      "snippet": "Главные тренды и обновления Яндекс Директ. Как нейросети, новые автостратегии и ИИ-креативы меняют контекстную рекламу в 2026 году. Разбираем нововведения и даем инструкции по адаптации кампаний.",
+      "summary": "",
+      "source_published_at": "",
+      "category": "updates",
+      "confidence": 8,
+      "discovered_at": "2026-08-24T10:03:17.800861",
+      "tags": [],
+      "source_url": "https://grechkopv.ru/blog/yandex-direct/trendy-i-obnovleniya-yandeks-direkt/"
     },
     {
       "id": 1,
