@@ -932,7 +932,7 @@ async def _download_and_transcribe_media(message, ctx: ContextTypes.DEFAULT_TYPE
                 await status_msg.edit_text("Локальный Whisper недоступен. Расшифровываю через облако...")
             except Exception:
                 pass
-        res = transcribe(transcribe_path)
+        res = await asyncio.to_thread(transcribe, transcribe_path)
         return res
     except Exception as e:
         log.error("Transcription error: %s", e)
@@ -1189,12 +1189,14 @@ async def cmd_brainstorm(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None
 
 # ── Команды ───────────────────────────────────────────────────────────────────
 
-async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    _clear_user_data_except_menu(ctx)
     await _send_menu_with_cleanup(
         update, ctx,
         "Привет! Выбери режим или просто отправь голосовое.",
         reply_markup=MAIN_KEYBOARD,
     )
+    return ConversationHandler.END
 
 async def cmd_version(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if update.message:
@@ -1341,7 +1343,7 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
             "4. НЕ добавляй никаких собственных выводов, комментариев, приветствий или объяснений. Верни ТОЛЬКО очищенный текст."
         )
         try:
-            cleaned_text = llm_chat(text, system=clean_prompt)
+            cleaned_text = await asyncio.to_thread(llm_chat, text, clean_prompt)
             ctx.user_data["text"] = cleaned_text
             try:
                 await status_msg.delete()
@@ -1380,7 +1382,7 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
             "3. НЕ добавляй никаких собственных выводов, комментариев, приветствий или объяснений. Верни ТОЛЬКО исходный текст, разделенный на абзацы."
         )
         try:
-            paragraphed_text = llm_chat(text, system=paragraph_prompt)
+            paragraphed_text = await asyncio.to_thread(llm_chat, text, paragraph_prompt)
             ctx.user_data["text"] = paragraphed_text
             try:
                 await status_msg.delete()
@@ -1422,7 +1424,7 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
             "6. НЕ добавляй приветствий, мета-комментариев или объяснений. Верни ТОЛЬКО структурированный HTML-текст конспекта."
         )
         try:
-            collapsed_text = llm_chat(text, system=collapse_prompt)
+            collapsed_text = await asyncio.to_thread(llm_chat, text, collapse_prompt)
             # Remove any markdown code blocks model might wrap it in, e.g. ```html ... ```
             collapsed_text = re.sub(r"^```[a-zA-Z0-9]*\n", "", collapsed_text)
             collapsed_text = re.sub(r"\n```$", "", collapsed_text)
@@ -1574,7 +1576,7 @@ async def handle_transcript_action(update: Update, ctx: ContextTypes.DEFAULT_TYP
             "Будь лаконичен и структурирован. Не пиши приветствий или мета-комментариев."
         )
         try:
-            summary_text = llm_chat(text, system=summary_prompt)
+            summary_text = await asyncio.to_thread(llm_chat, text, summary_prompt)
             ctx.user_data["summary_text"] = summary_text
             try:
                 await status_msg.delete()
@@ -4752,10 +4754,12 @@ def main() -> None:
         states={
             WAIT_CATEGORY: [
                 MessageHandler(home_filter, go_home),
+                MessageHandler(media_filter, handle_voice),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_category),
             ],
             WAIT_CUSTOM_CATEGORY: [
                 MessageHandler(home_filter, go_home),
+                MessageHandler(media_filter, handle_voice),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_custom_category),
             ],
             WAIT_EXPERT_TOPIC: [
@@ -4804,6 +4808,7 @@ def main() -> None:
             ],
             WAIT_AUD_CONFIRM: [
                 MessageHandler(home_filter, go_home),
+                MessageHandler(media_filter, handle_voice),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, audience_confirm),
             ],
             WAIT_NEWS_TOPIC: [
@@ -4824,6 +4829,7 @@ def main() -> None:
             ],
             WAIT_ARTICLE_MODE: [
                 MessageHandler(home_filter, go_home),
+                MessageHandler(media_filter, handle_voice),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_article_mode),
             ],
             WAIT_ARTICLE_TOPIC: [
@@ -4833,6 +4839,7 @@ def main() -> None:
             ],
             WAIT_ARTICLE_CONFIRM: [
                 MessageHandler(home_filter, go_home),
+                MessageHandler(media_filter, handle_voice),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_article_confirm),
             ],
             WAIT_FORWARD_ACTION: [
@@ -4845,10 +4852,12 @@ def main() -> None:
             ],
             WAIT_TRANSCRIPT_ACTION: [
                 MessageHandler(home_filter, go_home),
+                MessageHandler(media_filter, handle_voice),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_transcript_action),
             ],
             WAIT_SUMMARY_ACTION: [
                 MessageHandler(home_filter, go_home),
+                MessageHandler(media_filter, handle_voice),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_summary_action),
             ],
             WAIT_POST_COMMENT: [
@@ -4860,7 +4869,11 @@ def main() -> None:
                 MessageHandler(filters.TEXT | media_filter, handle_link_action),
             ],
         },
-        fallbacks=[CommandHandler("cancel", cmd_cancel)],
+        fallbacks=[
+            CommandHandler("cancel", cmd_cancel),
+            CommandHandler("start", cmd_start),
+            MessageHandler(home_filter, go_home),
+        ],
         allow_reentry=True,
     )
 

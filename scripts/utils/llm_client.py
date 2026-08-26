@@ -128,13 +128,13 @@ def call_groq_with_retry(client, model: str, messages: List[Dict], max_tokens: i
             is_rate_limit = "429" in str(e) or "rate limit" in str(e).lower() or "limit exceeded" in str(e).lower()
             if is_rate_limit:
                 cooldown_sec = get_groq_cooldown_delay(str(e))
-                _groq_cooldown_until = time.time() + cooldown_sec
-                print(f"  [LLM CLIENT] Groq rate limit hit. Groq set on cooldown for {cooldown_sec}s.")
                 if attempt < retries - 1:
                     delay = base_delay * (2 ** attempt)
-                    print(f"  [LLM CLIENT] Retrying in {delay}s... (Attempt {attempt+1}/{retries})")
+                    print(f"  [LLM CLIENT] Groq rate limit (429). Retrying in {delay}s... (Attempt {attempt+1}/{retries})")
                     time.sleep(delay)
                 else:
+                    _groq_cooldown_until = time.time() + cooldown_sec
+                    print(f"  [LLM CLIENT] Groq rate limit hit. Groq set on cooldown for {cooldown_sec}s.")
                     raise e
             else:
                 raise e
