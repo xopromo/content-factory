@@ -140,3 +140,15 @@ editor-critic        — финальный аудит с учетом WARNING-�
   - Резервная аудио-транскрибация: `whisper-large-v3` / `whisper-large-v3-turbo` (Groq) ➔ `gemini-2.5-flash` REST fallback.
 - **Безопасная доставка в Telegram:** В `send_transcript` добавлен автоматический перехват ошибок парсинга сущностей HTML/Markdown с fallback на plain text.
 - **Исправление Task Listener:** Задан корректный целевой репозиторий `xopromo/content-factory` и настроена токенизированная авторизация в `git_pull()`.
+
+---
+
+## Устранение зависания бота и сброса состояний (обновлено 2026-08-26)
+- **Причина «не реагирует»:**
+  1. Синхронные вызовы `transcribe()` и `llm_chat()` выполнялись напрямую в главном asyncio-потоке бота, замораживая Tornado/Event-Loop на 5-15 секунд и вызывая таймауты Telegram Webhook (504).
+  2. В `ConversationHandler` команды `/start` и `/cancel` отсутствовали в `fallbacks`, из-за чего бот застревал в промежуточных состояниях, а новые голосовые сообщения в режиме выбора действий игнорировались.
+- **Решение:**
+  1. Все сетевые операции LLM и аудио-транскрибации переведены в неблокирующий режим через `await asyncio.to_thread(...)`.
+  2. Во все состояния `ConversationHandler` добавлен фильтр `media_filter` для бесшовного приема новых голосовых заметок.
+  3. В `fallbacks` добавлены `CommandHandler("start", cmd_start)`, `CommandHandler("cancel", cmd_cancel)` и `home_filter` для гарантированного сброса состояния.
+  4. Обновления задеплоены на Render и протестированы.
