@@ -50,6 +50,12 @@ SERVICES = [
         "cmd": [sys.executable, "-u", "scripts/telegram_monitor_listener.py"],
         "cwd": ROOT,
         "log": os.path.join(ROOT, "telegram_monitor_listener.log")
+    },
+    {
+        "name": "voice_bot",
+        "cmd": [sys.executable, "-u", "scripts/voice_bot.py"],
+        "cwd": ROOT,
+        "log": os.path.join(ROOT, "voice_bot.log")
     }
 ]
 
