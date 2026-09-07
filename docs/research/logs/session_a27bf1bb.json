@@ -1,0 +1,262 @@
+{
+  "session_id": "a27bf1bb",
+  "started_at": "2026-09-07T14:58:53.076189",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-09-07T14:58:53.076209",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "a27bf1bb",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-09-07T14:58:53.076257",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T14:58:53.076272",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T14:59:26.444254",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T14:59:54.254520",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "6 этапов продвижения в ВК как работает в 2026 — Подслушано в 2026 году ...",
+        "category": "budget_optimization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T14:59:54.254565",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:00:17.385836",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:02:05.900030",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:03:48.373406",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:03:48.373451",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:03:48.373468",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:05:10.703527",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:05:22.386514",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:05:30.175728",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:05:53.503321",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:05:53.503365",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:05:53.503384",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:06:03.863905",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:06:15.981615",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:06:23.390951",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:06:36.305299",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:07:08.711520",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-07T15:07:08.711566",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-09-07T15:07:08.711580",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "VK": 1
+        },
+        "insights_by_category": {
+          "budget_optimization": 1
+        },
+        "top_categories": [
+          [
+            "budget_optimization",
+            [
+              {
+                "id": 1,
+                "platform": "VK",
+                "title": "6 этапов продвижения в ВК как работает в 2026 — Подслушано в 2026 году ...",
+                "content": "Продвижение в VK - это не набор разрозненных действий, а инженерная система из 6 взаимосвязанных этапов, пропуск любого из которых приводит к сливу бюджета. Воронка продаж в VK состоит из трёх каналов: органики (клипы, посты), платного трафика (VK Реклама) и гибридных интеграций (посевы). Эти каналы не конкурируют, а усиливают друг друга: клипы привлекают холодную аудиторию, посты прогревают, а реклама дожимает. Неправильное использование этой системы увеличивает стоимость лида в 2-3 раза. Эффективность требует понимания механики умной ленты и формулы аукциона eCPM.",
+                "snippet": "Продвижение в ВК, система из 6 этапов, аукцион ставок, формула eCPM, ретаргетинг, оптимизация бюджета, механика работы рекламы ВКонтакте",
+                "summary": "Продвижение в VK - это не набор разрозненных действий, а инженерная система из 6 взаимосвязанных этапов, пропуск любого из которых приводит к сливу бюджета. Воронка продаж в VK состоит из трёх каналов: органики (клипы, посты), платного трафика (VK Реклама) и гибридных интеграций (посевы). Эти каналы не конкурируют, а усиливают друг друга: клипы привлекают холодную аудиторию, посты прогревают, а реклама дожимает. Неправильное использование этой системы увеличивает стоимость лида в 2-3 раза. Эффективность требует понимания механики умной ленты и формулы аукциона eCPM.",
+                "source_published_at": "2026-08-30T06:24",
+                "category": "budget_optimization",
+                "confidence": 7,
+                "discovered_at": "2026-09-07T14:59:54.254489",
+                "tags": [
+                  "cpm"
+                ],
+                "source_url": "https://dtf.ru/podslushano/5263333-prodvizhenie-v-vk-6-etapov-dlya-effektivnoy-reklamy"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "VK",
+      "title": "6 этапов продвижения в ВК как работает в 2026 — Подслушано в 2026 году ...",
+      "content": "Продвижение в VK - это не набор разрозненных действий, а инженерная система из 6 взаимосвязанных этапов, пропуск любого из которых приводит к сливу бюджета. Воронка продаж в VK состоит из трёх каналов: органики (клипы, посты), платного трафика (VK Реклама) и гибридных интеграций (посевы). Эти каналы не конкурируют, а усиливают друг друга: клипы привлекают холодную аудиторию, посты прогревают, а реклама дожимает. Неправильное использование этой системы увеличивает стоимость лида в 2-3 раза. Эффективность требует понимания механики умной ленты и формулы аукциона eCPM.",
+      "snippet": "Продвижение в ВК, система из 6 этапов, аукцион ставок, формула eCPM, ретаргетинг, оптимизация бюджета, механика работы рекламы ВКонтакте",
+      "summary": "Продвижение в VK - это не набор разрозненных действий, а инженерная система из 6 взаимосвязанных этапов, пропуск любого из которых приводит к сливу бюджета. Воронка продаж в VK состоит из трёх каналов: органики (клипы, посты), платного трафика (VK Реклама) и гибридных интеграций (посевы). Эти каналы не конкурируют, а усиливают друг друга: клипы привлекают холодную аудиторию, посты прогревают, а реклама дожимает. Неправильное использование этой системы увеличивает стоимость лида в 2-3 раза. Эффективность требует понимания механики умной ленты и формулы аукциона eCPM.",
+      "source_published_at": "2026-08-30T06:24",
+      "category": "budget_optimization",
+      "confidence": 7,
+      "discovered_at": "2026-09-07T14:59:54.254489",
+      "tags": [
+        "cpm"
+      ],
+      "source_url": "https://dtf.ru/podslushano/5263333-prodvizhenie-v-vk-6-etapov-dlya-effektivnoy-reklamy"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 1
+  },
+  "ended_at": "2026-09-07T15:07:08.711653"
+}
