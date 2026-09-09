@@ -1,0 +1,262 @@
+{
+  "session_id": "7252e782",
+  "started_at": "2026-09-09T13:38:06.099417",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-09-09T13:38:06.099433",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "7252e782",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:38:06.099474",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:38:06.099492",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:38:32.374535",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:38:53.143628",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Что такое ROI в рекламе и как его посчитать",
+        "category": "budget_optimization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:38:53.143665",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:40:04.933208",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:40:29.935790",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:40:50.468628",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:40:50.468667",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:40:50.468683",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:41:35.586310",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:42:20.815198",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:43:13.725795",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:43:50.531519",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:43:50.531565",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:43:50.531588",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:44:47.507758",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:46:04.126441",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:47:26.783937",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:49:41.402719",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:51:29.455134",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-09T13:51:29.455192",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-09-09T13:51:29.455207",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "VK": 1
+        },
+        "insights_by_category": {
+          "budget_optimization": 1
+        },
+        "top_categories": [
+          [
+            "budget_optimization",
+            [
+              {
+                "id": 1,
+                "platform": "VK",
+                "title": "Что такое ROI в рекламе и как его посчитать",
+                "content": "Прочитанная статья подробно объясняет, что такое ROI в рекламе, как его считать, для чего он нужен и какие ошибки часто допускаются при расчете. Однако, в тексте статьи нет никакой конкретной информации, инсайтов или практических советов, касающихся платформы VK. Статья носит общий характер и применима к любой рекламной активности, но не содержит специфики VK.",
+                "snippet": "7 авг. 2024 г. · Оптимизации бюджета: позволяет перераспределять бюджет на более эффективные каналы. · Неучёт всех затрат: важно учитывать все затраты, включая ...",
+                "summary": "Прочитанная статья подробно объясняет, что такое ROI в рекламе, как его считать, для чего он нужен и какие ошибки часто допускаются при расчете. Однако, в тексте статьи нет никакой конкретной информации, инсайтов или практических советов, касающихся платформы VK. Статья носит общий характер и применима к любой рекламной активности, но не содержит специфики VK.",
+                "source_published_at": "2024-08-07T00:00",
+                "category": "budget_optimization",
+                "confidence": 7,
+                "discovered_at": "2026-09-09T13:38:53.143605",
+                "tags": [
+                  "roi"
+                ],
+                "source_url": "https://4rome.ru/blog/chto-takoye-roi-v-reklame-i-kak-ego-poschitat/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "VK",
+      "title": "Что такое ROI в рекламе и как его посчитать",
+      "content": "Прочитанная статья подробно объясняет, что такое ROI в рекламе, как его считать, для чего он нужен и какие ошибки часто допускаются при расчете. Однако, в тексте статьи нет никакой конкретной информации, инсайтов или практических советов, касающихся платформы VK. Статья носит общий характер и применима к любой рекламной активности, но не содержит специфики VK.",
+      "snippet": "7 авг. 2024 г. · Оптимизации бюджета: позволяет перераспределять бюджет на более эффективные каналы. · Неучёт всех затрат: важно учитывать все затраты, включая ...",
+      "summary": "Прочитанная статья подробно объясняет, что такое ROI в рекламе, как его считать, для чего он нужен и какие ошибки часто допускаются при расчете. Однако, в тексте статьи нет никакой конкретной информации, инсайтов или практических советов, касающихся платформы VK. Статья носит общий характер и применима к любой рекламной активности, но не содержит специфики VK.",
+      "source_published_at": "2024-08-07T00:00",
+      "category": "budget_optimization",
+      "confidence": 7,
+      "discovered_at": "2026-09-09T13:38:53.143605",
+      "tags": [
+        "roi"
+      ],
+      "source_url": "https://4rome.ru/blog/chto-takoye-roi-v-reklame-i-kak-ego-poschitat/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 1
+  },
+  "ended_at": "2026-09-09T13:51:29.455274"
+}
