@@ -1,0 +1,258 @@
+{
+  "session_id": "6f8ffc4b",
+  "started_at": "2026-09-14T15:50:26.624145",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-09-14T15:50:26.624165",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "6f8ffc4b",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:50:26.624212",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:50:26.624230",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:50:52.120685",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:51:16.539215",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:51:41.602985",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:52:03.299284",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:52:27.478238",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:52:27.478285",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:52:27.478303",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:52:56.087730",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:53:22.247665",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:53:49.431102",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Как зарабатывать на Threads в 2026 году",
+        "category": "monetization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:53:49.431145",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:54:03.624413",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:54:03.624456",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:54:03.624474",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:54:22.869753",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:54:36.570256",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:54:43.189918",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:54:53.185660",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:55:07.533360",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-14T15:55:07.533407",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-09-14T15:55:07.533423",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Threads": 1
+        },
+        "insights_by_category": {
+          "monetization": 1
+        },
+        "top_categories": [
+          [
+            "monetization",
+            [
+              {
+                "id": 1,
+                "platform": "Threads",
+                "title": "Как зарабатывать на Threads в 2026 году",
+                "content": "**\n\nАлгоритм Threads ранжирует контент на основе ранней активности (в первые 30-60 минут), при этом комментарии под постом ценятся системой значительно выше лайков. Для максимального охвата приоритезируйте мультимедиа: медианная вовлеченность (ER) у видео составляет 5,55%, у картинок - 4,55%, а у чистого текста - всего 2,79%. Главный практический рычаг виральности - активная работа автора в секции комментариев к своему посту, что суммарно повышает вовлеченность на 42%. Оптимальная стратегия продвижения требует регулярности (2-4 поста ежедневно), а внешние ссылки следует убирать из тела основного поста, чтобы алгоритм не пессимизировал охваты.",
+                "snippet": "1 day ago · Как попасть в рекомендации Threads, нарастить вовлечённость и конвертировать аудиторию в доход. В статье — способы монетизации, стратегии продвижения и ответы на частые вопросы.",
+                "summary": "**\n\nАлгоритм Threads ранжирует контент на основе ранней активности (в первые 30-60 минут), при этом комментарии под постом ценятся системой значительно выше лайков. Для максимального охвата приоритезируйте мультимедиа: медианная вовлеченность (ER) у видео составляет 5,55%, у картинок - 4,55%, а у чистого текста - всего 2,79%. Главный практический рычаг виральности - активная работа автора в секции комментариев к своему посту, что суммарно повышает вовлеченность на 42%. Оптимальная стратегия продвижения требует регулярности (2-4 поста ежедневно), а внешние ссылки следует убирать из тела основного поста, чтобы алгоритм не пессимизировал охваты.",
+                "source_published_at": "2026-09-13T13:05",
+                "category": "monetization",
+                "confidence": 7,
+                "discovered_at": "2026-09-14T15:53:49.431071",
+                "tags": [],
+                "source_url": "https://affelist.ru/stati/kak-monetizirovat-threads-dlya-avtorov-i-biznesa/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Threads",
+      "title": "Как зарабатывать на Threads в 2026 году",
+      "content": "**\n\nАлгоритм Threads ранжирует контент на основе ранней активности (в первые 30-60 минут), при этом комментарии под постом ценятся системой значительно выше лайков. Для максимального охвата приоритезируйте мультимедиа: медианная вовлеченность (ER) у видео составляет 5,55%, у картинок - 4,55%, а у чистого текста - всего 2,79%. Главный практический рычаг виральности - активная работа автора в секции комментариев к своему посту, что суммарно повышает вовлеченность на 42%. Оптимальная стратегия продвижения требует регулярности (2-4 поста ежедневно), а внешние ссылки следует убирать из тела основного поста, чтобы алгоритм не пессимизировал охваты.",
+      "snippet": "1 day ago · Как попасть в рекомендации Threads, нарастить вовлечённость и конвертировать аудиторию в доход. В статье — способы монетизации, стратегии продвижения и ответы на частые вопросы.",
+      "summary": "**\n\nАлгоритм Threads ранжирует контент на основе ранней активности (в первые 30-60 минут), при этом комментарии под постом ценятся системой значительно выше лайков. Для максимального охвата приоритезируйте мультимедиа: медианная вовлеченность (ER) у видео составляет 5,55%, у картинок - 4,55%, а у чистого текста - всего 2,79%. Главный практический рычаг виральности - активная работа автора в секции комментариев к своему посту, что суммарно повышает вовлеченность на 42%. Оптимальная стратегия продвижения требует регулярности (2-4 поста ежедневно), а внешние ссылки следует убирать из тела основного поста, чтобы алгоритм не пессимизировал охваты.",
+      "source_published_at": "2026-09-13T13:05",
+      "category": "monetization",
+      "confidence": 7,
+      "discovered_at": "2026-09-14T15:53:49.431071",
+      "tags": [],
+      "source_url": "https://affelist.ru/stati/kak-monetizirovat-threads-dlya-avtorov-i-biznesa/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 1
+  },
+  "ended_at": "2026-09-14T15:55:07.533496"
+}
