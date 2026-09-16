@@ -1,0 +1,266 @@
+{
+  "session_id": "17399bd0",
+  "started_at": "2026-09-16T21:03:11.905983",
+  "config": "Челябинск — новости и события",
+  "research_targets": [
+    "ЧП и происшествия",
+    "Городские события",
+    "Общество и жизнь"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-09-16T21:03:11.905995",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "17399bd0",
+        "config": "Челябинск — новости и события",
+        "platforms": [
+          "ЧП и происшествия",
+          "Городские события",
+          "Общество и жизнь"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:03:11.906025",
+      "action": "Starting ЧП и происшествия research",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:03:11.906037",
+      "action": "Searching: Челябинск ЧП происшествия сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:04:45.615713",
+      "action": "Searching: Челябинск ДТП авария сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:04:49.817680",
+      "action": "Searching: Челябинск пожар криминал происшествие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:04:53.529585",
+      "action": "Searching: Челябинская область ЧП экстренные службы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:04:57.920755",
+      "action": "Searching: Челябинск происшествия сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:05:00.576545",
+      "action": "Searching: Челябинск ДТП авария 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:05:03.129206",
+      "action": "ЧП и происшествия research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:05:03.129233",
+      "action": "Starting Городские события research",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:05:03.129244",
+      "action": "Searching: Челябинск новости сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:05:14.788942",
+      "action": "Searching: Челябинск события громкие яркие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:06:12.521247",
+      "action": "Searching: Челябинск мэрия администрация решения site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:06:28.233705",
+      "action": "New insight discovered: Городские события",
+      "status": "success",
+      "details": {
+        "title": "Кто стал министром имущества Челябинской области - 16 ...",
+        "category": "government",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:06:28.233729",
+      "action": "Searching: Челябинск стройки инфраструктура транспорт site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:06:34.202199",
+      "action": "Searching: Челябинск новости сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:06:36.468308",
+      "action": "Городские события research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:06:36.468331",
+      "action": "Starting Общество и жизнь research",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:06:36.468341",
+      "action": "Searching: Челябинск скандал резонанс общество site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:06:56.983618",
+      "action": "Searching: Южный Урал новости события site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:06:59.333774",
+      "action": "Searching: Челябинск экология промышленность проблемы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:07:01.938440",
+      "action": "Searching: Южный Урал новости события 2026",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:07:03.623643",
+      "action": "Общество и жизнь research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-16T21:07:03.623665",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-09-16T21:07:03.623674",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Городские события": 1
+        },
+        "insights_by_category": {
+          "government": 1
+        },
+        "top_categories": [
+          [
+            "government",
+            [
+              {
+                "id": 1,
+                "platform": "Городские события",
+                "title": "Кто стал министром имущества Челябинской области - 16 ...",
+                "content": "21 hours ago · Министром имущества Челябинской области стал Андрей Коляда - Политика - 16 сентября 2026 | 74.ру",
+                "snippet": "21 hours ago · Министром имущества Челябинской области стал Андрей Коляда - Политика - 16 сентября 2026 | 74.ру",
+                "summary": "",
+                "source_published_at": "",
+                "category": "government",
+                "confidence": 7,
+                "discovered_at": "2026-09-16T21:06:28.233691",
+                "tags": [],
+                "source_url": "https://74.ru/text/politics/2026/09/16/76645483/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Городские события",
+      "title": "Кто стал министром имущества Челябинской области - 16 ...",
+      "content": "21 hours ago · Министром имущества Челябинской области стал Андрей Коляда - Политика - 16 сентября 2026 | 74.ру",
+      "snippet": "21 hours ago · Министром имущества Челябинской области стал Андрей Коляда - Политика - 16 сентября 2026 | 74.ру",
+      "summary": "",
+      "source_published_at": "",
+      "category": "government",
+      "confidence": 7,
+      "discovered_at": "2026-09-16T21:06:28.233691",
+      "tags": [],
+      "source_url": "https://74.ru/text/politics/2026/09/16/76645483/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 27,
+    "insights_found": 1
+  },
+  "ended_at": "2026-09-16T21:07:03.623708"
+}

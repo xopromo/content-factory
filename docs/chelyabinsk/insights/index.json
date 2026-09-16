@@ -1,6 +1,6 @@
 {
-  "total_insights": 163,
-  "last_updated": "2026-09-16T16:29:42.699816",
+  "total_insights": 164,
+  "last_updated": "2026-09-16T21:07:03.674694",
   "insights": [
     {
       "id": 3,
@@ -323,6 +323,20 @@
       "discovered_at": "2026-06-27T07:31:24.324431",
       "tags": [],
       "source_url": "https://sputnik.by/20260626/mvd-23-cheloveka-pogibli-v-lobovykh-dtp-s-nachala-goda-1108535170.html"
+    },
+    {
+      "id": 1,
+      "platform": "Городские события",
+      "title": "Кто стал министром имущества Челябинской области - 16 ...",
+      "content": "21 hours ago · Министром имущества Челябинской области стал Андрей Коляда - Политика - 16 сентября 2026 | 74.ру",
+      "snippet": "21 hours ago · Министром имущества Челябинской области стал Андрей Коляда - Политика - 16 сентября 2026 | 74.ру",
+      "summary": "",
+      "source_published_at": "",
+      "category": "government",
+      "confidence": 7,
+      "discovered_at": "2026-09-16T21:06:28.233691",
+      "tags": [],
+      "source_url": "https://74.ru/text/politics/2026/09/16/76645483/"
     },
     {
       "id": 7,
