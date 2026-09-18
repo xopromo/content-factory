@@ -1,0 +1,258 @@
+{
+  "session_id": "db3cdbe7",
+  "started_at": "2026-09-18T13:32:20.364005",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-09-18T13:32:20.364022",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "db3cdbe7",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:32:20.364065",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:32:20.364081",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:32:52.842827",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:33:19.979057",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Как Настроить Рекламу В Vk В 2026 Году: Полное Руководство По Vk ...",
+        "category": "budget_optimization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:33:19.979096",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:33:42.566722",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:34:45.912058",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:35:35.478507",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:35:35.478546",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:35:35.478561",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:36:38.067883",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:36:41.152639",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:37:13.247437",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:37:33.992336",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:37:33.992376",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:37:33.992398",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:38:23.683287",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:38:25.883079",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:38:28.364993",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:38:30.335945",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:38:32.531898",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:38:32.531943",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-09-18T13:38:32.531957",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "VK": 1
+        },
+        "insights_by_category": {
+          "budget_optimization": 1
+        },
+        "top_categories": [
+          [
+            "budget_optimization",
+            [
+              {
+                "id": 1,
+                "platform": "VK",
+                "title": "Как Настроить Рекламу В Vk В 2026 Году: Полное Руководство По Vk ...",
+                "content": "С 2026 года вся реклама в VK консолидирована на единой платформе VK Реклама, заменившей старый кабинет и MyTarget. Для эффективного запуска используйте Smart-кампании с ИИ, которые автоматически генерируют креативы и настройки таргетинга, значительно упрощая процесс для малого бизнеса. Критически важна установка Пикселя VK с настройкой ключевых событий на сайте, так как это основа для обучения алгоритмов, ретаргетинга и создания look-alike аудиторий. Платформа предлагает расширенный таргетинг по социальным характеристикам (доход, профессия) и технологию Full Stream Attribution для точного определения интересов пользователя. При создании аккаунта обязательно укажите все данные для автоматической маркировки рекламы.",
+                "snippet": "Нужна помощь с настройкой рекламы в VK Рекламе в 2026 году? Закажите услугу по настройке рекламы в hubes — используем ИИ-креативы, look-alike-аудитории и технологии FSA для максимальной эффективности.",
+                "summary": "С 2026 года вся реклама в VK консолидирована на единой платформе VK Реклама, заменившей старый кабинет и MyTarget. Для эффективного запуска используйте Smart-кампании с ИИ, которые автоматически генерируют креативы и настройки таргетинга, значительно упрощая процесс для малого бизнеса. Критически важна установка Пикселя VK с настройкой ключевых событий на сайте, так как это основа для обучения алгоритмов, ретаргетинга и создания look-alike аудиторий. Платформа предлагает расширенный таргетинг по социальным характеристикам (доход, профессия) и технологию Full Stream Attribution для точного определения интересов пользователя. При создании аккаунта обязательно укажите все данные для автоматической маркировки рекламы.",
+                "source_published_at": "2026-05-09",
+                "category": "budget_optimization",
+                "confidence": 7,
+                "discovered_at": "2026-09-18T13:33:19.979029",
+                "tags": [],
+                "source_url": "https://hubes.ru/blog/kak-nastroit-reklamu-v-vk-v-2026-godu-polnoe-rukovodstvo-po-vk-reklame"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "VK",
+      "title": "Как Настроить Рекламу В Vk В 2026 Году: Полное Руководство По Vk ...",
+      "content": "С 2026 года вся реклама в VK консолидирована на единой платформе VK Реклама, заменившей старый кабинет и MyTarget. Для эффективного запуска используйте Smart-кампании с ИИ, которые автоматически генерируют креативы и настройки таргетинга, значительно упрощая процесс для малого бизнеса. Критически важна установка Пикселя VK с настройкой ключевых событий на сайте, так как это основа для обучения алгоритмов, ретаргетинга и создания look-alike аудиторий. Платформа предлагает расширенный таргетинг по социальным характеристикам (доход, профессия) и технологию Full Stream Attribution для точного определения интересов пользователя. При создании аккаунта обязательно укажите все данные для автоматической маркировки рекламы.",
+      "snippet": "Нужна помощь с настройкой рекламы в VK Рекламе в 2026 году? Закажите услугу по настройке рекламы в hubes — используем ИИ-креативы, look-alike-аудитории и технологии FSA для максимальной эффективности.",
+      "summary": "С 2026 года вся реклама в VK консолидирована на единой платформе VK Реклама, заменившей старый кабинет и MyTarget. Для эффективного запуска используйте Smart-кампании с ИИ, которые автоматически генерируют креативы и настройки таргетинга, значительно упрощая процесс для малого бизнеса. Критически важна установка Пикселя VK с настройкой ключевых событий на сайте, так как это основа для обучения алгоритмов, ретаргетинга и создания look-alike аудиторий. Платформа предлагает расширенный таргетинг по социальным характеристикам (доход, профессия) и технологию Full Stream Attribution для точного определения интересов пользователя. При создании аккаунта обязательно укажите все данные для автоматической маркировки рекламы.",
+      "source_published_at": "2026-05-09",
+      "category": "budget_optimization",
+      "confidence": 7,
+      "discovered_at": "2026-09-18T13:33:19.979029",
+      "tags": [],
+      "source_url": "https://hubes.ru/blog/kak-nastroit-reklamu-v-vk-v-2026-godu-polnoe-rukovodstvo-po-vk-reklame"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 30,
+    "insights_found": 1
+  },
+  "ended_at": "2026-09-18T13:38:32.532032"
+}
