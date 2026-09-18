@@ -1,0 +1,310 @@
+{
+  "session_id": "77be8448",
+  "started_at": "2026-09-18T20:38:07.203248",
+  "config": "Челябинск — новости и события",
+  "research_targets": [
+    "ЧП и происшествия",
+    "Городские события",
+    "Общество и жизнь"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-09-18T20:38:07.203264",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "77be8448",
+        "config": "Челябинск — новости и события",
+        "platforms": [
+          "ЧП и происшествия",
+          "Городские события",
+          "Общество и жизнь"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:38:07.203309",
+      "action": "Starting ЧП и происшествия research",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:38:07.203330",
+      "action": "Searching: Челябинск ЧП происшествия сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:38:52.557296",
+      "action": "Searching: Челябинск ДТП авария сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:38:54.979928",
+      "action": "Searching: Челябинск пожар криминал происшествие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:38:58.313900",
+      "action": "Searching: Челябинская область ЧП экстренные службы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:39:02.929869",
+      "action": "New insight discovered: ЧП и происшествия",
+      "status": "success",
+      "details": {
+        "title": "Где прячутся во время массированных атак беспилотников жители Сочи и туристы - 1",
+        "category": "emergency",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:39:02.929905",
+      "action": "Searching: Челябинск происшествия сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:39:12.883260",
+      "action": "Searching: Челябинск ДТП авария 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:39:46.232469",
+      "action": "New insight discovered: ЧП и происшествия",
+      "status": "success",
+      "details": {
+        "title": "ДТП. Подборка на видеорегистратор за 18.09.2026 Сентябрь 2026 - YouTube",
+        "category": "accidents",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:39:46.232509",
+      "action": "ЧП и происшествия research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 2
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:39:46.232526",
+      "action": "Starting Городские события research",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:39:46.232541",
+      "action": "Searching: Челябинск новости сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:39:49.558536",
+      "action": "Searching: Челябинск события громкие яркие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:39:53.808653",
+      "action": "Searching: Челябинск мэрия администрация решения site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:39:56.373722",
+      "action": "Searching: Челябинск стройки инфраструктура транспорт site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:39:59.180207",
+      "action": "Searching: Челябинск новости сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:40:02.552067",
+      "action": "Городские события research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:40:02.552106",
+      "action": "Starting Общество и жизнь research",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:40:02.552124",
+      "action": "Searching: Челябинск скандал резонанс общество site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:40:05.128133",
+      "action": "Searching: Южный Урал новости события site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:40:07.499174",
+      "action": "Searching: Челябинск экология промышленность проблемы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:40:09.717662",
+      "action": "Searching: Южный Урал новости события 2026",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:40:12.427856",
+      "action": "Общество и жизнь research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-18T20:40:12.427896",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-09-18T20:40:12.427911",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 2,
+        "insights_by_platform": {
+          "ЧП и происшествия": 2
+        },
+        "insights_by_category": {
+          "emergency": 1,
+          "accidents": 1
+        },
+        "top_categories": [
+          [
+            "emergency",
+            [
+              {
+                "id": 1,
+                "platform": "ЧП и происшествия",
+                "title": "Где прячутся во время массированных атак беспилотников жители Сочи и туристы - 1",
+                "content": "2 days ago - Во время тревоги категорически запрещено снимать и публиковать фото или видео работы ПВО, беспилотников, их обломков и действий экстренных служб. Пляжи возобновляют работу только после официальной отмены сигнала тревоги. ... Краснодарский край - это наша житница, кузница и, особенно, зд",
+                "snippet": "2 days ago - Во время тревоги категорически запрещено снимать и публиковать фото или видео работы ПВО, беспилотников, их обломков и действий экстренных служб. Пляжи возобновляют работу только после официальной отмены сигнала тревоги. ... Краснодарский край - это наша житница, кузница и, особенно, зд",
+                "summary": "",
+                "source_published_at": "",
+                "category": "emergency",
+                "confidence": 8,
+                "discovered_at": "2026-09-18T20:39:02.929609",
+                "tags": [],
+                "source_url": "https://74.ru/text/incidents/2026/09/17/76645844/"
+              }
+            ]
+          ],
+          [
+            "accidents",
+            [
+              {
+                "id": 2,
+                "platform": "ЧП и происшествия",
+                "title": "ДТП. Подборка на видеорегистратор за 18.09.2026 Сентябрь 2026 - YouTube",
+                "content": "#ДТП снятые на видеорегистратор Сентябрь 2026. Видео #3269.Поддержать канал! Сбербанк: 2202206832162106Tinkoff: 5536913957305887Райффайзен: 2200300135204756П... Published: 12 hours ago",
+                "snippet": "#ДТП снятые на видеорегистратор Сентябрь 2026. Видео #3269.Поддержать канал! Сбербанк: 2202206832162106Tinkoff: 5536913957305887Райффайзен: 2200300135204756П... Published: 12 hours ago",
+                "summary": "",
+                "source_published_at": "2026-09-18",
+                "category": "accidents",
+                "confidence": 8,
+                "discovered_at": "2026-09-18T20:39:46.232444",
+                "tags": [],
+                "source_url": "https://www.youtube.com/watch?v=hS_4vsTk2cQ"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "ЧП и происшествия",
+      "title": "Где прячутся во время массированных атак беспилотников жители Сочи и туристы - 1",
+      "content": "2 days ago - Во время тревоги категорически запрещено снимать и публиковать фото или видео работы ПВО, беспилотников, их обломков и действий экстренных служб. Пляжи возобновляют работу только после официальной отмены сигнала тревоги. ... Краснодарский край - это наша житница, кузница и, особенно, зд",
+      "snippet": "2 days ago - Во время тревоги категорически запрещено снимать и публиковать фото или видео работы ПВО, беспилотников, их обломков и действий экстренных служб. Пляжи возобновляют работу только после официальной отмены сигнала тревоги. ... Краснодарский край - это наша житница, кузница и, особенно, зд",
+      "summary": "",
+      "source_published_at": "",
+      "category": "emergency",
+      "confidence": 8,
+      "discovered_at": "2026-09-18T20:39:02.929609",
+      "tags": [],
+      "source_url": "https://74.ru/text/incidents/2026/09/17/76645844/"
+    },
+    {
+      "id": 2,
+      "platform": "ЧП и происшествия",
+      "title": "ДТП. Подборка на видеорегистратор за 18.09.2026 Сентябрь 2026 - YouTube",
+      "content": "#ДТП снятые на видеорегистратор Сентябрь 2026. Видео #3269.Поддержать канал! Сбербанк: 2202206832162106Tinkoff: 5536913957305887Райффайзен: 2200300135204756П... Published: 12 hours ago",
+      "snippet": "#ДТП снятые на видеорегистратор Сентябрь 2026. Видео #3269.Поддержать канал! Сбербанк: 2202206832162106Tinkoff: 5536913957305887Райффайзен: 2200300135204756П... Published: 12 hours ago",
+      "summary": "",
+      "source_published_at": "2026-09-18",
+      "category": "accidents",
+      "confidence": 8,
+      "discovered_at": "2026-09-18T20:39:46.232444",
+      "tags": [],
+      "source_url": "https://www.youtube.com/watch?v=hS_4vsTk2cQ"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 30,
+    "insights_found": 2
+  },
+  "ended_at": "2026-09-18T20:40:12.428012"
+}
