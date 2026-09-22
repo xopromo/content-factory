@@ -1,0 +1,303 @@
+{
+  "session_id": "b7af2d7c",
+  "started_at": "2026-09-22T13:59:16.953891",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-09-22T13:59:16.953908",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "b7af2d7c",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-09-22T13:59:16.953952",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T13:59:16.953968",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:01:01.485897",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Как собрать целевую аудиторию для таргета в ВК и VK Ads в 2026 году – PR-CY Блог",
+        "category": "targeting",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:01:01.485940",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:02:30.117725",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:02:52.459404",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:03:22.814667",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:05:00.712971",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:05:00.713019",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:05:00.713038",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:06:52.772792",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:08:18.913982",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:12:32.747556",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:13:43.100158",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:13:43.100203",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:13:43.100221",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:15:17.888263",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Как собрать ключевые фразы для Яндекс Директа: Wordstat, ChatGPT и ...",
+        "category": "keywords",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:15:17.888306",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:17:41.376853",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:21:31.003308",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:25:27.745568",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:27:35.554325",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-09-22T14:27:35.554597",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-09-22T14:27:35.554618",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 2,
+        "insights_by_platform": {
+          "VK": 1,
+          "Yandex Direct": 1
+        },
+        "insights_by_category": {
+          "targeting": 1,
+          "keywords": 1
+        },
+        "top_categories": [
+          [
+            "targeting",
+            [
+              {
+                "id": 1,
+                "platform": "VK",
+                "title": "Как собрать целевую аудиторию для таргета в ВК и VK Ads в 2026 году – PR-CY Блог",
+                "content": "Для эффективного таргетинга в VK Ads недостаточно ограничиваться базовыми настройками (возраст, пол); это приводит к размытой аудитории и сливу бюджета. Необходимо использовать продвинутые методы сбора ЦА: парсеры, пиксель VK Ads для ретаргетинга и сохранения вовлеченной аудитории, а также создание похожих сегментов (look-alike) и аналитику через MyTracker.\n\nПеред сбором базы критически важно глубоко сегментировать аудиторию, ответив на вопросы о ситуациях использования продукта, интересах и дополнительных потребностях клиента. Это позволит точно определить сообщества для таргетинга, сформировать релевантные объявления и снизить стоимость лида.",
+                "snippet": "Введите скопированное число в поле «Приложения и сайты». ВК сразу покажет вам примерный размер аудитории. Настройте остальные параметры кампании и запускайте рекламу. Этот лайфхак знают не все таргетологи, поэтому, если у вас есть на примете сайт с интересной вам аудиторией, то протестируйте этот сп",
+                "summary": "Для эффективного таргетинга в VK Ads недостаточно ограничиваться базовыми настройками (возраст, пол); это приводит к размытой аудитории и сливу бюджета. Необходимо использовать продвинутые методы сбора ЦА: парсеры, пиксель VK Ads для ретаргетинга и сохранения вовлеченной аудитории, а также создание похожих сегментов (look-alike) и аналитику через MyTracker.\n\nПеред сбором базы критически важно глубоко сегментировать аудиторию, ответив на вопросы о ситуациях использования продукта, интересах и дополнительных потребностях клиента. Это позволит точно определить сообщества для таргетинга, сформировать релевантные объявления и снизить стоимость лида.",
+                "source_published_at": "2026-05-20",
+                "category": "targeting",
+                "confidence": 7,
+                "discovered_at": "2026-09-22T14:01:01.485868",
+                "tags": [],
+                "source_url": "https://pr-cy.ru/news/p/9674-rukovodstvo-5-rabochikh-sposobov-sbora-tselevoy-auditorii-dlya-targeta-v-vk"
+              }
+            ]
+          ],
+          [
+            "keywords",
+            [
+              {
+                "id": 2,
+                "platform": "Yandex Direct",
+                "title": "Как собрать ключевые фразы для Яндекс Директа: Wordstat, ChatGPT и ...",
+                "content": "В этом видео показываю 3 способа собрать ключевые фразы для рекламы в Яндекс Директе: через инструмент Директа, через Wordstat и с помощью ChatGPT.",
+                "snippet": "В этом видео показываю 3 способа собрать ключевые фразы для рекламы в Яндекс Директе: через инструмент Директа, через Wordstat и с помощью ChatGPT.",
+                "summary": "",
+                "source_published_at": "2026-09-19T08:08",
+                "category": "keywords",
+                "confidence": 8,
+                "discovered_at": "2026-09-22T14:15:17.888238",
+                "tags": [],
+                "source_url": "https://rutube.ru/video/37ecf351083e6eadb8247bcb1228b2af/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "VK",
+      "title": "Как собрать целевую аудиторию для таргета в ВК и VK Ads в 2026 году – PR-CY Блог",
+      "content": "Для эффективного таргетинга в VK Ads недостаточно ограничиваться базовыми настройками (возраст, пол); это приводит к размытой аудитории и сливу бюджета. Необходимо использовать продвинутые методы сбора ЦА: парсеры, пиксель VK Ads для ретаргетинга и сохранения вовлеченной аудитории, а также создание похожих сегментов (look-alike) и аналитику через MyTracker.\n\nПеред сбором базы критически важно глубоко сегментировать аудиторию, ответив на вопросы о ситуациях использования продукта, интересах и дополнительных потребностях клиента. Это позволит точно определить сообщества для таргетинга, сформировать релевантные объявления и снизить стоимость лида.",
+      "snippet": "Введите скопированное число в поле «Приложения и сайты». ВК сразу покажет вам примерный размер аудитории. Настройте остальные параметры кампании и запускайте рекламу. Этот лайфхак знают не все таргетологи, поэтому, если у вас есть на примете сайт с интересной вам аудиторией, то протестируйте этот сп",
+      "summary": "Для эффективного таргетинга в VK Ads недостаточно ограничиваться базовыми настройками (возраст, пол); это приводит к размытой аудитории и сливу бюджета. Необходимо использовать продвинутые методы сбора ЦА: парсеры, пиксель VK Ads для ретаргетинга и сохранения вовлеченной аудитории, а также создание похожих сегментов (look-alike) и аналитику через MyTracker.\n\nПеред сбором базы критически важно глубоко сегментировать аудиторию, ответив на вопросы о ситуациях использования продукта, интересах и дополнительных потребностях клиента. Это позволит точно определить сообщества для таргетинга, сформировать релевантные объявления и снизить стоимость лида.",
+      "source_published_at": "2026-05-20",
+      "category": "targeting",
+      "confidence": 7,
+      "discovered_at": "2026-09-22T14:01:01.485868",
+      "tags": [],
+      "source_url": "https://pr-cy.ru/news/p/9674-rukovodstvo-5-rabochikh-sposobov-sbora-tselevoy-auditorii-dlya-targeta-v-vk"
+    },
+    {
+      "id": 2,
+      "platform": "Yandex Direct",
+      "title": "Как собрать ключевые фразы для Яндекс Директа: Wordstat, ChatGPT и ...",
+      "content": "В этом видео показываю 3 способа собрать ключевые фразы для рекламы в Яндекс Директе: через инструмент Директа, через Wordstat и с помощью ChatGPT.",
+      "snippet": "В этом видео показываю 3 способа собрать ключевые фразы для рекламы в Яндекс Директе: через инструмент Директа, через Wordstat и с помощью ChatGPT.",
+      "summary": "",
+      "source_published_at": "2026-09-19T08:08",
+      "category": "keywords",
+      "confidence": 8,
+      "discovered_at": "2026-09-22T14:15:17.888238",
+      "tags": [],
+      "source_url": "https://rutube.ru/video/37ecf351083e6eadb8247bcb1228b2af/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 2
+  },
+  "ended_at": "2026-09-22T14:27:35.554769"
+}
