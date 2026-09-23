@@ -1,6 +1,6 @@
 {
-  "total_insights": 669,
-  "last_updated": "2026-09-22T14:27:35.638597",
+  "total_insights": 670,
+  "last_updated": "2026-09-23T14:40:37.581793",
   "insights": [
     {
       "id": 1,
@@ -5360,6 +5360,20 @@
       "discovered_at": "2026-08-20T09:43:21.772413",
       "tags": [],
       "source_url": "https://rutube.ru/video/641a351359c3ca2b03b016dddb5ac6b0/"
+    },
+    {
+      "id": 1,
+      "platform": "Threads",
+      "title": "Как работает алгоритм Threads: разбор на реальных охватах",
+      "content": "Как работает алгоритм Threads: тестовая раздача, доля отклика, почему подписчики почти не влияют на охват. Разбор на аккаунте с 803 000 просмотров на посте.",
+      "snippet": "Как работает алгоритм Threads: тестовая раздача, доля отклика, почему подписчики почти не влияют на охват. Разбор на аккаунте с 803 000 просмотров на посте.",
+      "summary": "",
+      "source_published_at": "2026-08-25",
+      "category": "discovery",
+      "confidence": 7,
+      "discovered_at": "2026-09-23T14:24:50.136114",
+      "tags": [],
+      "source_url": "https://ardito.online/blog/kak-rabotaet-algoritm-threads/"
     },
     {
       "id": 1,

@@ -1,0 +1,258 @@
+{
+  "session_id": "8256c21c",
+  "started_at": "2026-09-23T14:11:14.973790",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-09-23T14:11:14.973803",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "8256c21c",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:11:14.973832",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:11:14.973842",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:12:18.461408",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:13:30.919028",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:15:55.362302",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:17:24.187989",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:19:51.176963",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:19:51.177013",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:19:51.177026",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:22:23.611858",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:24:50.136316",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Как работает алгоритм Threads: разбор на реальных охватах",
+        "category": "discovery",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:24:50.136357",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:28:32.528928",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:29:58.198322",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:29:58.198359",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:29:58.198371",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:33:13.191432",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:35:32.863115",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:37:22.272949",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:38:28.053506",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:40:37.532401",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-23T14:40:37.532442",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-09-23T14:40:37.532453",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Threads": 1
+        },
+        "insights_by_category": {
+          "discovery": 1
+        },
+        "top_categories": [
+          [
+            "discovery",
+            [
+              {
+                "id": 1,
+                "platform": "Threads",
+                "title": "Как работает алгоритм Threads: разбор на реальных охватах",
+                "content": "Как работает алгоритм Threads: тестовая раздача, доля отклика, почему подписчики почти не влияют на охват. Разбор на аккаунте с 803 000 просмотров на посте.",
+                "snippet": "Как работает алгоритм Threads: тестовая раздача, доля отклика, почему подписчики почти не влияют на охват. Разбор на аккаунте с 803 000 просмотров на посте.",
+                "summary": "",
+                "source_published_at": "2026-08-25",
+                "category": "discovery",
+                "confidence": 7,
+                "discovered_at": "2026-09-23T14:24:50.136114",
+                "tags": [],
+                "source_url": "https://ardito.online/blog/kak-rabotaet-algoritm-threads/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Threads",
+      "title": "Как работает алгоритм Threads: разбор на реальных охватах",
+      "content": "Как работает алгоритм Threads: тестовая раздача, доля отклика, почему подписчики почти не влияют на охват. Разбор на аккаунте с 803 000 просмотров на посте.",
+      "snippet": "Как работает алгоритм Threads: тестовая раздача, доля отклика, почему подписчики почти не влияют на охват. Разбор на аккаунте с 803 000 просмотров на посте.",
+      "summary": "",
+      "source_published_at": "2026-08-25",
+      "category": "discovery",
+      "confidence": 7,
+      "discovered_at": "2026-09-23T14:24:50.136114",
+      "tags": [],
+      "source_url": "https://ardito.online/blog/kak-rabotaet-algoritm-threads/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 1
+  },
+  "ended_at": "2026-09-23T14:40:37.532657"
+}
