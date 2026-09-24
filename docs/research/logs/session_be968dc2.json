@@ -1,0 +1,303 @@
+{
+  "session_id": "be968dc2",
+  "started_at": "2026-09-24T14:09:07.714876",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-09-24T14:09:07.714895",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "be968dc2",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:09:07.714938",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:09:07.714986",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:09:52.083135",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:10:46.366528",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:12:35.115322",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:15:25.782822",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Реклама ВКонтакте в 2026 году: что изменилось в VK Рекламе | Selivanov",
+        "category": "updates",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:15:25.782863",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:18:22.963736",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:18:22.963776",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:18:22.963791",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:20:39.110540",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:21:41.651323",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Алгоритмы социальных сетей в 2026 году: Instagram, TikTok ...",
+        "category": "discovery",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:21:41.651357",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:23:22.027437",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:24:22.028603",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:24:22.028641",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:24:22.028663",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:25:47.451472",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:27:42.158844",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:29:38.528150",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:31:55.893611",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:34:13.097108",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-24T14:34:13.097149",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-09-24T14:34:13.097164",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 2,
+        "insights_by_platform": {
+          "VK": 1,
+          "Threads": 1
+        },
+        "insights_by_category": {
+          "updates": 1,
+          "discovery": 1
+        },
+        "top_categories": [
+          [
+            "updates",
+            [
+              {
+                "id": 1,
+                "platform": "VK",
+                "title": "Реклама ВКонтакте в 2026 году: что изменилось в VK Рекламе | Selivanov",
+                "content": "2 days ago - Что изменилось в ... закрытие старого кабинета, новые форматы и объекты, статусы лидов из CRM, загрузка документов, премиум-подписка...",
+                "snippet": "2 days ago - Что изменилось в ... закрытие старого кабинета, новые форматы и объекты, статусы лидов из CRM, загрузка документов, премиум-подписка...",
+                "summary": "",
+                "source_published_at": "2026-06-12",
+                "category": "updates",
+                "confidence": 7,
+                "discovered_at": "2026-09-24T14:15:25.782619",
+                "tags": [],
+                "source_url": "https://targetolog-selivanov.ru/blog/reklama-vkontakte-2026"
+              }
+            ]
+          ],
+          [
+            "discovery",
+            [
+              {
+                "id": 2,
+                "platform": "Threads",
+                "title": "Алгоритмы социальных сетей в 2026 году: Instagram, TikTok ...",
+                "content": "1 day ago · Как работают алгоритмы Instagram, TikTok, YouTube и Threads в 2026 году. Разбираем сигналы ранжирования, рекомендации, Social SEO и способы увеличить охваты.",
+                "snippet": "1 day ago · Как работают алгоритмы Instagram, TikTok, YouTube и Threads в 2026 году. Разбираем сигналы ранжирования, рекомендации, Social SEO и способы увеличить охваты.",
+                "summary": "",
+                "source_published_at": "2026-09-23T10:58",
+                "category": "discovery",
+                "confidence": 7,
+                "discovered_at": "2026-09-24T14:21:41.651281",
+                "tags": [],
+                "source_url": "https://prmotion.me/post/kak-rabotaut-algoritmy-socialnyh-setej-v-2026-godu-instagram-tiktok-youtube-i-threads"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "VK",
+      "title": "Реклама ВКонтакте в 2026 году: что изменилось в VK Рекламе | Selivanov",
+      "content": "2 days ago - Что изменилось в ... закрытие старого кабинета, новые форматы и объекты, статусы лидов из CRM, загрузка документов, премиум-подписка...",
+      "snippet": "2 days ago - Что изменилось в ... закрытие старого кабинета, новые форматы и объекты, статусы лидов из CRM, загрузка документов, премиум-подписка...",
+      "summary": "",
+      "source_published_at": "2026-06-12",
+      "category": "updates",
+      "confidence": 7,
+      "discovered_at": "2026-09-24T14:15:25.782619",
+      "tags": [],
+      "source_url": "https://targetolog-selivanov.ru/blog/reklama-vkontakte-2026"
+    },
+    {
+      "id": 2,
+      "platform": "Threads",
+      "title": "Алгоритмы социальных сетей в 2026 году: Instagram, TikTok ...",
+      "content": "1 day ago · Как работают алгоритмы Instagram, TikTok, YouTube и Threads в 2026 году. Разбираем сигналы ранжирования, рекомендации, Social SEO и способы увеличить охваты.",
+      "snippet": "1 day ago · Как работают алгоритмы Instagram, TikTok, YouTube и Threads в 2026 году. Разбираем сигналы ранжирования, рекомендации, Social SEO и способы увеличить охваты.",
+      "summary": "",
+      "source_published_at": "2026-09-23T10:58",
+      "category": "discovery",
+      "confidence": 7,
+      "discovered_at": "2026-09-24T14:21:41.651281",
+      "tags": [],
+      "source_url": "https://prmotion.me/post/kak-rabotaut-algoritmy-socialnyh-setej-v-2026-godu-instagram-tiktok-youtube-i-threads"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 2
+  },
+  "ended_at": "2026-09-24T14:34:13.097450"
+}

@@ -1,6 +1,6 @@
 {
-  "total_insights": 670,
-  "last_updated": "2026-09-23T14:40:37.581793",
+  "total_insights": 672,
+  "last_updated": "2026-09-24T14:34:13.176617",
   "insights": [
     {
       "id": 1,
@@ -7853,6 +7853,34 @@
       "discovered_at": "2026-05-11T10:27:56.627383",
       "tags": [],
       "source_url": "https://habr.com/ru/companies/ranvik/articles/1032558/"
+    },
+    {
+      "id": 1,
+      "platform": "VK",
+      "title": "Реклама ВКонтакте в 2026 году: что изменилось в VK Рекламе | Selivanov",
+      "content": "2 days ago - Что изменилось в ... закрытие старого кабинета, новые форматы и объекты, статусы лидов из CRM, загрузка документов, премиум-подписка...",
+      "snippet": "2 days ago - Что изменилось в ... закрытие старого кабинета, новые форматы и объекты, статусы лидов из CRM, загрузка документов, премиум-подписка...",
+      "summary": "",
+      "source_published_at": "2026-06-12",
+      "category": "updates",
+      "confidence": 7,
+      "discovered_at": "2026-09-24T14:15:25.782619",
+      "tags": [],
+      "source_url": "https://targetolog-selivanov.ru/blog/reklama-vkontakte-2026"
+    },
+    {
+      "id": 2,
+      "platform": "Threads",
+      "title": "Алгоритмы социальных сетей в 2026 году: Instagram, TikTok ...",
+      "content": "1 day ago · Как работают алгоритмы Instagram, TikTok, YouTube и Threads в 2026 году. Разбираем сигналы ранжирования, рекомендации, Social SEO и способы увеличить охваты.",
+      "snippet": "1 day ago · Как работают алгоритмы Instagram, TikTok, YouTube и Threads в 2026 году. Разбираем сигналы ранжирования, рекомендации, Social SEO и способы увеличить охваты.",
+      "summary": "",
+      "source_published_at": "2026-09-23T10:58",
+      "category": "discovery",
+      "confidence": 7,
+      "discovered_at": "2026-09-24T14:21:41.651281",
+      "tags": [],
+      "source_url": "https://prmotion.me/post/kak-rabotaut-algoritmy-socialnyh-setej-v-2026-godu-instagram-tiktok-youtube-i-threads"
     },
     {
       "id": 1,
