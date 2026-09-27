@@ -1,0 +1,266 @@
+{
+  "session_id": "f2b87485",
+  "started_at": "2026-09-27T21:05:26.002550",
+  "config": "Челябинск — новости и события",
+  "research_targets": [
+    "ЧП и происшествия",
+    "Городские события",
+    "Общество и жизнь"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-09-27T21:05:26.002567",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "f2b87485",
+        "config": "Челябинск — новости и события",
+        "platforms": [
+          "ЧП и происшествия",
+          "Городские события",
+          "Общество и жизнь"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:05:26.002617",
+      "action": "Starting ЧП и происшествия research",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:05:26.002638",
+      "action": "Searching: Челябинск ЧП происшествия сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:05:44.729352",
+      "action": "Searching: Челябинск ДТП авария сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:06:16.539376",
+      "action": "Searching: Челябинск пожар криминал происшествие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:06:18.825122",
+      "action": "Searching: Челябинская область ЧП экстренные службы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:06:42.932565",
+      "action": "Searching: Челябинск происшествия сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:06:56.347483",
+      "action": "Searching: Челябинск ДТП авария 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:07.115003",
+      "action": "ЧП и происшествия research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:07.115041",
+      "action": "Starting Городские события research",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:07.115057",
+      "action": "Searching: Челябинск новости сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:12.636658",
+      "action": "Searching: Челябинск события громкие яркие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:19.561748",
+      "action": "Searching: Челябинск мэрия администрация решения site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:26.109006",
+      "action": "Searching: Челябинск стройки инфраструктура транспорт site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:28.632261",
+      "action": "Searching: Челябинск новости сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:37.766036",
+      "action": "Городские события research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:37.766070",
+      "action": "Starting Общество и жизнь research",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:37.766086",
+      "action": "Searching: Челябинск скандал резонанс общество site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:43.209493",
+      "action": "Searching: Южный Урал новости события site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:45.400459",
+      "action": "Searching: Челябинск экология промышленность проблемы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:47.565102",
+      "action": "Searching: Южный Урал новости события 2026",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:53.653857",
+      "action": "New insight discovered: Общество и жизнь",
+      "status": "success",
+      "details": {
+        "title": "Сухая победа Южного Урала: ТОП фактов о матче, соперниках и ...",
+        "category": "regional",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:53.653891",
+      "action": "Общество и жизнь research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-09-27T21:07:53.653906",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-09-27T21:07:53.653917",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Общество и жизнь": 1
+        },
+        "insights_by_category": {
+          "regional": 1
+        },
+        "top_categories": [
+          [
+            "regional",
+            [
+              {
+                "id": 1,
+                "platform": "Общество и жизнь",
+                "title": "Сухая победа Южного Урала: ТОП фактов о матче, соперниках и ...",
+                "content": "21 hours ago · Сухая победа Южного Урала: ТОП фактов о матче, соперниках и персоналиях Сергей Михайлов, Урал56.Ру 27.09.2026 Матч «Южный Урал» - «ЦСК ВВС»",
+                "snippet": "21 hours ago · Сухая победа Южного Урала: ТОП фактов о матче, соперниках и персоналиях Сергей Михайлов, Урал56.Ру 27.09.2026 Матч «Южный Урал» - «ЦСК ВВС»",
+                "summary": "",
+                "source_published_at": "",
+                "category": "regional",
+                "confidence": 7,
+                "discovered_at": "2026-09-27T21:07:53.653604",
+                "tags": [],
+                "source_url": "https://www.ural56.ru/news/789035/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Общество и жизнь",
+      "title": "Сухая победа Южного Урала: ТОП фактов о матче, соперниках и ...",
+      "content": "21 hours ago · Сухая победа Южного Урала: ТОП фактов о матче, соперниках и персоналиях Сергей Михайлов, Урал56.Ру 27.09.2026 Матч «Южный Урал» - «ЦСК ВВС»",
+      "snippet": "21 hours ago · Сухая победа Южного Урала: ТОП фактов о матче, соперниках и персоналиях Сергей Михайлов, Урал56.Ру 27.09.2026 Матч «Южный Урал» - «ЦСК ВВС»",
+      "summary": "",
+      "source_published_at": "",
+      "category": "regional",
+      "confidence": 7,
+      "discovered_at": "2026-09-27T21:07:53.653604",
+      "tags": [],
+      "source_url": "https://www.ural56.ru/news/789035/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 24,
+    "insights_found": 1
+  },
+  "ended_at": "2026-09-27T21:07:53.653968"
+}
