@@ -1,6 +1,6 @@
 {
-  "total_insights": 677,
-  "last_updated": "2026-09-27T14:47:20.421655",
+  "total_insights": 678,
+  "last_updated": "2026-09-28T18:00:36.995691",
   "insights": [
     {
       "id": 1,
@@ -8520,6 +8520,20 @@
       "discovered_at": "2026-09-18T13:33:19.979029",
       "tags": [],
       "source_url": "https://hubes.ru/blog/kak-nastroit-reklamu-v-vk-v-2026-godu-polnoe-rukovodstvo-po-vk-reklame"
+    },
+    {
+      "id": 1,
+      "platform": "Yandex Direct",
+      "title": "Ставки и стратегии в Яндекс Директе: какую выбрать",
+      "content": "2026 — среди 1094 участников из 49 регионов России, Беларуси и Казахстана Что такое стратегия и за что она отвечает Как устроен аукцион ставок и что списывается",
+      "snippet": "2026 — среди 1094 участников из 49 регионов России, Беларуси и Казахстана Что такое стратегия и за что она отвечает Как устроен аукцион ставок и что списывается",
+      "summary": "",
+      "source_published_at": "2026-09-13",
+      "category": "bidding",
+      "confidence": 8,
+      "discovered_at": "2026-09-28T17:55:22.259746",
+      "tags": [],
+      "source_url": "https://hot-head.ru/blog/tpost/stavki-i-strategii-v-yandeks-direkte"
     },
     {
       "id": 1,

@@ -1,0 +1,258 @@
+{
+  "session_id": "db909789",
+  "started_at": "2026-09-28T17:34:16.075808",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-09-28T17:34:16.075827",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "db909789",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:34:16.075868",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:34:16.075884",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:34:43.562946",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:37:06.156380",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:39:03.438796",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:40:47.829474",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:43:35.095790",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:43:35.095842",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:43:35.095862",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:45:41.486995",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:47:21.462393",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:49:23.269277",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:50:53.403220",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:50:53.403265",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:50:53.403282",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:53:02.838181",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:55:22.259956",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Ставки и стратегии в Яндекс Директе: какую выбрать",
+        "category": "bidding",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:55:22.259992",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:57:07.085838",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T17:59:21.360983",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-09-28T18:00:36.912946",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-09-28T18:00:36.912990",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-09-28T18:00:36.913005",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Yandex Direct": 1
+        },
+        "insights_by_category": {
+          "bidding": 1
+        },
+        "top_categories": [
+          [
+            "bidding",
+            [
+              {
+                "id": 1,
+                "platform": "Yandex Direct",
+                "title": "Ставки и стратегии в Яндекс Директе: какую выбрать",
+                "content": "2026 — среди 1094 участников из 49 регионов России, Беларуси и Казахстана Что такое стратегия и за что она отвечает Как устроен аукцион ставок и что списывается",
+                "snippet": "2026 — среди 1094 участников из 49 регионов России, Беларуси и Казахстана Что такое стратегия и за что она отвечает Как устроен аукцион ставок и что списывается",
+                "summary": "",
+                "source_published_at": "2026-09-13",
+                "category": "bidding",
+                "confidence": 8,
+                "discovered_at": "2026-09-28T17:55:22.259746",
+                "tags": [],
+                "source_url": "https://hot-head.ru/blog/tpost/stavki-i-strategii-v-yandeks-direkte"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Yandex Direct",
+      "title": "Ставки и стратегии в Яндекс Директе: какую выбрать",
+      "content": "2026 — среди 1094 участников из 49 регионов России, Беларуси и Казахстана Что такое стратегия и за что она отвечает Как устроен аукцион ставок и что списывается",
+      "snippet": "2026 — среди 1094 участников из 49 регионов России, Беларуси и Казахстана Что такое стратегия и за что она отвечает Как устроен аукцион ставок и что списывается",
+      "summary": "",
+      "source_published_at": "2026-09-13",
+      "category": "bidding",
+      "confidence": 8,
+      "discovered_at": "2026-09-28T17:55:22.259746",
+      "tags": [],
+      "source_url": "https://hot-head.ru/blog/tpost/stavki-i-strategii-v-yandeks-direkte"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 1
+  },
+  "ended_at": "2026-09-28T18:00:36.913305"
+}
