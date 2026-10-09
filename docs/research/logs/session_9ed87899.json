@@ -1,0 +1,258 @@
+{
+  "session_id": "9ed87899",
+  "started_at": "2026-10-09T16:03:45.298188",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-10-09T16:03:45.298209",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "9ed87899",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:03:45.298247",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:03:45.298264",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:04:09.794726",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:04:35.269476",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:04:57.230213",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:05:27.653155",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:05:51.525725",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:05:51.525765",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:05:51.525782",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:06:10.898848",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:06:41.509677",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Как работают алгоритмы Threads в 2026 году: полный гид по бесплатному ...",
+        "category": "discovery",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:06:41.509712",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:06:48.602920",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:06:50.529288",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:06:50.529331",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:06:50.529347",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:06:52.255374",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:06:53.759640",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:06:55.209573",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:06:56.760680",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:06:57.853785",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-10-09T16:06:57.853826",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-10-09T16:06:57.853840",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Threads": 1
+        },
+        "insights_by_category": {
+          "discovery": 1
+        },
+        "top_categories": [
+          [
+            "discovery",
+            [
+              {
+                "id": 1,
+                "platform": "Threads",
+                "title": "Как работают алгоритмы Threads в 2026 году: полный гид по бесплатному ...",
+                "content": "Как эксперт по digital-маркетингу, могу выделить следующие ключевые инсайты и практические советы по работе с Threads:\n\nThreads - это Discovery Engine, где в приоритете живые мысли и дискуссии, а не отполированный контент Instagram. Алгоритму безразлично количество подписчиков, главное - вовлечение. Для продвижения критически важно удерживать внимание пользователя: чем дольше он задерживается на посте, читает или открывает комментарии, тем шире охват. Наибольший вес имеют не лайки, а глубина дискуссии - ответы и цитирования; посты, генерирующие оживленные споры, мгновенно попадают в топ рекомендаций. Создавайте контент, который провоцирует диалог и заставляет остановиться, а не просто пролистать, поскольку алгоритм Meta понимает контекст текста, а не количество хештегов.",
+                "snippet": "Почему Threads дает бесплатные охваты с нуля: разбор движка рекомендаций Для вас, 5 правил взрывного роста и 3 мастер-промпта для генерации виральных постов.",
+                "summary": "Как эксперт по digital-маркетингу, могу выделить следующие ключевые инсайты и практические советы по работе с Threads:\n\nThreads - это Discovery Engine, где в приоритете живые мысли и дискуссии, а не отполированный контент Instagram. Алгоритму безразлично количество подписчиков, главное - вовлечение. Для продвижения критически важно удерживать внимание пользователя: чем дольше он задерживается на посте, читает или открывает комментарии, тем шире охват. Наибольший вес имеют не лайки, а глубина дискуссии - ответы и цитирования; посты, генерирующие оживленные споры, мгновенно попадают в топ рекомендаций. Создавайте контент, который провоцирует диалог и заставляет остановиться, а не просто пролистать, поскольку алгоритм Meta понимает контекст текста, а не количество хештегов.",
+                "source_published_at": "2026-09-09T09:00",
+                "category": "discovery",
+                "confidence": 7,
+                "discovered_at": "2026-10-09T16:06:41.509643",
+                "tags": [],
+                "source_url": "https://hub.websansay.com/tools/kak-rabotaet-threads-algoritmy-i-organika"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Threads",
+      "title": "Как работают алгоритмы Threads в 2026 году: полный гид по бесплатному ...",
+      "content": "Как эксперт по digital-маркетингу, могу выделить следующие ключевые инсайты и практические советы по работе с Threads:\n\nThreads - это Discovery Engine, где в приоритете живые мысли и дискуссии, а не отполированный контент Instagram. Алгоритму безразлично количество подписчиков, главное - вовлечение. Для продвижения критически важно удерживать внимание пользователя: чем дольше он задерживается на посте, читает или открывает комментарии, тем шире охват. Наибольший вес имеют не лайки, а глубина дискуссии - ответы и цитирования; посты, генерирующие оживленные споры, мгновенно попадают в топ рекомендаций. Создавайте контент, который провоцирует диалог и заставляет остановиться, а не просто пролистать, поскольку алгоритм Meta понимает контекст текста, а не количество хештегов.",
+      "snippet": "Почему Threads дает бесплатные охваты с нуля: разбор движка рекомендаций Для вас, 5 правил взрывного роста и 3 мастер-промпта для генерации виральных постов.",
+      "summary": "Как эксперт по digital-маркетингу, могу выделить следующие ключевые инсайты и практические советы по работе с Threads:\n\nThreads - это Discovery Engine, где в приоритете живые мысли и дискуссии, а не отполированный контент Instagram. Алгоритму безразлично количество подписчиков, главное - вовлечение. Для продвижения критически важно удерживать внимание пользователя: чем дольше он задерживается на посте, читает или открывает комментарии, тем шире охват. Наибольший вес имеют не лайки, а глубина дискуссии - ответы и цитирования; посты, генерирующие оживленные споры, мгновенно попадают в топ рекомендаций. Создавайте контент, который провоцирует диалог и заставляет остановиться, а не просто пролистать, поскольку алгоритм Meta понимает контекст текста, а не количество хештегов.",
+      "source_published_at": "2026-09-09T09:00",
+      "category": "discovery",
+      "confidence": 7,
+      "discovered_at": "2026-10-09T16:06:41.509643",
+      "tags": [],
+      "source_url": "https://hub.websansay.com/tools/kak-rabotaet-threads-algoritmy-i-organika"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 24,
+    "insights_found": 1
+  },
+  "ended_at": "2026-10-09T16:06:57.853923"
+}
