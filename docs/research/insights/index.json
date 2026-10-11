@@ -1,6 +1,6 @@
 {
-  "total_insights": 698,
-  "last_updated": "2026-10-10T15:17:39.037838",
+  "total_insights": 699,
+  "last_updated": "2026-10-11T15:35:32.145831",
   "insights": [
     {
       "id": 1,
@@ -8063,6 +8063,20 @@
       "discovered_at": "2026-05-11T10:27:56.627383",
       "tags": [],
       "source_url": "https://habr.com/ru/companies/ranvik/articles/1032558/"
+    },
+    {
+      "id": 1,
+      "platform": "Threads",
+      "title": "Как вести Threads: контент-стратегия и продвижение в 2026 году",
+      "content": "Threads — текстовая платформа от Meta, запущенная в 2023 году как альтернатива Twitter/X. К 2026 году аудитория Threads превысила 300 миллионов активных пользователей, и платформа активно внедряет ...",
+      "snippet": "Threads — текстовая платформа от Meta, запущенная в 2023 году как альтернатива Twitter/X. К 2026 году аудитория Threads превысила 300 миллионов активных пользователей, и платформа активно внедряет ...",
+      "summary": "",
+      "source_published_at": "2026-06-05T13:19",
+      "category": "content_strategy",
+      "confidence": 7,
+      "discovered_at": "2026-10-11T15:34:27.246037",
+      "tags": [],
+      "source_url": "https://palladium-smm.com/blog/kak-vesti-threads"
     },
     {
       "id": 1,

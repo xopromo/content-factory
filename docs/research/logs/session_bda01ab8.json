@@ -1,0 +1,258 @@
+{
+  "session_id": "bda01ab8",
+  "started_at": "2026-10-11T15:31:49.129052",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-10-11T15:31:49.129072",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "bda01ab8",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:31:49.129110",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:31:49.129125",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:32:15.748557",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:32:43.503147",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:33:02.463463",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:33:35.145139",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:34:07.439862",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:34:07.439909",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:34:07.439929",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:34:27.246058",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Как вести Threads: контент-стратегия и продвижение в 2026 году",
+        "category": "content_strategy",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:34:27.246093",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:35:02.584500",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:35:14.901879",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:35:23.338029",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:35:23.338063",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:35:23.338080",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:35:24.989248",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:35:26.692237",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:35:28.624516",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:35:30.460603",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:35:32.065364",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-10-11T15:35:32.065404",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-10-11T15:35:32.065417",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Threads": 1
+        },
+        "insights_by_category": {
+          "content_strategy": 1
+        },
+        "top_categories": [
+          [
+            "content_strategy",
+            [
+              {
+                "id": 1,
+                "platform": "Threads",
+                "title": "Как вести Threads: контент-стратегия и продвижение в 2026 году",
+                "content": "Threads — текстовая платформа от Meta, запущенная в 2023 году как альтернатива Twitter/X. К 2026 году аудитория Threads превысила 300 миллионов активных пользователей, и платформа активно внедряет ...",
+                "snippet": "Threads — текстовая платформа от Meta, запущенная в 2023 году как альтернатива Twitter/X. К 2026 году аудитория Threads превысила 300 миллионов активных пользователей, и платформа активно внедряет ...",
+                "summary": "",
+                "source_published_at": "2026-06-05T13:19",
+                "category": "content_strategy",
+                "confidence": 7,
+                "discovered_at": "2026-10-11T15:34:27.246037",
+                "tags": [],
+                "source_url": "https://palladium-smm.com/blog/kak-vesti-threads"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Threads",
+      "title": "Как вести Threads: контент-стратегия и продвижение в 2026 году",
+      "content": "Threads — текстовая платформа от Meta, запущенная в 2023 году как альтернатива Twitter/X. К 2026 году аудитория Threads превысила 300 миллионов активных пользователей, и платформа активно внедряет ...",
+      "snippet": "Threads — текстовая платформа от Meta, запущенная в 2023 году как альтернатива Twitter/X. К 2026 году аудитория Threads превысила 300 миллионов активных пользователей, и платформа активно внедряет ...",
+      "summary": "",
+      "source_published_at": "2026-06-05T13:19",
+      "category": "content_strategy",
+      "confidence": 7,
+      "discovered_at": "2026-10-11T15:34:27.246037",
+      "tags": [],
+      "source_url": "https://palladium-smm.com/blog/kak-vesti-threads"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 27,
+    "insights_found": 1
+  },
+  "ended_at": "2026-10-11T15:35:32.065480"
+}
