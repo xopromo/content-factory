@@ -1,0 +1,258 @@
+{
+  "session_id": "fe0fd5ee",
+  "started_at": "2026-10-18T13:08:32.423971",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-10-18T13:08:32.423988",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "fe0fd5ee",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:08:32.424027",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:08:32.424043",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:09:01.608650",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:09:25.737167",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:09:50.639386",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:10:24.074852",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:10:51.045205",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:10:51.045245",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:10:51.045262",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:11:18.956074",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:11:36.329939",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:11:45.574065",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:12:02.812025",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:12:02.812063",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:12:02.812078",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:12:27.146639",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:12:52.573203",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:13:04.812486",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:13:20.775831",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:13:44.601743",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Новости Обновления Яндекс Директ сегодня. Что нового в 2026? | Postium",
+        "category": "updates",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:13:44.601774",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-10-18T13:13:44.601788",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-10-18T13:13:44.601798",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Yandex Direct": 1
+        },
+        "insights_by_category": {
+          "updates": 1
+        },
+        "top_categories": [
+          [
+            "updates",
+            [
+              {
+                "id": 1,
+                "platform": "Yandex Direct",
+                "title": "Новости Обновления Яндекс Директ сегодня. Что нового в 2026? | Postium",
+                "content": "В Единой перфоманс-кампании (ЕПК) на Поиске появился бета-инструмент «Описание поисковых запросов», позволяющий задавать целевые и нецелевые интенты текстом, при этом изменился подход к настройке групп: сначала формируется охват, а затем исключается нецелевая аудитория. Для e-commerce вывели из беты стратегию «Максимум прибыли», добавив оплату за конверсии, гибкие режимы расчета маржи и ML-инструмент «Управление скидками» для автоматического расчета персональных плашек на товары. В медийной рекламе на Smart TV (CTV) запущен формат Shoppable Ads - интеграция товарных карточек с QR-кодами для прямого перевода зрителей в мобильную воронку продаж.",
+                "snippet": "Последние новости Обновления Яндекс Директ сегодня. Что нового в 2026 году в России и в мире?",
+                "summary": "В Единой перфоманс-кампании (ЕПК) на Поиске появился бета-инструмент «Описание поисковых запросов», позволяющий задавать целевые и нецелевые интенты текстом, при этом изменился подход к настройке групп: сначала формируется охват, а затем исключается нецелевая аудитория. Для e-commerce вывели из беты стратегию «Максимум прибыли», добавив оплату за конверсии, гибкие режимы расчета маржи и ML-инструмент «Управление скидками» для автоматического расчета персональных плашек на товары. В медийной рекламе на Smart TV (CTV) запущен формат Shoppable Ads - интеграция товарных карточек с QR-кодами для прямого перевода зрителей в мобильную воронку продаж.",
+                "source_published_at": "2026-10-02",
+                "category": "updates",
+                "confidence": 8,
+                "discovered_at": "2026-10-18T13:13:44.601717",
+                "tags": [],
+                "source_url": "https://postium.ru/tag/obnovleniya-yandeks-direkt/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Yandex Direct",
+      "title": "Новости Обновления Яндекс Директ сегодня. Что нового в 2026? | Postium",
+      "content": "В Единой перфоманс-кампании (ЕПК) на Поиске появился бета-инструмент «Описание поисковых запросов», позволяющий задавать целевые и нецелевые интенты текстом, при этом изменился подход к настройке групп: сначала формируется охват, а затем исключается нецелевая аудитория. Для e-commerce вывели из беты стратегию «Максимум прибыли», добавив оплату за конверсии, гибкие режимы расчета маржи и ML-инструмент «Управление скидками» для автоматического расчета персональных плашек на товары. В медийной рекламе на Smart TV (CTV) запущен формат Shoppable Ads - интеграция товарных карточек с QR-кодами для прямого перевода зрителей в мобильную воронку продаж.",
+      "snippet": "Последние новости Обновления Яндекс Директ сегодня. Что нового в 2026 году в России и в мире?",
+      "summary": "В Единой перфоманс-кампании (ЕПК) на Поиске появился бета-инструмент «Описание поисковых запросов», позволяющий задавать целевые и нецелевые интенты текстом, при этом изменился подход к настройке групп: сначала формируется охват, а затем исключается нецелевая аудитория. Для e-commerce вывели из беты стратегию «Максимум прибыли», добавив оплату за конверсии, гибкие режимы расчета маржи и ML-инструмент «Управление скидками» для автоматического расчета персональных плашек на товары. В медийной рекламе на Smart TV (CTV) запущен формат Shoppable Ads - интеграция товарных карточек с QR-кодами для прямого перевода зрителей в мобильную воронку продаж.",
+      "source_published_at": "2026-10-02",
+      "category": "updates",
+      "confidence": 8,
+      "discovered_at": "2026-10-18T13:13:44.601717",
+      "tags": [],
+      "source_url": "https://postium.ru/tag/obnovleniya-yandeks-direkt/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 42,
+    "insights_found": 1
+  },
+  "ended_at": "2026-10-18T13:13:44.601859"
+}
