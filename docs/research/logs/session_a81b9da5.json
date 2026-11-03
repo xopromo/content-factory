@@ -1,0 +1,258 @@
+{
+  "session_id": "a81b9da5",
+  "started_at": "2026-11-03T16:56:47.034147",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-11-03T16:56:47.034158",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "a81b9da5",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-11-03T16:56:47.034188",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T16:56:47.034198",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T16:57:13.505072",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T16:58:24.217319",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T16:58:26.735970",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T16:59:28.964719",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T16:59:31.089998",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-03T16:59:31.090052",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T16:59:31.090065",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T17:00:47.748925",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T17:00:50.676523",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T17:01:09.788930",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T17:01:58.497938",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-03T17:01:58.497971",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T17:01:58.497984",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T17:02:55.548906",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T17:02:57.218463",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T17:03:44.073673",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Минус-слова в Яндекс Директе: как подобрать и добавить ...",
+        "category": "filtering",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T17:03:44.073709",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T17:05:39.356553",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-03T17:05:41.616702",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-11-03T17:05:41.616749",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-11-03T17:05:41.616759",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Yandex Direct": 1
+        },
+        "insights_by_category": {
+          "filtering": 1
+        },
+        "top_categories": [
+          [
+            "filtering",
+            [
+              {
+                "id": 1,
+                "platform": "Yandex Direct",
+                "title": "Минус-слова в Яндекс Директе: как подобрать и добавить ...",
+                "content": "Oct 5, 2026 · Минус-фразы в Яндекс Директе: что это, где задавать (кампания, группа, фраза, библиотека), операторы, как собрать через Вордстат и отчёт по запросам. Готовый список минус-слов по категориям и нишам, ошибки и чек-лист.",
+                "snippet": "Oct 5, 2026 · Минус-фразы в Яндекс Директе: что это, где задавать (кампания, группа, фраза, библиотека), операторы, как собрать через Вордстат и отчёт по запросам. Готовый список минус-слов по категориям и нишам, ошибки и чек-лист.",
+                "summary": "",
+                "source_published_at": "",
+                "category": "filtering",
+                "confidence": 8,
+                "discovered_at": "2026-11-03T17:03:44.073643",
+                "tags": [],
+                "source_url": "https://yumashev.digital/minus-frazy-yandeks-direkt/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Yandex Direct",
+      "title": "Минус-слова в Яндекс Директе: как подобрать и добавить ...",
+      "content": "Oct 5, 2026 · Минус-фразы в Яндекс Директе: что это, где задавать (кампания, группа, фраза, библиотека), операторы, как собрать через Вордстат и отчёт по запросам. Готовый список минус-слов по категориям и нишам, ошибки и чек-лист.",
+      "snippet": "Oct 5, 2026 · Минус-фразы в Яндекс Директе: что это, где задавать (кампания, группа, фраза, библиотека), операторы, как собрать через Вордстат и отчёт по запросам. Готовый список минус-слов по категориям и нишам, ошибки и чек-лист.",
+      "summary": "",
+      "source_published_at": "",
+      "category": "filtering",
+      "confidence": 8,
+      "discovered_at": "2026-11-03T17:03:44.073643",
+      "tags": [],
+      "source_url": "https://yumashev.digital/minus-frazy-yandeks-direkt/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 27,
+    "insights_found": 1
+  },
+  "ended_at": "2026-11-03T17:05:41.616803"
+}
