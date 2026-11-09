@@ -1,0 +1,258 @@
+{
+  "session_id": "e9ab1418",
+  "started_at": "2026-11-09T19:41:50.756616",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-11-09T19:41:50.756630",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "e9ab1418",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:41:50.756662",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:41:50.756673",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:42:13.841977",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:42:39.553095",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:42:40.973704",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:42:42.950061",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:43:00.944598",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "⚠ Ошибки при запуске таргета: чего избегать новичкам ...",
+        "category": "mistakes",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:43:00.944644",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:43:00.944661",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:43:00.944708",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:43:26.585250",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:43:41.480905",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:44:01.636180",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:44:21.890038",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:44:21.890083",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:44:21.890098",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:45:02.558616",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:45:04.555084",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:45:06.555910",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:45:50.604115",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:46:23.983004",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-09T19:46:23.983064",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-11-09T19:46:23.983080",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "VK": 1
+        },
+        "insights_by_category": {
+          "mistakes": 1
+        },
+        "top_categories": [
+          [
+            "mistakes",
+            [
+              {
+                "id": 1,
+                "platform": "VK",
+                "title": "⚠ Ошибки при запуске таргета: чего избегать новичкам ...",
+                "content": "Jun 14, 2025 · ⚠ Ошибки при запуске таргета: чего избегать новичкам Запускаете таргет впервые и волнуетесь, чтобы не слить бюджет впустую? Это нормально. Ошибки — часть пути. Но некоторые из них настолько типичны, что их ...",
+                "snippet": "Jun 14, 2025 · ⚠ Ошибки при запуске таргета: чего избегать новичкам Запускаете таргет впервые и волнуетесь, чтобы не слить бюджет впустую? Это нормально. Ошибки — часть пути. Но некоторые из них настолько типичны, что их ...",
+                "summary": "",
+                "source_published_at": "2026-01-01",
+                "category": "mistakes",
+                "confidence": 7,
+                "discovered_at": "2026-11-09T19:43:00.944560",
+                "tags": [],
+                "source_url": "https://vk.com/wall-225812688_29"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "VK",
+      "title": "⚠ Ошибки при запуске таргета: чего избегать новичкам ...",
+      "content": "Jun 14, 2025 · ⚠ Ошибки при запуске таргета: чего избегать новичкам Запускаете таргет впервые и волнуетесь, чтобы не слить бюджет впустую? Это нормально. Ошибки — часть пути. Но некоторые из них настолько типичны, что их ...",
+      "snippet": "Jun 14, 2025 · ⚠ Ошибки при запуске таргета: чего избегать новичкам Запускаете таргет впервые и волнуетесь, чтобы не слить бюджет впустую? Это нормально. Ошибки — часть пути. Но некоторые из них настолько типичны, что их ...",
+      "summary": "",
+      "source_published_at": "2026-01-01",
+      "category": "mistakes",
+      "confidence": 7,
+      "discovered_at": "2026-11-09T19:43:00.944560",
+      "tags": [],
+      "source_url": "https://vk.com/wall-225812688_29"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 30,
+    "insights_found": 1
+  },
+  "ended_at": "2026-11-09T19:46:23.983154"
+}
