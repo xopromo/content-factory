@@ -1,0 +1,266 @@
+{
+  "session_id": "d747967d",
+  "started_at": "2026-11-12T23:20:15.500504",
+  "config": "Челябинск — новости и события",
+  "research_targets": [
+    "ЧП и происшествия",
+    "Городские события",
+    "Общество и жизнь"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-11-12T23:20:15.500524",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "d747967d",
+        "config": "Челябинск — новости и события",
+        "platforms": [
+          "ЧП и происшествия",
+          "Городские события",
+          "Общество и жизнь"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:20:15.500569",
+      "action": "Starting ЧП и происшествия research",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:20:15.500586",
+      "action": "Searching: Челябинск ЧП происшествия сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:21:43.935992",
+      "action": "Searching: Челябинск ДТП авария сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:21:45.597499",
+      "action": "Searching: Челябинск пожар криминал происшествие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:22:09.016988",
+      "action": "Searching: Челябинская область ЧП экстренные службы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:22:10.340719",
+      "action": "Searching: Челябинск происшествия сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:22:46.998866",
+      "action": "Searching: Челябинск ДТП авария 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:22:48.558484",
+      "action": "ЧП и происшествия research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:22:48.558535",
+      "action": "Starting Городские события research",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:22:48.558551",
+      "action": "Searching: Челябинск новости сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:22:50.137093",
+      "action": "Searching: Челябинск события громкие яркие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:23:23.414508",
+      "action": "Searching: Челябинск мэрия администрация решения site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:23:35.779972",
+      "action": "Searching: Челябинск стройки инфраструктура транспорт site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:23:49.256193",
+      "action": "Searching: Челябинск новости сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:23:51.181060",
+      "action": "Городские события research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:23:51.181114",
+      "action": "Starting Общество и жизнь research",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:23:51.181129",
+      "action": "Searching: Челябинск скандал резонанс общество site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:23:52.846957",
+      "action": "Searching: Южный Урал новости события site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:23:54.323058",
+      "action": "Searching: Челябинск экология промышленность проблемы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:23:55.798778",
+      "action": "Searching: Южный Урал новости события 2026",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:24:05.395710",
+      "action": "New insight discovered: Общество и жизнь",
+      "status": "success",
+      "details": {
+        "title": "Без овертайма и буллитов: ТОП фактов о матче Южный Урал ...",
+        "category": "regional",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:24:05.395747",
+      "action": "Общество и жизнь research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-11-12T23:24:05.395764",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-11-12T23:24:05.395775",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Общество и жизнь": 1
+        },
+        "insights_by_category": {
+          "regional": 1
+        },
+        "top_categories": [
+          [
+            "regional",
+            [
+              {
+                "id": 1,
+                "platform": "Общество и жизнь",
+                "title": "Без овертайма и буллитов: ТОП фактов о матче Южный Урал ...",
+                "content": "23 hours ago · Контакт с редакцией Сергей Михайлов 12.11.2026 Область Главная Новости Без овертайма и буллитов: ТОП фактов о матче Южный Урал - Буран",
+                "snippet": "23 hours ago · Контакт с редакцией Сергей Михайлов 12.11.2026 Область Главная Новости Без овертайма и буллитов: ТОП фактов о матче Южный Урал - Буран",
+                "summary": "",
+                "source_published_at": "",
+                "category": "regional",
+                "confidence": 7,
+                "discovered_at": "2026-11-12T23:24:05.395685",
+                "tags": [],
+                "source_url": "https://www.ural56.ru/news/797107/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Общество и жизнь",
+      "title": "Без овертайма и буллитов: ТОП фактов о матче Южный Урал ...",
+      "content": "23 hours ago · Контакт с редакцией Сергей Михайлов 12.11.2026 Область Главная Новости Без овертайма и буллитов: ТОП фактов о матче Южный Урал - Буран",
+      "snippet": "23 hours ago · Контакт с редакцией Сергей Михайлов 12.11.2026 Область Главная Новости Без овертайма и буллитов: ТОП фактов о матче Южный Урал - Буран",
+      "summary": "",
+      "source_published_at": "",
+      "category": "regional",
+      "confidence": 7,
+      "discovered_at": "2026-11-12T23:24:05.395685",
+      "tags": [],
+      "source_url": "https://www.ural56.ru/news/797107/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 17,
+    "insights_found": 1
+  },
+  "ended_at": "2026-11-12T23:24:05.395900"
+}
