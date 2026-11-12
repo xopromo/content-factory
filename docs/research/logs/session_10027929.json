@@ -1,0 +1,258 @@
+{
+  "session_id": "10027929",
+  "started_at": "2026-11-12T17:29:38.183470",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-11-12T17:29:38.183482",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "10027929",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:29:38.183511",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:29:38.183521",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:30:05.246201",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:30:07.490416",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:30:09.646869",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:30:37.825521",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:30:44.447415",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:30:44.447465",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:30:44.447478",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:31:16.757651",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:31:26.513298",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "How Does The Threads Algorithm Work in 2026? - MetricoolКак работает алгоритм Th",
+        "category": "discovery",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:31:26.513331",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:31:38.684813",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:31:40.741598",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:31:40.741648",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:31:40.741660",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:31:42.973764",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:32:01.552518",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:32:21.694021",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:32:39.467421",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:33:28.131311",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-12T17:33:28.131351",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-11-12T17:33:28.131364",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Threads": 1
+        },
+        "insights_by_category": {
+          "discovery": 1
+        },
+        "top_categories": [
+          [
+            "discovery",
+            [
+              {
+                "id": 1,
+                "platform": "Threads",
+                "title": "How Does The Threads Algorithm Work in 2026? - MetricoolКак работает алгоритм Th",
+                "content": "Feb 25, 2026 · How does the Threads algorithm work in 2026? View how the network determines which content to rank and which triggers are considered. Sep 1, 2026 · Алгоритм Threads решает, какие посты попадут в ленту «Для вас», а для большинства брендов почти весь охват приходит именно оттуда. Mar 9,",
+                "snippet": "Feb 25, 2026 · How does the Threads algorithm work in 2026? View how the network determines which content to rank and which triggers are considered. Sep 1, 2026 · Алгоритм Threads решает, какие посты попадут в ленту «Для вас», а для большинства брендов почти весь охват приходит именно оттуда. Mar 9,",
+                "summary": "",
+                "source_published_at": "2026-02-25T16:48",
+                "category": "discovery",
+                "confidence": 7,
+                "discovered_at": "2026-11-12T17:31:26.513271",
+                "tags": [],
+                "source_url": "https://metricool.com/threads-algorithm/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Threads",
+      "title": "How Does The Threads Algorithm Work in 2026? - MetricoolКак работает алгоритм Th",
+      "content": "Feb 25, 2026 · How does the Threads algorithm work in 2026? View how the network determines which content to rank and which triggers are considered. Sep 1, 2026 · Алгоритм Threads решает, какие посты попадут в ленту «Для вас», а для большинства брендов почти весь охват приходит именно оттуда. Mar 9,",
+      "snippet": "Feb 25, 2026 · How does the Threads algorithm work in 2026? View how the network determines which content to rank and which triggers are considered. Sep 1, 2026 · Алгоритм Threads решает, какие посты попадут в ленту «Для вас», а для большинства брендов почти весь охват приходит именно оттуда. Mar 9,",
+      "summary": "",
+      "source_published_at": "2026-02-25T16:48",
+      "category": "discovery",
+      "confidence": 7,
+      "discovered_at": "2026-11-12T17:31:26.513271",
+      "tags": [],
+      "source_url": "https://metricool.com/threads-algorithm/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 27,
+    "insights_found": 1
+  },
+  "ended_at": "2026-11-12T17:33:28.131423"
+}
