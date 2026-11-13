@@ -1,0 +1,303 @@
+{
+  "session_id": "a43b9d3a",
+  "started_at": "2026-11-13T17:05:15.463209",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-11-13T17:05:15.463228",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "a43b9d3a",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:05:15.463273",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:05:15.463289",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:05:17.565928",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:05:37.506404",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:06:00.482721",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:06:02.126927",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:06:03.993597",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:06:03.993647",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:06:03.993666",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:07:04.046160",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:07:06.017836",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:08:13.760300",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:08:57.516306",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Бренды теряют клиентов после публикаций в Threads*: кейсы ...",
+        "category": "viral",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:08:57.516342",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:08:57.516360",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:08:57.516372",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:09:32.894903",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:10:35.019799",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "ML-оптимизация ставок в Яндекс Директе: гайд 2026",
+        "category": "bidding",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:10:35.019827",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:10:36.813444",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:10:38.415441",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:10:40.054970",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-11-13T17:10:40.055016",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-11-13T17:10:40.055031",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 2,
+        "insights_by_platform": {
+          "Threads": 1,
+          "Yandex Direct": 1
+        },
+        "insights_by_category": {
+          "viral": 1,
+          "bidding": 1
+        },
+        "top_categories": [
+          [
+            "viral",
+            [
+              {
+                "id": 1,
+                "platform": "Threads",
+                "title": "Бренды теряют клиентов после публикаций в Threads*: кейсы ...",
+                "content": "Sep 8, 2026 · В Threads* легко может завируситься пост от бренда, его сотрудника или клиента, но иногда это приводит не к росту узнаваемости, а к потере репутации и даже самого бизнеса.",
+                "snippet": "Sep 8, 2026 · В Threads* легко может завируситься пост от бренда, его сотрудника или клиента, но иногда это приводит не к росту узнаваемости, а к потере репутации и даже самого бизнеса.",
+                "summary": "",
+                "source_published_at": "",
+                "category": "viral",
+                "confidence": 7,
+                "discovered_at": "2026-11-13T17:08:57.516274",
+                "tags": [],
+                "source_url": "https://secrets.tbank.ru/trendy/skandaly-brendov-v-threads/"
+              }
+            ]
+          ],
+          [
+            "bidding",
+            [
+              {
+                "id": 2,
+                "platform": "Yandex Direct",
+                "title": "ML-оптимизация ставок в Яндекс Директе: гайд 2026",
+                "content": "Что такое ML-оптимизация ставок в Яндекс Директе: автостратегии на ИИ, максимум конверсий и кликов, оплата за конверсии. Пошаговая настройка и типичные ошибки для директологов.",
+                "snippet": "Что такое ML-оптимизация ставок в Яндекс Директе: автостратегии на ИИ, максимум конверсий и кликов, оплата за конверсии. Пошаговая настройка и типичные ошибки для директологов.",
+                "summary": "",
+                "source_published_at": "2026-11-13",
+                "category": "bidding",
+                "confidence": 8,
+                "discovered_at": "2026-11-13T17:10:35.019782",
+                "tags": [],
+                "source_url": "https://monster-marketing.ru/blog/ml-optimizaciya-stavok/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Threads",
+      "title": "Бренды теряют клиентов после публикаций в Threads*: кейсы ...",
+      "content": "Sep 8, 2026 · В Threads* легко может завируситься пост от бренда, его сотрудника или клиента, но иногда это приводит не к росту узнаваемости, а к потере репутации и даже самого бизнеса.",
+      "snippet": "Sep 8, 2026 · В Threads* легко может завируситься пост от бренда, его сотрудника или клиента, но иногда это приводит не к росту узнаваемости, а к потере репутации и даже самого бизнеса.",
+      "summary": "",
+      "source_published_at": "",
+      "category": "viral",
+      "confidence": 7,
+      "discovered_at": "2026-11-13T17:08:57.516274",
+      "tags": [],
+      "source_url": "https://secrets.tbank.ru/trendy/skandaly-brendov-v-threads/"
+    },
+    {
+      "id": 2,
+      "platform": "Yandex Direct",
+      "title": "ML-оптимизация ставок в Яндекс Директе: гайд 2026",
+      "content": "Что такое ML-оптимизация ставок в Яндекс Директе: автостратегии на ИИ, максимум конверсий и кликов, оплата за конверсии. Пошаговая настройка и типичные ошибки для директологов.",
+      "snippet": "Что такое ML-оптимизация ставок в Яндекс Директе: автостратегии на ИИ, максимум конверсий и кликов, оплата за конверсии. Пошаговая настройка и типичные ошибки для директологов.",
+      "summary": "",
+      "source_published_at": "2026-11-13",
+      "category": "bidding",
+      "confidence": 8,
+      "discovered_at": "2026-11-13T17:10:35.019782",
+      "tags": [],
+      "source_url": "https://monster-marketing.ru/blog/ml-optimizaciya-stavok/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 21,
+    "insights_found": 2
+  },
+  "ended_at": "2026-11-13T17:10:40.055123"
+}
