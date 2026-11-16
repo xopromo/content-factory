@@ -1,0 +1,302 @@
+{
+  "session_id": "1573c395",
+  "started_at": "2026-11-16T19:28:27.401751",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-11-16T19:28:27.401764",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "1573c395",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:27.401793",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:27.401804",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:29.330220",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:42.169978",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "ВКонтакте | Это главное сообщество Команды ВКонтакте | 2026 | ВКо...",
+        "category": "budget_optimization",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:42.170017",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:52.051605",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "ВКонтакте | ВКонтакте",
+        "category": "timing",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:52.051636",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:53.451456",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:55.145465",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 2
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:55.145517",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:55.145531",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:55.885028",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:56.688363",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:58.257676",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:59.900560",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:59.900610",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:28:59.900622",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:29:22.831047",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:29:24.455710",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:29:52.998826",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:30:45.674527",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:32:04.293519",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-16T19:32:04.293554",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-11-16T19:32:04.293567",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 2,
+        "insights_by_platform": {
+          "VK": 2
+        },
+        "insights_by_category": {
+          "budget_optimization": 1,
+          "timing": 1
+        },
+        "top_categories": [
+          [
+            "budget_optimization",
+            [
+              {
+                "id": 1,
+                "platform": "VK",
+                "title": "ВКонтакте | Это главное сообщество Команды ВКонтакте | 2026 | ВКо...",
+                "content": "Valér Szaturnusz А где \"игра\" починить вк? Напоминаю: до сих пор есть треки с \"ошибкой воспроизведения\" и изображения с \"ошибкой загрузки\". Исправляйте свои ошибки!",
+                "snippet": "Valér Szaturnusz А где \"игра\" починить вк? Напоминаю: до сих пор есть треки с \"ошибкой воспроизведения\" и изображения с \"ошибкой загрузки\". Исправляйте свои ошибки!",
+                "summary": "",
+                "source_published_at": "2025-01-01",
+                "category": "budget_optimization",
+                "confidence": 7,
+                "discovered_at": "2026-11-16T19:28:42.169949",
+                "tags": [],
+                "source_url": "https://vk.ru/vk"
+              }
+            ]
+          ],
+          [
+            "timing",
+            [
+              {
+                "id": 2,
+                "platform": "VK",
+                "title": "ВКонтакте | ВКонтакте",
+                "content": "ВКонтакте – универсальное средство для общения и поиска друзей и одноклассников, которым ежедневно пользуются десятки миллионов человек. Мы хотим, чтобы друзья, однокурсники, одноклассники, соседи и коллеги всегда ...",
+                "snippet": "ВКонтакте – универсальное средство для общения и поиска друзей и одноклассников, которым ежедневно пользуются десятки миллионов человек. Мы хотим, чтобы друзья, однокурсники, одноклассники, соседи и коллеги всегда ...",
+                "summary": "",
+                "source_published_at": "2023-01-01",
+                "category": "timing",
+                "confidence": 7,
+                "discovered_at": "2026-11-16T19:28:52.051565",
+                "tags": [],
+                "source_url": "https://m.vk.ru/pwa"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "VK",
+      "title": "ВКонтакте | Это главное сообщество Команды ВКонтакте | 2026 | ВКо...",
+      "content": "Valér Szaturnusz А где \"игра\" починить вк? Напоминаю: до сих пор есть треки с \"ошибкой воспроизведения\" и изображения с \"ошибкой загрузки\". Исправляйте свои ошибки!",
+      "snippet": "Valér Szaturnusz А где \"игра\" починить вк? Напоминаю: до сих пор есть треки с \"ошибкой воспроизведения\" и изображения с \"ошибкой загрузки\". Исправляйте свои ошибки!",
+      "summary": "",
+      "source_published_at": "2025-01-01",
+      "category": "budget_optimization",
+      "confidence": 7,
+      "discovered_at": "2026-11-16T19:28:42.169949",
+      "tags": [],
+      "source_url": "https://vk.ru/vk"
+    },
+    {
+      "id": 2,
+      "platform": "VK",
+      "title": "ВКонтакте | ВКонтакте",
+      "content": "ВКонтакте – универсальное средство для общения и поиска друзей и одноклассников, которым ежедневно пользуются десятки миллионов человек. Мы хотим, чтобы друзья, однокурсники, одноклассники, соседи и коллеги всегда ...",
+      "snippet": "ВКонтакте – универсальное средство для общения и поиска друзей и одноклассников, которым ежедневно пользуются десятки миллионов человек. Мы хотим, чтобы друзья, однокурсники, одноклассники, соседи и коллеги всегда ...",
+      "summary": "",
+      "source_published_at": "2023-01-01",
+      "category": "timing",
+      "confidence": 7,
+      "discovered_at": "2026-11-16T19:28:52.051565",
+      "tags": [],
+      "source_url": "https://m.vk.ru/pwa"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 27,
+    "insights_found": 2
+  },
+  "ended_at": "2026-11-16T19:32:04.293697"
+}
