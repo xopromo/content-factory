@@ -1,0 +1,306 @@
+{
+  "session_id": "f6fd0c82",
+  "started_at": "2026-11-18T17:55:23.359369",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-11-18T17:55:23.359384",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "f6fd0c82",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:55:23.359422",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:55:23.359438",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:55:25.424292",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:55:49.154642",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:55:50.903938",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:56:47.643700",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:56:49.439756",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:56:49.439799",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:56:49.439815",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:57:15.609531",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:57:16.941757",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:57:28.728179",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:57:50.092862",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:57:50.092899",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:57:50.092913",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:58:12.352585",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:58:24.958496",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Ставки на поиске Директ: настройка и стратегии в 2026",
+        "category": "bidding",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:58:24.958530",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:58:50.960175",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:59:12.118353",
+      "action": "New insight discovered: Yandex Direct",
+      "status": "success",
+      "details": {
+        "title": "Как повысить CTR в «Яндекс Директ»: кликабельность объявлений ...",
+        "category": "optimization",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:59:12.118389",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:59:37.352303",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 2
+      }
+    },
+    {
+      "timestamp": "2026-11-18T17:59:37.352338",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-11-18T17:59:37.352353",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 2,
+        "insights_by_platform": {
+          "Yandex Direct": 2
+        },
+        "insights_by_category": {
+          "bidding": 1,
+          "optimization": 1
+        },
+        "top_categories": [
+          [
+            "bidding",
+            [
+              {
+                "id": 1,
+                "platform": "Yandex Direct",
+                "title": "Ставки на поиске Директ: настройка и стратегии в 2026",
+                "content": "Ориентиры CPC на поиске в 2026 году — ориентир агентств / не подтверждено Яндексом: 15–30 ₽ в средней конкуренции; 500–700 ₽ в юридических и медицинских нишах (SO Agency, Business.ru).",
+                "snippet": "Ориентиры CPC на поиске в 2026 году — ориентир агентств / не подтверждено Яндексом: 15–30 ₽ в средней конкуренции; 500–700 ₽ в юридических и медицинских нишах (SO Agency, Business.ru).",
+                "summary": "",
+                "source_published_at": "2026-11-18",
+                "category": "bidding",
+                "confidence": 8,
+                "discovered_at": "2026-11-18T17:58:24.958472",
+                "tags": [
+                  "cpc"
+                ],
+                "source_url": "https://monster-marketing.ru/blog/stavki-na-poiske-direkt/"
+              }
+            ]
+          ],
+          [
+            "optimization",
+            [
+              {
+                "id": 2,
+                "platform": "Yandex Direct",
+                "title": "Как повысить CTR в «Яндекс Директ»: кликабельность объявлений ...",
+                "content": "Как эксперт по digital-маркетингу, могу выделить следующие ключевые инсайты из статьи:\n\nCTR в Яндекс Директ напрямую влияет на ранжирование объявлений в аукционе и списываемую цену клика: более высокий прогноз CTR улучшает позиции и снижает стоимость. Хорошим показателем на поиске считается 8% и выше, а в РСЯ - 0,5-2%, при этом значения выше 2% в РСЯ могут указывать на случайные клики. Критически важно сравнивать свой CTR с показателями конкретной ниши и отдельно для поисковых кампаний и РСЯ, а не с общими средними значениями. Прежде чем оптимизировать объявления, необходимо понять механизм работы CTR в Директе, сравнить свои показатели с ориентирами и обязательно тестировать любые изменения с учетом конверсий.",
+                "snippet": "Nov 9, 2026 · Что такое CTR в «Яндекс Директ» и на что он влияет CTR (click-through rate, кликабельность) — это отношение числа кликов на объявление к числу показов объявления, выраженное в процентах.",
+                "summary": "Как эксперт по digital-маркетингу, могу выделить следующие ключевые инсайты из статьи:\n\nCTR в Яндекс Директ напрямую влияет на ранжирование объявлений в аукционе и списываемую цену клика: более высокий прогноз CTR улучшает позиции и снижает стоимость. Хорошим показателем на поиске считается 8% и выше, а в РСЯ - 0,5-2%, при этом значения выше 2% в РСЯ могут указывать на случайные клики. Критически важно сравнивать свой CTR с показателями конкретной ниши и отдельно для поисковых кампаний и РСЯ, а не с общими средними значениями. Прежде чем оптимизировать объявления, необходимо понять механизм работы CTR в Директе, сравнить свои показатели с ориентирами и обязательно тестировать любые изменения с учетом конверсий.",
+                "source_published_at": "2022-05-31T14:43",
+                "category": "optimization",
+                "confidence": 8,
+                "discovered_at": "2026-11-18T17:59:12.118325",
+                "tags": [],
+                "source_url": "https://kokoc.com/blog/kak-povysit-klikabelnost-obyavleniya-v-yandeks-direkt/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Yandex Direct",
+      "title": "Ставки на поиске Директ: настройка и стратегии в 2026",
+      "content": "Ориентиры CPC на поиске в 2026 году — ориентир агентств / не подтверждено Яндексом: 15–30 ₽ в средней конкуренции; 500–700 ₽ в юридических и медицинских нишах (SO Agency, Business.ru).",
+      "snippet": "Ориентиры CPC на поиске в 2026 году — ориентир агентств / не подтверждено Яндексом: 15–30 ₽ в средней конкуренции; 500–700 ₽ в юридических и медицинских нишах (SO Agency, Business.ru).",
+      "summary": "",
+      "source_published_at": "2026-11-18",
+      "category": "bidding",
+      "confidence": 8,
+      "discovered_at": "2026-11-18T17:58:24.958472",
+      "tags": [
+        "cpc"
+      ],
+      "source_url": "https://monster-marketing.ru/blog/stavki-na-poiske-direkt/"
+    },
+    {
+      "id": 2,
+      "platform": "Yandex Direct",
+      "title": "Как повысить CTR в «Яндекс Директ»: кликабельность объявлений ...",
+      "content": "Как эксперт по digital-маркетингу, могу выделить следующие ключевые инсайты из статьи:\n\nCTR в Яндекс Директ напрямую влияет на ранжирование объявлений в аукционе и списываемую цену клика: более высокий прогноз CTR улучшает позиции и снижает стоимость. Хорошим показателем на поиске считается 8% и выше, а в РСЯ - 0,5-2%, при этом значения выше 2% в РСЯ могут указывать на случайные клики. Критически важно сравнивать свой CTR с показателями конкретной ниши и отдельно для поисковых кампаний и РСЯ, а не с общими средними значениями. Прежде чем оптимизировать объявления, необходимо понять механизм работы CTR в Директе, сравнить свои показатели с ориентирами и обязательно тестировать любые изменения с учетом конверсий.",
+      "snippet": "Nov 9, 2026 · Что такое CTR в «Яндекс Директ» и на что он влияет CTR (click-through rate, кликабельность) — это отношение числа кликов на объявление к числу показов объявления, выраженное в процентах.",
+      "summary": "Как эксперт по digital-маркетингу, могу выделить следующие ключевые инсайты из статьи:\n\nCTR в Яндекс Директ напрямую влияет на ранжирование объявлений в аукционе и списываемую цену клика: более высокий прогноз CTR улучшает позиции и снижает стоимость. Хорошим показателем на поиске считается 8% и выше, а в РСЯ - 0,5-2%, при этом значения выше 2% в РСЯ могут указывать на случайные клики. Критически важно сравнивать свой CTR с показателями конкретной ниши и отдельно для поисковых кампаний и РСЯ, а не с общими средними значениями. Прежде чем оптимизировать объявления, необходимо понять механизм работы CTR в Директе, сравнить свои показатели с ориентирами и обязательно тестировать любые изменения с учетом конверсий.",
+      "source_published_at": "2022-05-31T14:43",
+      "category": "optimization",
+      "confidence": 8,
+      "discovered_at": "2026-11-18T17:59:12.118325",
+      "tags": [],
+      "source_url": "https://kokoc.com/blog/kak-povysit-klikabelnost-obyavleniya-v-yandeks-direkt/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 30,
+    "insights_found": 2
+  },
+  "ended_at": "2026-11-18T17:59:37.352451"
+}
