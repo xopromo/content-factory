@@ -1,0 +1,266 @@
+{
+  "session_id": "621c63fa",
+  "started_at": "2026-11-18T00:44:17.544219",
+  "config": "Челябинск — новости и события",
+  "research_targets": [
+    "ЧП и происшествия",
+    "Городские события",
+    "Общество и жизнь"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-11-18T00:44:17.544235",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "621c63fa",
+        "config": "Челябинск — новости и события",
+        "platforms": [
+          "ЧП и происшествия",
+          "Городские события",
+          "Общество и жизнь"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:44:17.544283",
+      "action": "Starting ЧП и происшествия research",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:44:17.544300",
+      "action": "Searching: Челябинск ЧП происшествия сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:44:19.597284",
+      "action": "Searching: Челябинск ДТП авария сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:44:21.180879",
+      "action": "Searching: Челябинск пожар криминал происшествие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:44:22.927087",
+      "action": "Searching: Челябинская область ЧП экстренные службы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:44:24.451344",
+      "action": "Searching: Челябинск происшествия сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:44:50.890962",
+      "action": "Searching: Челябинск ДТП авария 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:44:59.771138",
+      "action": "New insight discovered: ЧП и происшествия",
+      "status": "success",
+      "details": {
+        "title": "Смертность в ДТП со старыми авто выросла в Челябинской ...",
+        "category": "accidents",
+        "confidence": "8/10"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:44:59.771177",
+      "action": "ЧП и происшествия research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:44:59.771194",
+      "action": "Starting Городские события research",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:44:59.771207",
+      "action": "Searching: Челябинск новости сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:45:23.694118",
+      "action": "Searching: Челябинск события громкие яркие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:45:34.483014",
+      "action": "Searching: Челябинск мэрия администрация решения site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:45:44.950777",
+      "action": "Searching: Челябинск стройки инфраструктура транспорт site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:45:46.840864",
+      "action": "Searching: Челябинск новости сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:46:04.381327",
+      "action": "Городские события research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:46:04.381366",
+      "action": "Starting Общество и жизнь research",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:46:04.381381",
+      "action": "Searching: Челябинск скандал резонанс общество site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:46:08.557961",
+      "action": "Searching: Южный Урал новости события site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:46:10.095950",
+      "action": "Searching: Челябинск экология промышленность проблемы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:46:11.795635",
+      "action": "Searching: Южный Урал новости события 2026",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:46:13.642835",
+      "action": "Общество и жизнь research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-18T00:46:13.642879",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-11-18T00:46:13.642894",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "ЧП и происшествия": 1
+        },
+        "insights_by_category": {
+          "accidents": 1
+        },
+        "top_categories": [
+          [
+            "accidents",
+            [
+              {
+                "id": 1,
+                "platform": "ЧП и происшествия",
+                "title": "Смертность в ДТП со старыми авто выросла в Челябинской ...",
+                "content": "1 day ago · 🚗 В Челябинской области выросла смертность в ДТП со старыми автомобилями За неполный год жертвами таких аварий стали 62 человека, и особенно настораживает тот факт, что за рулем все чаще оказывается молодежь.",
+                "snippet": "1 day ago · 🚗 В Челябинской области выросла смертность в ДТП со старыми автомобилями За неполный год жертвами таких аварий стали 62 человека, и особенно настораживает тот факт, что за рулем все чаще оказывается молодежь.",
+                "summary": "",
+                "source_published_at": "",
+                "category": "accidents",
+                "confidence": 8,
+                "discovered_at": "2026-11-18T00:44:59.771114",
+                "tags": [],
+                "source_url": "https://tvgram.ru/nashchelyabinsk/53277"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "ЧП и происшествия",
+      "title": "Смертность в ДТП со старыми авто выросла в Челябинской ...",
+      "content": "1 day ago · 🚗 В Челябинской области выросла смертность в ДТП со старыми автомобилями За неполный год жертвами таких аварий стали 62 человека, и особенно настораживает тот факт, что за рулем все чаще оказывается молодежь.",
+      "snippet": "1 day ago · 🚗 В Челябинской области выросла смертность в ДТП со старыми автомобилями За неполный год жертвами таких аварий стали 62 человека, и особенно настораживает тот факт, что за рулем все чаще оказывается молодежь.",
+      "summary": "",
+      "source_published_at": "",
+      "category": "accidents",
+      "confidence": 8,
+      "discovered_at": "2026-11-18T00:44:59.771114",
+      "tags": [],
+      "source_url": "https://tvgram.ru/nashchelyabinsk/53277"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 15,
+    "insights_found": 1
+  },
+  "ended_at": "2026-11-18T00:46:13.642999"
+}
