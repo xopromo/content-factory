@@ -1,0 +1,258 @@
+{
+  "session_id": "1227f08c",
+  "started_at": "2026-11-23T21:08:24.811133",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-11-23T21:08:24.811147",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "1227f08c",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:24.811180",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:24.811191",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:29.348871",
+      "action": "New insight discovered: VK",
+      "status": "success",
+      "details": {
+        "title": "Аккаунт | ВКонтакте",
+        "category": "targeting",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:29.348905",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:31.220464",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:35.780591",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:37.711076",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:39.205910",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:39.205967",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:39.205978",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:40.062581",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:41.526614",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:42.932160",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:44.413423",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:44.413463",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:44.413472",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:08:46.068415",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:09:02.707671",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:09:13.487410",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:09:14.966939",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:09:30.460217",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-23T21:09:30.460253",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-11-23T21:09:30.460266",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "VK": 1
+        },
+        "insights_by_category": {
+          "targeting": 1
+        },
+        "top_categories": [
+          [
+            "targeting",
+            [
+              {
+                "id": 1,
+                "platform": "VK",
+                "title": "Аккаунт | ВКонтакте",
+                "content": "ВКонтакте – универсальное средство для общения и поиска друзей и одноклассников, которым ежедневно пользуются десятки миллионов человек. Мы хотим, чтобы друзья, однокурсники, одноклассники, соседи и коллеги всегда ...",
+                "snippet": "ВКонтакте – универсальное средство для общения и поиска друзей и одноклассников, которым ежедневно пользуются десятки миллионов человек. Мы хотим, чтобы друзья, однокурсники, одноклассники, соседи и коллеги всегда ...",
+                "summary": "",
+                "source_published_at": "2023-01-01",
+                "category": "targeting",
+                "confidence": 7,
+                "discovered_at": "2026-11-23T21:08:29.348846",
+                "tags": [],
+                "source_url": "https://m.vk.ru/settings"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "VK",
+      "title": "Аккаунт | ВКонтакте",
+      "content": "ВКонтакте – универсальное средство для общения и поиска друзей и одноклассников, которым ежедневно пользуются десятки миллионов человек. Мы хотим, чтобы друзья, однокурсники, одноклассники, соседи и коллеги всегда ...",
+      "snippet": "ВКонтакте – универсальное средство для общения и поиска друзей и одноклассников, которым ежедневно пользуются десятки миллионов человек. Мы хотим, чтобы друзья, однокурсники, одноклассники, соседи и коллеги всегда ...",
+      "summary": "",
+      "source_published_at": "2023-01-01",
+      "category": "targeting",
+      "confidence": 7,
+      "discovered_at": "2026-11-23T21:08:29.348846",
+      "tags": [],
+      "source_url": "https://m.vk.ru/settings"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 24,
+    "insights_found": 1
+  },
+  "ended_at": "2026-11-23T21:09:30.460312"
+}
