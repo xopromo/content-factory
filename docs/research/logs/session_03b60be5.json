@@ -1,0 +1,258 @@
+{
+  "session_id": "03b60be5",
+  "started_at": "2026-11-24T20:03:35.154614",
+  "config": "Traffic Research",
+  "research_targets": [
+    "VK",
+    "Threads",
+    "Yandex Direct"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-11-24T20:03:35.154626",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "03b60be5",
+        "config": "Traffic Research",
+        "platforms": [
+          "VK",
+          "Threads",
+          "Yandex Direct"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:03:35.154657",
+      "action": "Starting VK research",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:03:35.154667",
+      "action": "Searching: ВКонтакте таргетинг лайфхаки 2026 эффективность аудитории",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:03:37.885475",
+      "action": "Searching: ВК реклама оптимизация бюджета ROI стратегия 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:04:04.559437",
+      "action": "Searching: ВКонтакте реклама время публикации объявлений лучшее",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:04:06.623254",
+      "action": "Searching: VK Ads новые фишки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:04:08.737241",
+      "action": "Searching: ВК таргет ошибки новичков как избежать",
+      "status": "info",
+      "details": {
+        "platform": "VK"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:04:10.754927",
+      "action": "VK research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:04:10.754975",
+      "action": "Starting Threads research",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:04:10.754986",
+      "action": "Searching: Threads соцсеть Meta продвижение стратегия 2026 охват -ВКонтакте -вк",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:05:11.787216",
+      "action": "Searching: Threads app хэштеги алгоритм охват 2026 -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:05:13.863938",
+      "action": "Searching: Threads Instagram Meta монетизация рост аудитории маркетинг",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:05:21.074850",
+      "action": "Searching: Threads соцсеть вирусный контент что работает -ВК -вконтакте",
+      "status": "info",
+      "details": {
+        "platform": "Threads"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:06:12.743105",
+      "action": "New insight discovered: Threads",
+      "status": "success",
+      "details": {
+        "title": "Как обстоят дела с приватностью в Threads | Блог Касперского",
+        "category": "viral",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:06:12.743132",
+      "action": "Threads research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:06:12.743144",
+      "action": "Starting Yandex Direct research",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:06:12.743154",
+      "action": "Searching: Яндекс Директ ключевые слова Wordstat лайфхаки 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:07:29.317649",
+      "action": "Searching: Яндекс Директ стратегия ставок оптимизация CPC 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:08:37.389575",
+      "action": "Searching: Яндекс Директ минус-слова фильтрация примеры",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:08:54.486063",
+      "action": "Searching: Яндекс Директ расширения объявлений CTR увеличение",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:08:56.629571",
+      "action": "Searching: Яндекс Директ новинки обновления 2026",
+      "status": "info",
+      "details": {
+        "platform": "Yandex Direct"
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:08:58.781498",
+      "action": "Yandex Direct research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-24T20:08:58.781552",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-11-24T20:08:58.781566",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Threads": 1
+        },
+        "insights_by_category": {
+          "viral": 1
+        },
+        "top_categories": [
+          [
+            "viral",
+            [
+              {
+                "id": 1,
+                "platform": "Threads",
+                "title": "Как обстоят дела с приватностью в Threads | Блог Касперского",
+                "content": "Вот саммари статьи с ключевыми инсайтами для специалистов:\n\nТехническая привязка к Instagram: Threads не является автономной сетью - для регистрации и работы требуется профиль в Instagram, а полноценный функционал доступен исключительно через мобильное приложение.\nРиски безопасности и фишинг: Из-за отсутствия веб-авторизации активизировались мошенники, создающие фейковые десктопные версии соцсети для кражи учетных данных от Instagram.\nЗащита от скама: Маркетологам и брендам следует избегать любых сторонних сервисов по «быстрой накрутке подписчиков» в Threads и покупки псевдо-криптовалют (Threads Coin) во избежание потери бюджета и персональных данных.\nСбор данных: В вопросах приватности Threads полностью дублирует политику Instagram, запрашивая у пользователей и собирая максимально возможный объем личной информации.",
+                "snippet": "Jul 13, 2023 · Как обстоят дела с приватностью в Threads, насколько много личных данных собирает приложение и каковы последствия того, что вы заведете профиль.",
+                "summary": "Вот саммари статьи с ключевыми инсайтами для специалистов:\n\nТехническая привязка к Instagram: Threads не является автономной сетью - для регистрации и работы требуется профиль в Instagram, а полноценный функционал доступен исключительно через мобильное приложение.\nРиски безопасности и фишинг: Из-за отсутствия веб-авторизации активизировались мошенники, создающие фейковые десктопные версии соцсети для кражи учетных данных от Instagram.\nЗащита от скама: Маркетологам и брендам следует избегать любых сторонних сервисов по «быстрой накрутке подписчиков» в Threads и покупки псевдо-криптовалют (Threads Coin) во избежание потери бюджета и персональных данных.\nСбор данных: В вопросах приватности Threads полностью дублирует политику Instagram, запрашивая у пользователей и собирая максимально возможный объем личной информации.",
+                "source_published_at": "2023-07-13T15:38",
+                "category": "viral",
+                "confidence": 7,
+                "discovered_at": "2026-11-24T20:06:12.743080",
+                "tags": [],
+                "source_url": "https://www.kaspersky.ru/blog/threads-privacy-questions/35718/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Threads",
+      "title": "Как обстоят дела с приватностью в Threads | Блог Касперского",
+      "content": "Вот саммари статьи с ключевыми инсайтами для специалистов:\n\nТехническая привязка к Instagram: Threads не является автономной сетью - для регистрации и работы требуется профиль в Instagram, а полноценный функционал доступен исключительно через мобильное приложение.\nРиски безопасности и фишинг: Из-за отсутствия веб-авторизации активизировались мошенники, создающие фейковые десктопные версии соцсети для кражи учетных данных от Instagram.\nЗащита от скама: Маркетологам и брендам следует избегать любых сторонних сервисов по «быстрой накрутке подписчиков» в Threads и покупки псевдо-криптовалют (Threads Coin) во избежание потери бюджета и персональных данных.\nСбор данных: В вопросах приватности Threads полностью дублирует политику Instagram, запрашивая у пользователей и собирая максимально возможный объем личной информации.",
+      "snippet": "Jul 13, 2023 · Как обстоят дела с приватностью в Threads, насколько много личных данных собирает приложение и каковы последствия того, что вы заведете профиль.",
+      "summary": "Вот саммари статьи с ключевыми инсайтами для специалистов:\n\nТехническая привязка к Instagram: Threads не является автономной сетью - для регистрации и работы требуется профиль в Instagram, а полноценный функционал доступен исключительно через мобильное приложение.\nРиски безопасности и фишинг: Из-за отсутствия веб-авторизации активизировались мошенники, создающие фейковые десктопные версии соцсети для кражи учетных данных от Instagram.\nЗащита от скама: Маркетологам и брендам следует избегать любых сторонних сервисов по «быстрой накрутке подписчиков» в Threads и покупки псевдо-криптовалют (Threads Coin) во избежание потери бюджета и персональных данных.\nСбор данных: В вопросах приватности Threads полностью дублирует политику Instagram, запрашивая у пользователей и собирая максимально возможный объем личной информации.",
+      "source_published_at": "2023-07-13T15:38",
+      "category": "viral",
+      "confidence": 7,
+      "discovered_at": "2026-11-24T20:06:12.743080",
+      "tags": [],
+      "source_url": "https://www.kaspersky.ru/blog/threads-privacy-questions/35718/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 24,
+    "insights_found": 1
+  },
+  "ended_at": "2026-11-24T20:08:58.781625"
+}
