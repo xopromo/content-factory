@@ -1,0 +1,266 @@
+{
+  "session_id": "155f78d6",
+  "started_at": "2026-11-26T21:08:25.216470",
+  "config": "Челябинск — новости и события",
+  "research_targets": [
+    "ЧП и происшествия",
+    "Городские события",
+    "Общество и жизнь"
+  ],
+  "log_entries": [
+    {
+      "timestamp": "2026-11-26T21:08:25.216487",
+      "action": "Agent initialized",
+      "status": "info",
+      "details": {
+        "session_id": "155f78d6",
+        "config": "Челябинск — новости и события",
+        "platforms": [
+          "ЧП и происшествия",
+          "Городские события",
+          "Общество и жизнь"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:08:25.216528",
+      "action": "Starting ЧП и происшествия research",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:08:25.216562",
+      "action": "Searching: Челябинск ЧП происшествия сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:08:27.020933",
+      "action": "Searching: Челябинск ДТП авария сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:08:28.340045",
+      "action": "Searching: Челябинск пожар криминал происшествие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:08:43.236308",
+      "action": "Searching: Челябинская область ЧП экстренные службы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:08:44.921139",
+      "action": "Searching: Челябинск происшествия сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:09:14.528247",
+      "action": "Searching: Челябинск ДТП авария 2026",
+      "status": "info",
+      "details": {
+        "platform": "ЧП и происшествия"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:09:15.955784",
+      "action": "ЧП и происшествия research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:09:15.955838",
+      "action": "Starting Городские события research",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:09:15.955851",
+      "action": "Searching: Челябинск новости сегодня site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:09:17.557015",
+      "action": "Searching: Челябинск события громкие яркие site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:09:39.312466",
+      "action": "Searching: Челябинск мэрия администрация решения site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:09:40.660114",
+      "action": "Searching: Челябинск стройки инфраструктура транспорт site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:09:41.788079",
+      "action": "Searching: Челябинск новости сегодня 2026",
+      "status": "info",
+      "details": {
+        "platform": "Городские события"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:10:12.739458",
+      "action": "Городские события research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 0
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:10:12.739501",
+      "action": "Starting Общество и жизнь research",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:10:12.739514",
+      "action": "Searching: Челябинск скандал резонанс общество site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:10:14.247133",
+      "action": "Searching: Южный Урал новости события site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:10:15.563071",
+      "action": "Searching: Челябинск экология промышленность проблемы site:74.ru",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:10:16.637901",
+      "action": "Searching: Южный Урал новости события 2026",
+      "status": "info",
+      "details": {
+        "platform": "Общество и жизнь"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:10:25.695974",
+      "action": "New insight discovered: Общество и жизнь",
+      "status": "success",
+      "details": {
+        "title": "«Южный Урал» проиграл «Торос» : Урал56.Ру. Новости Орска ...",
+        "category": "regional",
+        "confidence": "7/10"
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:10:25.696010",
+      "action": "Общество и жизнь research completed",
+      "status": "success",
+      "details": {
+        "insights_added": 1
+      }
+    },
+    {
+      "timestamp": "2026-11-26T21:10:25.696022",
+      "action": "Generating research summary",
+      "status": "info",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-11-26T21:10:25.696032",
+      "action": "Summary generated",
+      "status": "success",
+      "details": {
+        "total_insights": 1,
+        "insights_by_platform": {
+          "Общество и жизнь": 1
+        },
+        "insights_by_category": {
+          "regional": 1
+        },
+        "top_categories": [
+          [
+            "regional",
+            [
+              {
+                "id": 1,
+                "platform": "Общество и жизнь",
+                "title": "«Южный Урал» проиграл «Торос» : Урал56.Ру. Новости Орска ...",
+                "content": "21 hours ago · Яна Васильева Урал56.Ру 26.11.2026 Область Главная Новости «Южный Урал» проиграл «Торос»",
+                "snippet": "21 hours ago · Яна Васильева Урал56.Ру 26.11.2026 Область Главная Новости «Южный Урал» проиграл «Торос»",
+                "summary": "",
+                "source_published_at": "",
+                "category": "regional",
+                "confidence": 7,
+                "discovered_at": "2026-11-26T21:10:25.695952",
+                "tags": [],
+                "source_url": "https://www.ural56.ru/news/799478/"
+              }
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "platform": "Общество и жизнь",
+      "title": "«Южный Урал» проиграл «Торос» : Урал56.Ру. Новости Орска ...",
+      "content": "21 hours ago · Яна Васильева Урал56.Ру 26.11.2026 Область Главная Новости «Южный Урал» проиграл «Торос»",
+      "snippet": "21 hours ago · Яна Васильева Урал56.Ру 26.11.2026 Область Главная Новости «Южный Урал» проиграл «Торос»",
+      "summary": "",
+      "source_published_at": "",
+      "category": "regional",
+      "confidence": 7,
+      "discovered_at": "2026-11-26T21:10:25.695952",
+      "tags": [],
+      "source_url": "https://www.ural56.ru/news/799478/"
+    }
+  ],
+  "statistics": {
+    "sources_analyzed": 12,
+    "insights_found": 1
+  },
+  "ended_at": "2026-11-26T21:10:25.696103"
+}
