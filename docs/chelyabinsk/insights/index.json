@@ -1,6 +1,6 @@
 {
-  "total_insights": 159,
-  "last_updated": "2026-11-27T07:32:26.926736",
+  "total_insights": 158,
+  "last_updated": "2026-11-27T20:52:31.132580",
   "insights": [
     {
       "id": 3,
@@ -267,20 +267,6 @@
       "discovered_at": "2026-05-30T01:01:43.555155",
       "tags": [],
       "source_url": "https://74.ru/text/gorod/2026/05/29/76450210/comments/"
-    },
-    {
-      "id": 1,
-      "platform": "Общество и жизнь",
-      "title": "«Южный Урал» проиграл «Торос» : Урал56.Ру. Новости Орска ...",
-      "content": "21 hours ago · Яна Васильева Урал56.Ру 26.11.2026 Область Главная Новости «Южный Урал» проиграл «Торос»",
-      "snippet": "21 hours ago · Яна Васильева Урал56.Ру 26.11.2026 Область Главная Новости «Южный Урал» проиграл «Торос»",
-      "summary": "",
-      "source_published_at": "",
-      "category": "regional",
-      "confidence": 7,
-      "discovered_at": "2026-11-26T21:10:25.695952",
-      "tags": [],
-      "source_url": "https://www.ural56.ru/news/799478/"
     },
     {
       "id": 5,
